@@ -1,0 +1,232 @@
+import { createChart, CandlestickSeries } from "lightweight-charts";
+import { useEffect, useRef, useImperativeHandle, forwardRef } from "react";
+
+const FOREX = ['EUR/USD','GBP/USD','AUD/USD','USD/JPY','USD/CHF','USD/CAD'];
+
+function generateCandles(n, startPrice, vol, trend = 0) {
+  const out = [];
+  let price = startPrice;
+  for (let i = 0; i < n; i++) {
+    const change = (Math.random() - 0.5 + trend * 0.3) * vol;
+    const open  = price;
+    const close = price * (1 + change);
+    const high  = Math.max(open, close) * (1 + Math.random() * vol * 0.5);
+    const low   = Math.min(open, close) * (1 - Math.random() * vol * 0.5);
+    out.push({ open, close, high, low });
+    price = close;
+  }
+  return out;
+}
+
+async function fetchBinanceCandles(symbol, interval, limit) {
+  const url = `https://api.binance.com/api/v3/klines?symbol=${symbol}&interval=${interval}&limit=${limit}`;
+  const res  = await fetch(url);
+  const data = await res.json();
+  return data.map(k => ({
+    time:  Math.floor(k[0] / 1000),
+    open:  parseFloat(k[1]),
+    high:  parseFloat(k[2]),
+    low:   parseFloat(k[3]),
+    close: parseFloat(k[4]),
+  }));
+}
+
+async function fetchYahooCandles(symbol, interval) {
+  const res  = await fetch(`http://localhost:3001/candles?symbol=${encodeURIComponent(symbol)}&interval=${interval}`);
+  const data = await res.json();
+  if (data.error) throw new Error(data.error);
+  return data;
+}
+
+function toChartData(candles, startIndex = 0) {
+  return candles.map((c, i) => {
+    const time = c.time ?? (() => {
+      const d = new Date();
+      d.setDate(d.getDate() - (candles.length - startIndex - i));
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    })();
+    return { time, open: c.open, high: c.high, low: c.low, close: c.close };
+  });
+}
+
+function toChartDataForex(candles, startIndex = 0) {
+  return candles.map((c, i) => {
+    const time = c.time ?? (() => {
+      const d = new Date();
+      d.setHours(d.getHours() - (candles.length - startIndex - i));
+      return Math.floor(d.getTime() / 1000);
+    })();
+    return {
+      time,
+      open:  c.open,
+      high:  c.high,
+      low:   c.low,
+      close: c.close,
+    };
+  });
+}
+
+const Chart = forwardRef(function Chart({ asset }, ref) {
+  const containerRef  = useRef(null);
+  const chartRef      = useRef(null);
+  const seriesRef     = useRef(null);
+  const candlesRef    = useRef([]);
+  const revealPoolRef = useRef([]);
+  const isForexRef    = useRef(false);
+  const allCandlesRef = useRef([]);
+
+  useImperativeHandle(ref, () => ({
+    getCandles: () => candlesRef.current,
+
+    getRealReveal() {
+      if (revealPoolRef.current.length >= 20) {
+        return revealPoolRef.current.slice(0, 20);
+      }
+      return null;
+    },
+    reshuffleWindow() {
+     if (!seriesRef.current || !allCandlesRef.current.length) return;
+     const all      = allCandlesRef.current;
+     const forex    = isForexRef.current;
+     const fn       = forex ? toChartDataForex : toChartData;
+     const maxStart = Math.max(0, all.length - 44);
+     const start    = Math.floor(Math.random() * maxStart);
+     candlesRef.current    = all.slice(start, start + 24);
+     revealPoolRef.current = all.slice(start + 24, start + 44);
+     seriesRef.current.setData(fn(candlesRef.current, 0));
+     chartRef.current.timeScale().fitContent();
+   },
+   
+
+    revealFuture(futureCandles, onDone) {
+     if (!seriesRef.current) return;
+     const forex    = isForexRef.current;
+      const fn       = forex ? toChartDataForex : toChartData;
+     const existing = fn(candlesRef.current, 0);
+     let i = 0;
+     const interval = setInterval(() => {
+      if (!seriesRef.current || i >= futureCandles.length) {
+       clearInterval(interval);
+        if (onDone) onDone();  // ← avisa cuando termina
+       return;
+     }
+       const next = futureCandles.slice(0, i + 1);
+      seriesRef.current.setData([
+       ...existing,
+       ...fn(next, candlesRef.current.length).map(c => ({
+        ...c,
+         color:       c.close >= c.open ? 'rgba(34,211,165,0.5)' : 'rgba(240,84,84,0.5)',
+         wickColor:   c.close >= c.open ? 'rgba(34,211,165,0.5)' : 'rgba(240,84,84,0.5)',
+         borderColor: c.close >= c.open ? 'rgba(34,211,165,0.5)' : 'rgba(240,84,84,0.5)',
+      })),
+    ]);
+    i++;
+  }, 120);
+},
+  }));
+
+  useEffect(() => {
+    if (!containerRef.current || !asset) return;
+
+    let chart;
+    let ro;
+
+    const timer = setTimeout(() => {
+      if (!containerRef.current) return;
+
+      const forex = FOREX.includes(asset.name);
+      isForexRef.current = forex;
+
+      chart = createChart(containerRef.current, {
+  width:  containerRef.current.clientWidth,
+  height: 220,
+  layout: { background: { color: 'transparent' }, textColor: '#3a4455' },
+  grid: {
+    vertLines: { color: 'rgba(255,255,255,0.03)' },
+    horzLines: { color: 'rgba(255,255,255,0.04)' },
+  },
+  rightPriceScale: { borderColor: 'transparent' },
+  timeScale: {
+    borderColor: 'transparent',
+    barSpacing:  14,
+    rightOffset: 3,
+    timeVisible: false,
+    visible: false,
+  },
+  localization: {
+    priceFormatter: (price) => {
+      if (isForexRef.current) return price.toFixed(4);
+      return price.toFixed(2);
+    },
+  },
+  crosshair:    { mode: 0 },
+  handleScroll: true,
+  handleScale:  true,
+});
+
+      const series = chart.addSeries(CandlestickSeries, {
+        upColor:         '#22d3a5',
+        downColor:       '#f05454',
+        borderUpColor:   '#22d3a5',
+        borderDownColor: '#f05454',
+        wickUpColor:     '#22d3a5',
+        wickDownColor:   '#f05454',
+        priceFormat: forex
+          ? { type: 'price', precision: 4, minMove: 0.0001 }
+          : { type: 'price', precision: 2, minMove: 0.01 },
+      });
+
+      chartRef.current  = chart;
+      seriesRef.current = series;
+
+      const symbol   = asset.binance ?? null;
+      const yahoo    = asset.yahoo   ?? null;
+      // forex siempre en 1h para mejor visualización
+      const interval = forex ? '1h' : asset.tf === '4H' ? '4h' : '1d';
+
+      const loadCandles = symbol
+        ? fetchBinanceCandles(symbol, interval, 700)
+        : yahoo
+        ? fetchYahooCandles(yahoo, interval)
+        : Promise.resolve(generateCandles(700, asset.base(), asset.vol));
+
+      const fn = forex ? toChartDataForex : toChartData;
+
+      loadCandles.then(candles => {
+       allCandlesRef.current = candles;
+       const maxStart = Math.max(0, candles.length - 44);
+       const start    = Math.floor(Math.random() * maxStart);
+       candlesRef.current    = candles.slice(start, start + 24);
+       revealPoolRef.current = candles.slice(start + 24, start + 44);
+       const fn = forex ? toChartDataForex : toChartData;
+       series.setData(fn(candlesRef.current, 0));
+       chart.timeScale().fitContent();
+     }).catch(() => {
+       const candles = generateCandles(500, asset.base(), asset.vol);
+       allCandlesRef.current = candles;
+       candlesRef.current    = candles.slice(0, 24);
+       revealPoolRef.current = candles.slice(24, 44);
+       series.setData(toChartData(candlesRef.current, 0));
+       chart.timeScale().fitContent();
+   });
+
+      ro = new ResizeObserver(() => {
+        if (containerRef.current) {
+          chart.applyOptions({ width: containerRef.current.clientWidth });
+        }
+      });
+      ro.observe(containerRef.current);
+    }, 10);
+
+    return () => {
+      clearTimeout(timer);
+      if (ro) ro.disconnect();
+      if (chart) chart.remove();
+    };
+  }, [asset]);
+
+  return <div ref={containerRef} style={{ width: '100%', height: '220px' }} />;
+});
+
+export default Chart;
+export { generateCandles };
