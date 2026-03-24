@@ -87,6 +87,7 @@ export const LANGS = {
   forfeited:  'FORFEITED',
   forfeitWon: 'opponent forfeited',
   forfeitLost:'you forfeited',
+  share: 'Share result',
 },
   },
 
@@ -178,6 +179,7 @@ export const LANGS = {
   forfeited:  'ABANDONASTE',
   forfeitWon: 'el oponente abandonó la partida',
   forfeitLost:'has abandonado la partida',
+  share: 'Compartir',
 },
 
   },
@@ -270,6 +272,7 @@ export const LANGS = {
   forfeited:  'AUFGEGEBEN',
   forfeitWon: 'gegner hat aufgegeben',
   forfeitLost:'du hast aufgegeben',
+  share: 'Teilen',
 },
   },
 
@@ -361,6 +364,7 @@ export const LANGS = {
   forfeited:  'ABANDONNÉ',
   forfeitWon: 'l\'adversaire a abandonné',
   forfeitLost:'tu as abandonné',
+  share: 'Partager',
 },
   },
   // en 'en':

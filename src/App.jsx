@@ -4,7 +4,7 @@ import Home from "./Home";
 import { useLang } from './LangContext.jsx';
 import { LANGS } from './i18n';
 import Arena from './Arena.jsx';
-
+import html2canvas from 'html2canvas';
 
 const ASSETS = [
   { name: 'BTC/USD',  tf: '1D', vol: 0.025, cat: 'crypto',      binance: 'BTCUSDT',  yahoo: null,        base: () => 28000 + Math.random() * 40000 },
@@ -39,23 +39,24 @@ function randomAsset(cat = 'all') {
 }
 
 export default function App() {
-  const [screen,   setScreen]   = useState('home');
-  const [category, setCategory] = useState('all');
-  const [asset,    setAsset]    = useState(() => randomAsset('all'));
-  const [phase,    setPhase]    = useState('choose');
-  const [result,   setResult]   = useState(null);
-  const [score,    setScore]    = useState(0);
-  const [streak,   setStreak]   = useState(0);
-  const [round,    setRound]    = useState(1);
-  const [history,  setHistory]  = useState([]);
-  const [selected, setSelected] = useState(null);
-  const [gameOver, setGameOver] = useState(false);
-  const [highscore, setHighscore] = useState(() => {
-  return parseInt(localStorage.getItem('tradara_highscore') || '0');
+  const [screen,    setScreen]   = useState('home');
+  const [category,  setCategory] = useState('all');
+  const [asset,     setAsset]    = useState(() => randomAsset('all'));
+  const [phase,     setPhase]    = useState('choose');
+  const [result,    setResult]   = useState(null);
+  const [score,     setScore]    = useState(0);
+  const [streak,    setStreak]   = useState(0);
+  const [round,     setRound]    = useState(1);
+  const [history,   setHistory]  = useState([]);
+  const [selected,  setSelected] = useState(null);
+  const [gameOver,  setGameOver] = useState(false);
+  const [revealing, setRevealing]= useState(false);
+  const [highscore, setHighscore]= useState(() => {
+    return parseInt(localStorage.getItem('tradara_highscore') || '0');
   });
+
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
-  const [revealing, setRevealing] = useState(false);
 
   const makeChoice = useCallback((choice) => {
     if (phase !== 'choose') return;
@@ -150,6 +151,19 @@ export default function App() {
     setAsset(randomAsset(category));
   };
 
+  const shareResult = async () => {
+    const el = document.getElementById('share-card');
+    if (!el) return;
+    const canvas = await html2canvas(el, {
+      backgroundColor: '#0a0c0f',
+      scale: 2,
+    });
+    const link = document.createElement('a');
+    link.download = 'tradara-result.png';
+    link.href = canvas.toDataURL();
+    link.click();
+  };
+
   // ── Game Over ─────────────────────────────────────────────────────
   if (gameOver) {
     const wins      = history.filter(h => h === 'win').length;
@@ -168,53 +182,76 @@ export default function App() {
         <div className="scanlines" />
         <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2 }}>
 
-          <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '11px', letterSpacing: '0.2em', color: '#3a4455', textTransform: 'uppercase', marginBottom: '10px' }}>
-           {t.gameover.title}
-           </div>
-           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: '#f5c842', letterSpacing: '-0.02em' }}>
-          {score}
-           </div>
-          <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '4px' }}>
-          {t.gameover.finalScore}
-          </div>
-          {score >= highscore && score > 0 && (
-         <div style={{ marginTop: '8px', fontSize: '10px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-         ★ new highscore!
-         </div>
-        )}
-       <div style={{ fontSize: '11px', color: '#3a4455', marginTop: '4px' }}>
-        best: {highscore}
-       </div>
-         </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '24px' }}>
-            {[
-              { label: t.gameover.correct,    value: wins,         color: '#22d3a5' },
-              { label: t.gameover.wrong,       value: losses,       color: '#f05454' },
-              { label: t.gameover.skipped,     value: skips,        color: '#f5c842' },
-              { label: t.gameover.accuracy,    value: accuracy+'%', color: '#e2e8f0' },
-              { label: t.gameover.bestStreak,  value: maxStreak,    color: '#22d3a5' },
-              { label: t.gameover.rounds,      value: 25,           color: '#e2e8f0' },
-            ].map(s => (
-              <div key={s.label} style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '14px 16px' }}>
-                <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '6px' }}>{s.label}</div>
-                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: s.color }}>{s.value}</div>
+          {/* Tarjeta que se captura */}
+          <div id="share-card" style={{
+            background: '#0a0c0f',
+            border: '1px solid #1e2530',
+            borderRadius: '12px',
+            padding: '28px 24px',
+            marginBottom: '16px',
+          }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f0f0f0' }}>
+                GUESS <span style={{ color: '#22d3a5' }}>THE</span> MARKET
               </div>
-            ))}
+              <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em' }}>tradara.vercel.app</div>
+            </div>
+
+            <div style={{ textAlign: 'center', marginBottom: '20px' }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '52px', color: '#f5c842', letterSpacing: '-0.02em', lineHeight: 1 }}>
+                {score}
+              </div>
+              <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '4px' }}>
+                {t.gameover.finalScore}
+              </div>
+              {score >= highscore && score > 0 && (
+                <div style={{ marginTop: '8px', fontSize: '10px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                  ★ new highscore!
+                </div>
+              )}
+              <div style={{ fontSize: '11px', color: '#3a4455', marginTop: '4px' }}>
+                best: {highscore}
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '20px' }}>
+              {[
+                { label: t.gameover.correct,    value: wins,          color: '#22d3a5' },
+                { label: t.gameover.accuracy,   value: accuracy + '%',color: '#e2e8f0' },
+                { label: t.gameover.bestStreak, value: maxStreak+'x', color: '#f5c842' },
+              ].map(s => (
+                <div key={s.label} style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px 8px', textAlign: 'center' }}>
+                  <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
+                  <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.06em', textTransform: 'uppercase', marginTop: '2px' }}>{s.label}</div>
+                </div>
+              ))}
+            </div>
+
+            <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
+              {history.map((h, i) => (
+                <div key={i} style={{
+                  width: '10px', height: '10px', borderRadius: '50%',
+                  background: h === 'win' ? '#22d3a5' : h === 'lose' ? '#f05454' : '#f5c842',
+                }} />
+              ))}
+            </div>
           </div>
 
-          <div style={{ display: 'flex', gap: '5px', flexWrap: 'wrap', marginBottom: '28px', justifyContent: 'center' }}>
-            {history.map((h, i) => (
-              <div key={i} className={`streak-dot ${h}`} title={`Round ${i+1}`} />
-            ))}
+          {/* Botones */}
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+            <button onClick={shareResult}
+              style={{ flex: 1, padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              📸 {t.gameover.share ?? 'Compartir'}
+            </button>
           </div>
 
           <div style={{ display: 'flex', gap: '10px' }}>
-            <button onClick={playAgain} style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+            <button onClick={playAgain}
+              style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
               {t.gameover.playAgain}
             </button>
-            <button onClick={goHome} style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+            <button onClick={goHome}
+              style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
               {t.gameover.menu}
             </button>
           </div>
@@ -225,15 +262,15 @@ export default function App() {
 
   // ── Home ──────────────────────────────────────────────────────────
   if (screen === 'home') {
-  return <Home onSelect={(mode) => {
-    if (mode === 'arena') setScreen('arena');
-    else setScreen('game');
-  }} />;
-}
+    return <Home onSelect={(mode) => {
+      if (mode === 'arena') setScreen('arena');
+      else setScreen('game');
+    }} />;
+  }
 
-if (screen === 'arena') {
-  return <Arena onBack={() => setScreen('home')} />;
-}
+  if (screen === 'arena') {
+    return <Arena onBack={() => setScreen('home')} />;
+  }
 
   // ── Game ──────────────────────────────────────────────────────────
   const cls      = result ? (result.win && !result.neutral ? 'win' : !result.win && !result.neutral ? 'lose' : 'neutral') : '';
@@ -244,8 +281,7 @@ if (screen === 'arena') {
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
 
-      <button
-        onClick={goHome}
+      <button onClick={goHome}
         style={{ position: 'absolute', top: '14px', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', zIndex: 10, padding: '4px 0', transition: 'color 0.15s' }}
         onMouseEnter={e => e.target.style.color = '#e2e8f0'}
         onMouseLeave={e => e.target.style.color = '#3a4455'}
@@ -258,17 +294,9 @@ if (screen === 'arena') {
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div className="lang-selector">
             {Object.keys(LANGS).map(l => (
-              <button 
-                key={l} 
-                className={`lang-btn${lang === l ? ' active' : ''}`} 
-                onClick={() => {
-                console.log('changing lang to', l);
-                setLang(l);
-             }}
-            style={{ pointerEvents: 'all', cursor: 'pointer' }}
-        >
-         {LANGS[l].label}
-        </button>
+              <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
+                {LANGS[l].label}
+              </button>
             ))}
           </div>
           <div className="stats-row">
@@ -357,12 +385,8 @@ if (screen === 'arena') {
             <div className={`result-pnl ${result.pts > 0 ? 'pos' : result.pts < 0 ? 'neg' : 'zero'}`}>
               {result.pts > 0 ? '+' + result.pts : result.pts === 0 ? '±0' : result.pts}
             </div>
-            <button
-              className="next-btn"
-             onClick={nextRound}
-             disabled={revealing}
-             style={{ opacity: revealing ? 0.3 : 1, cursor: revealing ? 'not-allowed' : 'pointer' }}
-          >
+            <button className="next-btn" onClick={nextRound} disabled={revealing}
+              style={{ opacity: revealing ? 0.3 : 1, cursor: revealing ? 'not-allowed' : 'pointer' }}>
               {revealing ? '...' : t.game.next}
             </button>
           </div>
