@@ -8,7 +8,8 @@ const yf         = new YahooFinance();
 const app        = express();
 const httpServer = http.createServer(app);
 const io         = new Server(httpServer, { cors: { origin: '*' } });
-
+const PORT = process.env.PORT || 3001;
+httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
 app.use(cors());
 
 app.get('/candles', async (req, res) => {
