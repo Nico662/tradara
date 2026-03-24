@@ -32,7 +32,7 @@ async function fetchBinanceCandles(symbol, interval, limit) {
 }
 
 async function fetchYahooCandles(symbol, interval) {
-  const res  = await fetch(`http://localhost:3001/candles?symbol=${encodeURIComponent(symbol)}&interval=${interval}`);
+  const res  = await fetch(`https://tradara-production.up.railway.app/candles?symbol=${encodeURIComponent(symbol)}&interval=${interval}`);
   const data = await res.json();
   if (data.error) throw new Error(data.error);
   return data;

@@ -4,7 +4,7 @@ import { createChart, CandlestickSeries } from 'lightweight-charts';
 import { useLang } from './LangContext.jsx';
 import { LANGS } from './i18n.js';
 
-const SOCKET_URL = 'http://localhost:3001';
+const SOCKET_URL = 'https://tradara-production.up.railway.app';
 const FOREX_PAIRS = ['EUR/USD','GBP/USD','AUD/USD','USD/JPY','USD/CHF','USD/CAD'];
 
 export default function Arena({ onBack }) {
