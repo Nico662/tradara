@@ -488,7 +488,12 @@ function joinRoom() {
 
   return null;
 }
-
+function getChartHeight() {
+  const vh = window.innerHeight;
+  if (vh < 700) return 160;
+  if (vh < 900) return 200;
+  return 240;
+}
 // ── ArenaChart ────────────────────────────────────────────────────
 function ArenaChart({ candles, future, assetName }) {
   const containerRef = useRef(null);
@@ -506,7 +511,7 @@ function ArenaChart({ candles, future, assetName }) {
 
       chart = createChart(containerRef.current, {
         width:  containerRef.current.clientWidth,
-        height: 220,
+        height: getChartHeight(),
         layout: { background: { color: 'transparent' }, textColor: '#3a4455' },
         grid: {
           vertLines: { color: 'rgba(255,255,255,0.03)' },
@@ -570,5 +575,5 @@ function ArenaChart({ candles, future, assetName }) {
     return () => clearInterval(interval);
   }, [future]);
 
-  return <div ref={containerRef} style={{ width: '100%', height: '220px' }} />;
+  return <div ref={containerRef} style={{ width: '100%', height: `${getChartHeight()}px` }} />;
 }

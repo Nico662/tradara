@@ -65,7 +65,12 @@ function toChartDataForex(candles, startIndex = 0) {
     };
   });
 }
-
+const getChartHeight = () => {
+  const vh = window.innerHeight;
+  if (vh < 700) return 160;
+  if (vh < 900) return 200;
+  return 240;
+};
 const Chart = forwardRef(function Chart({ asset }, ref) {
   const containerRef  = useRef(null);
   const chartRef      = useRef(null);
@@ -139,7 +144,7 @@ const Chart = forwardRef(function Chart({ asset }, ref) {
 
       chart = createChart(containerRef.current, {
   width:  containerRef.current.clientWidth,
-  height: 220,
+  height: getChartHeight(),
   layout: { background: { color: 'transparent' }, textColor: '#3a4455' },
   grid: {
     vertLines: { color: 'rgba(255,255,255,0.03)' },
