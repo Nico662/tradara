@@ -148,7 +148,6 @@ export default function Arena({ onBack }) {
   setMyId(socket.id);
  });
 
-return socket;
 
   return socket;
 }
@@ -469,7 +468,7 @@ function sendChat(msg) {
   }}
 >💬</button>
 
-<div className="ticker-tape"></div>
+
 
         <div className="ticker-tape">
           BTC +3.2% · ETH -1.8% · SPX +0.4% · GOLD +0.9% · EUR/USD -0.2%
