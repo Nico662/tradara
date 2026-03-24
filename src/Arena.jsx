@@ -28,6 +28,8 @@ export default function Arena({ onBack }) {
  const [joinCode, setJoinCode]   = useState('');
   const socketRef = useRef(null);
   const timerRef  = useRef(null);
+  const [chatMsg,     setChatMsg]     = useState(null);
+ const [showChat,    setShowChat]    = useState(false);
 
   useEffect(() => {
     return () => {
@@ -137,6 +139,16 @@ export default function Arena({ onBack }) {
   socket.on('connect', () => {
     setMyId(socket.id);
   });
+  socket.on('chat:message', (data) => {
+  setChatMsg(data);
+  setTimeout(() => setChatMsg(null), 3000);
+ });
+
+ socket.on('connect', () => {
+  setMyId(socket.id);
+ });
+
+return socket;
 
   return socket;
 }
@@ -173,6 +185,12 @@ function joinRoom() {
   if (socket.connected) {
     socket.emit('room:join', { name: name.trim(), code: joinCode.trim().toUpperCase() });
   }
+}
+function sendChat(msg) {
+  socketRef.current?.emit('chat:message', { msg });
+  setChatMsg({ msg, from: 'tú' });
+  setTimeout(() => setChatMsg(null), 3000);
+  setShowChat(false);
 }
   function makeChoice(choice) {
     if (phase !== 'choose') return;
@@ -408,6 +426,50 @@ function joinRoom() {
             </div>
           </div>
         )}
+        {/* Chat burbuja recibida */}
+{chatMsg && (
+  <div style={{
+    position: 'absolute', top: '60px', right: '16px', zIndex: 20,
+    background: '#1a2030', border: '1px solid #2a3345',
+    borderRadius: '8px', padding: '8px 12px',
+    fontFamily: "'Space Mono', monospace", fontSize: '11px',
+    color: '#e2e8f0', maxWidth: '160px',
+    animation: 'slideUp 0.2s ease',
+  }}>
+    <span style={{ color: '#22d3a5', fontSize: '9px' }}>{chatMsg.from}</span>
+    <div>{chatMsg.msg}</div>
+  </div>
+)}
+
+{/* Panel de mensajes */}
+{showChat && (
+  <div style={{
+    position: 'absolute', bottom: '60px', right: '16px', zIndex: 20,
+    background: '#0f141b', border: '1px solid #2a3345',
+    borderRadius: '10px', padding: '10px', display: 'flex',
+    flexWrap: 'wrap', gap: '6px', maxWidth: '200px',
+  }}>
+    {['👍', '😂', '🔥', 'gg', 'wp', '😤'].map(msg => (
+      <button key={msg} onClick={() => sendChat(msg)}
+        style={{ background: '#1a2030', border: '1px solid #2a3345', borderRadius: '6px', padding: '6px 10px', color: '#e2e8f0', fontFamily: "'Space Mono', monospace", fontSize: '13px', cursor: 'pointer' }}>
+        {msg}
+      </button>
+    ))}
+  </div>
+)}
+
+{/* Botón chat */}
+<button onClick={() => setShowChat(s => !s)}
+  style={{
+    position: 'absolute', bottom: '36px', right: '16px', zIndex: 20,
+    background: '#1a2030', border: '1px solid #2a3345',
+    borderRadius: '50%', width: '36px', height: '36px',
+    fontSize: '16px', cursor: 'pointer', display: 'flex',
+    alignItems: 'center', justifyContent: 'center',
+  }}
+>💬</button>
+
+<div className="ticker-tape"></div>
 
         <div className="ticker-tape">
           BTC +3.2% · ETH -1.8% · SPX +0.4% · GOLD +0.9% · EUR/USD -0.2%

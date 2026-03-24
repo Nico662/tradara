@@ -322,7 +322,11 @@ socket.on('room:join', ({ name, code }) => {
   delete privateLobby[code];
   startRoom(lobby.host, socket);
 });
-
+socket.on('chat:message', ({ msg }) => {
+  if (socket.roomId && rooms[socket.roomId]) {
+    socket.to(socket.roomId).emit('chat:message', { msg, from: socket.playerName });
+  }
+});
 // cancelar sala privada
 socket.on('room:cancel', () => {
   if (socket.roomCode && privateLobby[socket.roomCode]) {
