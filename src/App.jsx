@@ -5,6 +5,7 @@ import { useLang } from './LangContext.jsx';
 import { LANGS } from './i18n';
 import Arena from './Arena.jsx';
 import html2canvas from 'html2canvas';
+import { playWin, playLose, playClick, playStreak, playReveal } from './sounds.js';
 
 const ASSETS = [
   { name: 'BTC/USD',  tf: '1D', vol: 0.025, cat: 'crypto',      binance: 'BTCUSDT',  yahoo: null,        base: () => 28000 + Math.random() * 40000 },
@@ -95,6 +96,26 @@ export default function App() {
       setScore(s => Math.max(0, s + pts));
       setStreak(0);
     }
+    // al elegir
+playClick();
+
+// en el resultado, después de calcular win/neutral:
+if (win && !neutral) {
+  pts = 100 + streak * 10;
+  const newScore = score + pts;
+  setScore(newScore);
+  if (newScore > highscore) {
+    setHighscore(newScore);
+    localStorage.setItem('tradara_highscore', String(newScore));
+  }
+  setStreak(s => s + 1);
+  if (streak >= 2) playStreak(); else playWin();  // ← añade esto
+} else if (!win && !neutral) {
+  pts = -50;
+  setScore(s => Math.max(0, s + pts));
+  setStreak(0);
+  playLose();  // ← añade esto
+}
 
     const outcome = win && !neutral ? 'win' : !win && !neutral ? 'lose' : 'skip';
     setHistory(h => [...h, outcome]);
