@@ -7,7 +7,7 @@ import Arena from './Arena.jsx';
 import html2canvas from 'html2canvas';
 import { playWin, playLose, playClick, playStreak, playReveal } from './sounds.js';
 import Legal from './Legal.jsx';
-import { Analytics } from "@vercel/analytics/next"
+
 
 const ASSETS = [
   { name: 'BTC/USD',  tf: '1D', vol: 0.025, cat: 'crypto',      binance: 'BTCUSDT',  yahoo: null,        base: () => 28000 + Math.random() * 40000 },
