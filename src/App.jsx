@@ -6,6 +6,7 @@ import { LANGS } from './i18n';
 import Arena from './Arena.jsx';
 import html2canvas from 'html2canvas';
 import { playWin, playLose, playClick, playStreak, playReveal } from './sounds.js';
+import Legal from './Legal.jsx';
 
 const ASSETS = [
   { name: 'BTC/USD',  tf: '1D', vol: 0.025, cat: 'crypto',      binance: 'BTCUSDT',  yahoo: null,        base: () => 28000 + Math.random() * 40000 },
@@ -283,15 +284,20 @@ if (win && !neutral) {
 
   // ── Home ──────────────────────────────────────────────────────────
   if (screen === 'home') {
-    return <Home onSelect={(mode) => {
-      if (mode === 'arena') setScreen('arena');
-      else setScreen('game');
-    }} />;
-  }
+  return <Home onSelect={(mode) => {
+    if (mode === 'arena') setScreen('arena');
+    else if (mode === 'legal') setScreen('legal');
+    else setScreen('game');
+  }} />;
+}
 
-  if (screen === 'arena') {
-    return <Arena onBack={() => setScreen('home')} />;
-  }
+if (screen === 'arena') {
+  return <Arena onBack={() => setScreen('home')} />;
+}
+
+if (screen === 'legal') {
+  return <Legal onBack={() => setScreen('home')} />;
+}
 
   // ── Game ──────────────────────────────────────────────────────────
   const cls      = result ? (result.win && !result.neutral ? 'win' : !result.win && !result.neutral ? 'lose' : 'neutral') : '';

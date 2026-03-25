@@ -71,9 +71,18 @@ export default function Home({ onSelect }) {
           </button>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: '40px', fontSize: '9px', color: '#2a3345', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-          {t.home.version}
-        </div>
+        <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', justifyContent: 'center', gap: '16px', alignItems: 'center' }}>
+  <span style={{ fontSize: '9px', color: '#2a3345', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+    {t.home.version}
+  </span>
+  <button onClick={() => onSelect('legal')}
+    style={{ background: 'transparent', border: 'none', color: '#2a3345', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}
+    onMouseEnter={e => e.target.style.color = '#6b7a8d'}
+    onMouseLeave={e => e.target.style.color = '#2a3345'}
+  >
+    Legal
+  </button>
+</div>
       </div>
     </div>
   );
