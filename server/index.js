@@ -90,11 +90,11 @@ async function fetchCandles(asset) {
 }
 
 function randomWindow(candles) {
-  const maxStart = Math.max(0, candles.length - 90);
+  const maxStart = Math.max(0, candles.length - 100);
   const start    = Math.floor(Math.random() * maxStart);
   return {
-    visible: candles.slice(start, start + 70),
-    future:  candles.slice(start + 70, start + 90),
+    visible: candles.slice(start, start + 80),
+    future:  candles.slice(start + 80, start + 100),
   };
 }
 

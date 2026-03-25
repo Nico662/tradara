@@ -91,16 +91,16 @@ const Chart = forwardRef(function Chart({ asset }, ref) {
     },
     reshuffleWindow() {
      if (!seriesRef.current || !allCandlesRef.current.length) return;
-     const all      = allCandlesRef.current;
-     const forex    = isForexRef.current;
-     const fn       = forex ? toChartDataForex : toChartData;
-     const maxStart = Math.max(0, all.length - 44);
+     const all   = allCandlesRef.current;
+     const forex = isForexRef.current;
+     const fn    = forex ? toChartDataForex : toChartData;
+     const maxStart = Math.max(0, all.length - 100);
      const start    = Math.floor(Math.random() * maxStart);
-     candlesRef.current    = all.slice(start, start + 24);
-     revealPoolRef.current = all.slice(start + 24, start + 44);
+     candlesRef.current    = all.slice(start, start + 80);
+     revealPoolRef.current = all.slice(start + 80, start + 100);
      seriesRef.current.setData(fn(candlesRef.current, 0));
      chartRef.current.timeScale().fitContent();
-   },
+  },
    
 
     revealFuture(futureCandles, onDone) {
@@ -199,10 +199,10 @@ const Chart = forwardRef(function Chart({ asset }, ref) {
 
       loadCandles.then(candles => {
        allCandlesRef.current = candles;
-       const maxStart = Math.max(0, candles.length - 44);
+       const maxStart = Math.max(0, candles.length - 100);
        const start    = Math.floor(Math.random() * maxStart);
-       candlesRef.current    = candles.slice(start, start + 24);
-       revealPoolRef.current = candles.slice(start + 24, start + 44);
+       candlesRef.current    = candles.slice(start, start + 80);
+       revealPoolRef.current = candles.slice(start + 80, start + 100);
        const fn = forex ? toChartDataForex : toChartData;
        series.setData(fn(candlesRef.current, 0));
        chart.timeScale().fitContent();
