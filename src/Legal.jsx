@@ -1,4 +1,3 @@
-cat > /Users/nico/trading-game/src/Legal.jsx << 'EOF'
 import { useState } from 'react';
 
 export default function Legal({ onBack }) {
@@ -16,6 +15,7 @@ export default function Legal({ onBack }) {
           >← back</button>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#f0f0f0', letterSpacing: '0.06em' }}>LEGAL</div>
         </div>
+
         <div style={{ display: 'flex', gap: '8px', padding: '16px 20px 0' }}>
           <button onClick={() => setView('quick')}
             style={{ padding: '6px 14px', borderRadius: '20px', border: `1px solid ${view === 'quick' ? '#22d3a5' : '#2a3345'}`, background: view === 'quick' ? 'rgba(34,211,165,0.08)' : 'transparent', color: view === 'quick' ? '#22d3a5' : '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', fontWeight: 700, letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase' }}>
@@ -26,6 +26,7 @@ export default function Legal({ onBack }) {
             Full Legal
           </button>
         </div>
+
         <div style={{ padding: '16px 20px 40px', overflowY: 'auto', maxHeight: 'calc(100vh - 120px)' }}>
           {view === 'quick' ? <QuickVersion /> : <FullVersion />}
         </div>
@@ -75,4 +76,3 @@ function FullVersion() {
     </div>
   );
 }
-EOF
