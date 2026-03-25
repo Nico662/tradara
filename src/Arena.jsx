@@ -593,7 +593,10 @@ function ArenaChart({ candles, future, assetName }) {
       });
 
       series.setData(candles);
-      chart.timeScale().fitContent();
+      chart.timeScale().applyOptions({
+       fixLeftEdge:  true,
+       fixRightEdge: false,
+});
       chartRef2.current = chart;
       seriesRef.current = series;
 
