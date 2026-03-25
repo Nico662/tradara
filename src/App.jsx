@@ -6,7 +6,7 @@ import { LANGS } from './i18n';
 import Arena from './Arena.jsx';
 import html2canvas from 'html2canvas';
 import { playWin, playLose, playClick, playStreak, playReveal } from './sounds.js';
-import Legal from './legal.jsx';
+import Legal from './Legal.jsx';
 
 const ASSETS = [
   { name: 'BTC/USD',  tf: '1D', vol: 0.025, cat: 'crypto',      binance: 'BTCUSDT',  yahoo: null,        base: () => 28000 + Math.random() * 40000 },
