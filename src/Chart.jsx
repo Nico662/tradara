@@ -56,21 +56,17 @@ function toChartDataForex(candles, startIndex = 0) {
       d.setHours(d.getHours() - (candles.length - startIndex - i));
       return Math.floor(d.getTime() / 1000);
     })();
-    return {
-      time,
-      open:  c.open,
-      high:  c.high,
-      low:   c.low,
-      close: c.close,
-    };
+    return { time, open: c.open, high: c.high, low: c.low, close: c.close };
   });
 }
-const getChartHeight = () => {
+
+function getChartHeight() {
   const vh = window.innerHeight;
   if (vh < 700) return 160;
   if (vh < 900) return 200;
   return 240;
-};
+}
+
 const Chart = forwardRef(function Chart({ asset }, ref) {
   const containerRef  = useRef(null);
   const chartRef      = useRef(null);
@@ -89,45 +85,46 @@ const Chart = forwardRef(function Chart({ asset }, ref) {
       }
       return null;
     },
+
     reshuffleWindow() {
-     if (!seriesRef.current || !allCandlesRef.current.length) return;
-     const all   = allCandlesRef.current;
-     const forex = isForexRef.current;
-     const fn    = forex ? toChartDataForex : toChartData;
-     const maxStart = Math.max(0, all.length - 100);
-     const start    = Math.floor(Math.random() * maxStart);
-     candlesRef.current    = all.slice(start, start + 80);
-     revealPoolRef.current = all.slice(start + 80, start + 100);
-     seriesRef.current.setData(fn(candlesRef.current, 0));
-     chartRef.current.timeScale().fitContent();
-  },
-   
+      if (!seriesRef.current || !allCandlesRef.current.length) return;
+      const all      = allCandlesRef.current;
+      const forex    = isForexRef.current;
+      const fn       = forex ? toChartDataForex : toChartData;
+      const maxStart = Math.max(0, all.length - 100);
+      const start    = Math.floor(Math.random() * maxStart);
+      candlesRef.current    = all.slice(start, start + 80);
+      revealPoolRef.current = all.slice(start + 80, start + 100);
+      seriesRef.current.setData(fn(candlesRef.current, 0));
+      chartRef.current.timeScale().fitContent();
+      chartRef.current.timeScale().applyOptions({ fixLeftEdge: true, fixRightEdge: false });
+    },
 
     revealFuture(futureCandles, onDone) {
-     if (!seriesRef.current) return;
-     const forex    = isForexRef.current;
+      if (!seriesRef.current) return;
+      const forex    = isForexRef.current;
       const fn       = forex ? toChartDataForex : toChartData;
-     const existing = fn(candlesRef.current, 0);
-     let i = 0;
-     const interval = setInterval(() => {
-      if (!seriesRef.current || i >= futureCandles.length) {
-       clearInterval(interval);
-        if (onDone) onDone();  // ← avisa cuando termina
-       return;
-     }
-       const next = futureCandles.slice(0, i + 1);
-      seriesRef.current.setData([
-       ...existing,
-       ...fn(next, candlesRef.current.length).map(c => ({
-        ...c,
-         color:       c.close >= c.open ? 'rgba(34,211,165,0.5)' : 'rgba(240,84,84,0.5)',
-         wickColor:   c.close >= c.open ? 'rgba(34,211,165,0.5)' : 'rgba(240,84,84,0.5)',
-         borderColor: c.close >= c.open ? 'rgba(34,211,165,0.5)' : 'rgba(240,84,84,0.5)',
-      })),
-    ]);
-    i++;
-  }, 120);
-},
+      const existing = fn(candlesRef.current, 0);
+      let i = 0;
+      const interval = setInterval(() => {
+        if (!seriesRef.current || i >= futureCandles.length) {
+          clearInterval(interval);
+          if (onDone) onDone();
+          return;
+        }
+        const next = futureCandles.slice(0, i + 1);
+        seriesRef.current.setData([
+          ...existing,
+          ...fn(next, candlesRef.current.length).map(c => ({
+            ...c,
+            color:       c.close >= c.open ? 'rgba(34,211,165,0.5)' : 'rgba(240,84,84,0.5)',
+            wickColor:   c.close >= c.open ? 'rgba(34,211,165,0.5)' : 'rgba(240,84,84,0.5)',
+            borderColor: c.close >= c.open ? 'rgba(34,211,165,0.5)' : 'rgba(240,84,84,0.5)',
+          })),
+        ]);
+        i++;
+      }, 120);
+    },
   }));
 
   useEffect(() => {
@@ -143,31 +140,33 @@ const Chart = forwardRef(function Chart({ asset }, ref) {
       isForexRef.current = forex;
 
       chart = createChart(containerRef.current, {
-  width:  containerRef.current.clientWidth,
-  height: getChartHeight(),
-  layout: { background: { color: 'transparent' }, textColor: '#3a4455' },
-  grid: {
-    vertLines: { color: 'rgba(255,255,255,0.03)' },
-    horzLines: { color: 'rgba(255,255,255,0.04)' },
-  },
-  rightPriceScale: { borderColor: 'transparent' },
-  timeScale: {
-    borderColor: 'transparent',
-    barSpacing:  14,
-    rightOffset: 3,
-    timeVisible: false,
-    visible: false,
-  },
-  localization: {
-    priceFormatter: (price) => {
-      if (isForexRef.current) return price.toFixed(4);
-      return price.toFixed(2);
-    },
-  },
-  crosshair:    { mode: 0 },
-  handleScroll: true,
-  handleScale:  true,
-});
+        width:  containerRef.current.clientWidth,
+        height: getChartHeight(),
+        layout: { background: { color: 'transparent' }, textColor: '#3a4455' },
+        grid: {
+          vertLines: { color: 'rgba(255,255,255,0.03)' },
+          horzLines: { color: 'rgba(255,255,255,0.04)' },
+        },
+        rightPriceScale: { borderColor: 'transparent' },
+        timeScale: {
+          borderColor: 'transparent',
+          barSpacing:  6,
+          rightOffset: 3,
+          timeVisible: false,
+          visible:     false,
+          fixLeftEdge:  true,
+          fixRightEdge: false,
+        },
+        localization: {
+          priceFormatter: (price) => {
+            if (isForexRef.current) return price.toFixed(4);
+            return price.toFixed(2);
+          },
+        },
+        crosshair:    { mode: 0 },
+        handleScroll: true,
+        handleScale:  true,
+      });
 
       const series = chart.addSeries(CandlestickSeries, {
         upColor:         '#22d3a5',
@@ -186,7 +185,6 @@ const Chart = forwardRef(function Chart({ asset }, ref) {
 
       const symbol   = asset.binance ?? null;
       const yahoo    = asset.yahoo   ?? null;
-      // forex siempre en 1h para mejor visualización
       const interval = forex ? '1h' : asset.tf === '4H' ? '4h' : '1d';
 
       const loadCandles = symbol
@@ -198,22 +196,21 @@ const Chart = forwardRef(function Chart({ asset }, ref) {
       const fn = forex ? toChartDataForex : toChartData;
 
       loadCandles.then(candles => {
-       allCandlesRef.current = candles;
-       const maxStart = Math.max(0, candles.length - 100);
-       const start    = Math.floor(Math.random() * maxStart);
-       candlesRef.current    = candles.slice(start, start + 80);
-       revealPoolRef.current = candles.slice(start + 80, start + 100);
-       const fn = forex ? toChartDataForex : toChartData;
-       series.setData(fn(candlesRef.current, 0));
-       chart.timeScale().fitContent();
-     }).catch(() => {
-       const candles = generateCandles(500, asset.base(), asset.vol);
-       allCandlesRef.current = candles;
-       candlesRef.current    = candles.slice(0, 24);
-       revealPoolRef.current = candles.slice(24, 44);
-       series.setData(toChartData(candlesRef.current, 0));
-       chart.timeScale().fitContent();
-   });
+        allCandlesRef.current = candles;
+        const maxStart = Math.max(0, candles.length - 100);
+        const start    = Math.floor(Math.random() * maxStart);
+        candlesRef.current    = candles.slice(start, start + 80);
+        revealPoolRef.current = candles.slice(start + 80, start + 100);
+        series.setData(fn(candlesRef.current, 0));
+        chart.timeScale().fitContent();
+      }).catch(() => {
+        const candles = generateCandles(500, asset.base(), asset.vol);
+        allCandlesRef.current = candles;
+        candlesRef.current    = candles.slice(0, 80);
+        revealPoolRef.current = candles.slice(80, 100);
+        series.setData(toChartData(candlesRef.current, 0));
+        chart.timeScale().fitContent();
+      });
 
       ro = new ResizeObserver(() => {
         if (containerRef.current) {
@@ -230,7 +227,7 @@ const Chart = forwardRef(function Chart({ asset }, ref) {
     };
   }, [asset]);
 
-  return <div ref={containerRef} style={{ width: '100%', height: '220px' }} />;
+  return <div ref={containerRef} style={{ width: '100%', height: `${getChartHeight()}px` }} />;
 });
 
 export default Chart;
