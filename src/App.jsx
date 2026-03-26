@@ -217,7 +217,7 @@ if (win && !neutral) {
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f0f0f0' }}>
                 GUESS <span style={{ color: '#22d3a5' }}>THE</span> MARKET
               </div>
-              <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em' }}>tradara.vercel.app</div>
+              <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em' }}>tradara.dev</div>
             </div>
 
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
