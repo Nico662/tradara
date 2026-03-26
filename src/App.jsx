@@ -421,9 +421,33 @@ if (screen === 'legal') {
         </div>
       )}
 
-      <div className="ticker-tape">
-        BTC +3.2% · ETH -1.8% · SPX +0.4% · GOLD +0.9% · EUR/USD -0.2% · OIL -2.1% · TSLA +5.7%
-      </div>
+      {/* Session stats */}
+<div style={{ padding: '12px 20px', borderTop: '1px solid #1e2530', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', position: 'relative', zIndex: 2 }}>
+  {[
+    {
+      label: 'CORRECT',
+      value: history.filter(h => h === 'win').length,
+      color: '#22d3a5'
+    },
+    {
+      label: 'WRONG',
+      value: history.filter(h => h === 'lose').length,
+      color: '#f05454'
+    },
+    {
+      label: 'ACCURACY',
+      value: history.filter(h => h !== 'skip').length > 0
+        ? Math.round(history.filter(h => h === 'win').length / history.filter(h => h !== 'skip').length * 100) + '%'
+        : '—',
+      color: '#f5c842'
+    },
+  ].map(s => (
+    <div key={s.label} style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px 8px', textAlign: 'center' }}>
+      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
+      <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: '2px' }}>{s.label}</div>
+    </div>
+  ))}
+</div>
     </div>
   );
 }
