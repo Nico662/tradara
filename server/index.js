@@ -41,12 +41,22 @@ app.get('/candles', async (req, res) => {
 });
 
 const ASSETS = [
-  { name: 'BTC/USD', binance: 'BTCUSDT', yahoo: null,        interval: '1d' },
-  { name: 'ETH/USD', binance: 'ETHUSDT', yahoo: null,        interval: '1d' },
-  { name: 'SOL/USD', binance: 'SOLUSDT', yahoo: null,        interval: '1d' },
-  { name: 'GOLD',    binance: null,       yahoo: 'GC=F',     interval: '1d' },
-  { name: 'S&P 500', binance: null,       yahoo: '^GSPC',    interval: '1d' },
-  { name: 'NASDAQ',  binance: null, yahoo: '^IXIC',       interval: '1d' },
+  { name: 'BTC/USD',  source: 'binance', symbol: 'BTCUSDT',  interval: '15m' },
+  { name: 'ETH/USD',  source: 'binance', symbol: 'ETHUSDT',  interval: '15m' },
+  { name: 'SOL/USD',  source: 'binance', symbol: 'SOLUSDT',  interval: '15m' },
+  { name: 'XRP/USD',  source: 'binance', symbol: 'XRPUSDT',  interval: '15m' },
+  { name: 'BNB/USD',  source: 'binance', symbol: 'BNBUSDT',  interval: '15m' },
+  { name: 'DOGE/USD', source: 'binance', symbol: 'DOGEUSDT', interval: '15m' },
+  { name: 'EUR/USD',  source: 'yahoo',   symbol: 'EURUSD=X', interval: '1h'  },
+  { name: 'GBP/USD',  source: 'yahoo',   symbol: 'GBPUSD=X', interval: '1h'  },
+  { name: 'USD/JPY',  source: 'yahoo',   symbol: 'JPY=X',    interval: '1h'  },
+  { name: 'AUD/USD',  source: 'yahoo',   symbol: 'AUDUSD=X', interval: '1h'  },
+  { name: 'S&P 500',  source: 'yahoo',   symbol: '^GSPC',    interval: '1h'  },
+  { name: 'NASDAQ',   source: 'yahoo',   symbol: '^IXIC',    interval: '1h'  },
+  { name: 'DOW',      source: 'yahoo',   symbol: '^DJI',     interval: '1h'  },
+  { name: 'GOLD',     source: 'yahoo',   symbol: 'GC=F',     interval: '1h'  },
+  { name: 'SILVER',   source: 'yahoo',   symbol: 'SI=F',     interval: '1h'  },
+  { name: 'OIL/USD',  source: 'yahoo',   symbol: 'CL=F',     interval: '1h'  },
 ];
 
 const TOTAL_ROUNDS = 10;
@@ -54,12 +64,10 @@ const rooms        = {};
 let   waiting      = null;
 
 async function fetchCandles(asset) {
-  if (asset.binance) {
-    console.log('Fetching Binance:', asset.binance);
-    const url  = `https://api.binance.com/api/v3/klines?symbol=${asset.binance}&interval=${asset.interval}&limit=500`;
+  if (asset.source === 'binance') {
+    const url  = `https://api.binance.com/api/v3/klines?symbol=${asset.symbol}&interval=${asset.interval}&limit=700`;
     const res  = await fetch(url);
     const data = await res.json();
-    console.log('Binance candles:', data.length);
     return data.map(k => ({
       time:  Math.floor(k[0] / 1000),
       open:  parseFloat(k[1]),
@@ -68,11 +76,10 @@ async function fetchCandles(asset) {
       close: parseFloat(k[4]),
     }));
   } else {
-    console.log('Fetching Yahoo:', asset.yahoo);
     const from = new Date();
-    from.setFullYear(from.getFullYear() - 2);
-    const result = await yf.chart(asset.yahoo, {
-      interval: '1d',
+    from.setDate(from.getDate() - 29);
+    const result = await yf.chart(asset.symbol, {
+      interval: '1h',
       period1:  from.toISOString().split('T')[0],
     });
     const candles = result.quotes
@@ -84,7 +91,6 @@ async function fetchCandles(asset) {
         low:   q.low,
         close: q.close,
       }));
-    console.log('Yahoo candles:', candles.length);
     return candles;
   }
 }
@@ -99,35 +105,27 @@ function randomWindow(candles) {
 }
 
 async function startRoom(socket1, socket2) {
-  const shuffled = [...ASSETS];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
+  const shuffled = [...ASSETS].sort(() => Math.random() - 0.5);
 
   for (const asset of shuffled) {
     try {
-      console.log('Intentando activo:', asset.name);
       const candles = await fetchCandles(asset);
-
-      if (!candles || candles.length < 44) {
-        console.log('Pocos datos para', asset.name);
-        continue;
-      }
+      if (!candles || candles.length < 100) continue;
 
       const roomId = `room_${Date.now()}`;
       const win    = randomWindow(candles);
 
       rooms[roomId] = {
-        players:    [socket1.id, socket2.id],
-        scores:     { [socket1.id]: 0, [socket2.id]: 0 },
-        names:      { [socket1.id]: socket1.playerName, [socket2.id]: socket2.playerName },
-        round:      1,
-        choices:    {},
-        allCandles: candles,
-        visible:    win.visible,
-        future:     win.future,
+        players:      [socket1.id, socket2.id],
+        scores:       { [socket1.id]: 0, [socket2.id]: 0 },
+        names:        { [socket1.id]: socket1.playerName, [socket2.id]: socket2.playerName },
+        round:        1,
+        choices:      {},
+        allCandles:   candles,
+        visible:      win.visible,
+        future:       win.future,
         asset,
+        usedAssets:   [asset.name],
       };
 
       socket1.join(roomId);
@@ -146,8 +144,6 @@ async function startRoom(socket1, socket2) {
 
       socket1.emit('game:start', { ...payload, opponent: socket2.playerName });
       socket2.emit('game:start', { ...payload, opponent: socket1.playerName });
-
-      console.log(`Room ${roomId}: ${socket1.playerName} vs ${socket2.playerName} — ${asset.name}`);
       return;
 
     } catch (err) {
@@ -155,7 +151,6 @@ async function startRoom(socket1, socket2) {
     }
   }
 
-  console.error('Todos los activos fallaron');
   socket1.emit('game:error', { message: 'Error al cargar datos. Intenta de nuevo.' });
   socket2.emit('game:error', { message: 'Error al cargar datos. Intenta de nuevo.' });
 }
@@ -199,7 +194,11 @@ function resolveRound(roomId) {
     room.round++;
     room.choices = {};
 
-    const nextAsset = ASSETS[Math.floor(Math.random() * ASSETS.length)];
+    // evitar repetir activos
+    const available = ASSETS.filter(a => !room.usedAssets.includes(a.name));
+    const pool      = available.length > 0 ? available : ASSETS;
+    const nextAsset = pool[Math.floor(Math.random() * pool.length)];
+    room.usedAssets.push(nextAsset.name);
 
     fetchCandles(nextAsset).then(candles => {
       const win       = randomWindow(candles);
@@ -234,8 +233,8 @@ function resolveRound(roomId) {
     });
   }
 }
-// ── Sala privada ──────────────────────────────────────────────────
-const privateLobby = {}; // { code: { host: socket, name: string } }
+
+const privateLobby = {};
 
 function generateCode() {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ';
@@ -243,34 +242,32 @@ function generateCode() {
   for (let i = 0; i < 4; i++) code += chars[Math.floor(Math.random() * chars.length)];
   return privateLobby[code] ? generateCode() : code;
 }
+
 io.on('connection', (socket) => {
   console.log('Connected:', socket.id);
 
   socket.on('matchmaking:join', ({ name }) => {
-    console.log('matchmaking:join from', socket.id, 'name:', name);
     socket.playerName = name || 'Player';
-
     if (waiting && waiting.id !== socket.id) {
-      console.log('Pairing', waiting.id, 'with', socket.id);
       const opponent = waiting;
       waiting = null;
       startRoom(opponent, socket);
     } else {
-      console.log('Waiting for opponent...');
       waiting = socket;
       socket.emit('matchmaking:waiting');
     }
   });
+
   socket.on('game:forfeit', () => {
-  if (socket.roomId && rooms[socket.roomId]) {
-    const room     = rooms[socket.roomId];
-    const winnerId = room.players.find(id => id !== socket.id);
-    io.to(socket.roomId).emit('game:opponent_forfeited', {
-      winner: room.names[winnerId],
-    });
-    delete rooms[socket.roomId];
-  }
-});
+    if (socket.roomId && rooms[socket.roomId]) {
+      const room     = rooms[socket.roomId];
+      const winnerId = room.players.find(id => id !== socket.id);
+      io.to(socket.roomId).emit('game:opponent_forfeited', {
+        winner: room.names[winnerId],
+      });
+      delete rooms[socket.roomId];
+    }
+  });
 
   socket.on('game:choice', ({ choice }) => {
     const room = rooms[socket.roomId];
@@ -282,11 +279,47 @@ io.on('connection', (socket) => {
     }
   });
 
+  socket.on('chat:message', ({ msg }) => {
+    if (socket.roomId && rooms[socket.roomId]) {
+      socket.to(socket.roomId).emit('chat:message', { msg, from: socket.playerName });
+    }
+  });
+
+  socket.on('room:create', ({ name }) => {
+    socket.playerName = name || 'Player';
+    const code = generateCode();
+    privateLobby[code] = { host: socket, name };
+    socket.roomCode = code;
+    socket.emit('room:created', { code });
+  });
+
+  socket.on('room:join', ({ name, code }) => {
+    socket.playerName = name || 'Player';
+    const lobby = privateLobby[code.toUpperCase()];
+    if (!lobby) {
+      socket.emit('room:error', { message: 'Sala no encontrada' });
+      return;
+    }
+    if (!lobby.host.connected) {
+      socket.emit('room:error', { message: 'El host se desconectó' });
+      delete privateLobby[code];
+      return;
+    }
+    delete privateLobby[code];
+    startRoom(lobby.host, socket);
+  });
+
+  socket.on('room:cancel', () => {
+    if (socket.roomCode && privateLobby[socket.roomCode]) {
+      delete privateLobby[socket.roomCode];
+      socket.roomCode = null;
+    }
+  });
+
   socket.on('disconnect', () => {
-    // limpiar sala privada si era el host
-  if (socket.roomCode && privateLobby[socket.roomCode]) {
-    delete privateLobby[socket.roomCode];
-  }
+    if (socket.roomCode && privateLobby[socket.roomCode]) {
+      delete privateLobby[socket.roomCode];
+    }
     if (socket.roomId && rooms[socket.roomId]) {
       socket.to(socket.roomId).emit('game:opponent_disconnected');
       delete rooms[socket.roomId];
@@ -294,46 +327,6 @@ io.on('connection', (socket) => {
     if (waiting?.id === socket.id) waiting = null;
     console.log('Disconnected:', socket.id);
   });
-  // crear sala privada
-socket.on('room:create', ({ name }) => {
-  socket.playerName = name || 'Player';
-  const code = generateCode();
-  privateLobby[code] = { host: socket, name };
-  socket.roomCode = code;
-  socket.emit('room:created', { code });
-  console.log(`Room created: ${code} by ${name}`);
 });
 
-// unirse a sala privada
-socket.on('room:join', ({ name, code }) => {
-  socket.playerName = name || 'Player';
-  const lobby = privateLobby[code.toUpperCase()];
-
-  if (!lobby) {
-    socket.emit('room:error', { message: 'Sala no encontrada' });
-    return;
-  }
-  if (!lobby.host.connected) {
-    socket.emit('room:error', { message: 'El host se desconectó' });
-    delete privateLobby[code];
-    return;
-  }
-
-  delete privateLobby[code];
-  startRoom(lobby.host, socket);
-});
-socket.on('chat:message', ({ msg }) => {
-  if (socket.roomId && rooms[socket.roomId]) {
-    socket.to(socket.roomId).emit('chat:message', { msg, from: socket.playerName });
-  }
-});
-// cancelar sala privada
-socket.on('room:cancel', () => {
-  if (socket.roomCode && privateLobby[socket.roomCode]) {
-    delete privateLobby[socket.roomCode];
-    socket.roomCode = null;
-  }
-});
-});
-
-httpServer.listen(3001, () => console.log('Server running on http://localhost:3001'));
+httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
