@@ -84,20 +84,32 @@ export default function App() {
     const neutral = choice === 'skip';
 
     let pts = 0;
-    if (win && !neutral) {
-      pts = 100 + streak * 10;
-      const newScore = score + pts;
-      setScore(newScore);
-      if (newScore > highscore) {
-        setHighscore(newScore);
-        localStorage.setItem('tradara_highscore', String(newScore));
-      }
-      setStreak(s => s + 1);
-    } else if (!win && !neutral) {
-      pts = -50;
-      setScore(s => Math.max(0, s + pts));
-      setStreak(0);
-    }
+if (win && !neutral) {
+  pts = 100 + streak * 10;
+  const newScore = score + pts;
+  setScore(newScore);
+  if (newScore > highscore) {
+    setHighscore(newScore);
+    localStorage.setItem('tradara_highscore', String(newScore));
+  }
+  setStreak(s => s + 1);
+  if (streak >= 2) playStreak(); else playWin();
+} else if (win && neutral) {
+  pts = 50;
+  const newScore = score + pts;
+  setScore(newScore);
+  if (newScore > highscore) {
+    setHighscore(newScore);
+    localStorage.setItem('tradara_highscore', String(newScore));
+  }
+  setStreak(s => s + 1);
+  playWin();
+} else if (!win && !neutral) {
+  pts = -50;
+  setScore(s => Math.max(0, s + pts));
+  setStreak(0);
+  playLose();
+}
     // al elegir
 playClick();
 

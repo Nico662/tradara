@@ -168,9 +168,9 @@ function resolveRound(roomId) {
   const roundResult = {};
   for (const [pid, choice] of Object.entries(room.choices)) {
     const win = (choice === 'long'  && direction === 'up')
-             || (choice === 'short' && direction === 'down')
-             || (choice === 'skip'  && direction === 'flat');
-    const pts = win && choice !== 'skip' ? 100 : 0;
+         || (choice === 'short' && direction === 'down')
+         || (choice === 'skip'  && direction === 'flat');
+     const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
     room.scores[pid] += pts;
     roundResult[pid]  = { choice, win, pts };
   }
