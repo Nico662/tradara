@@ -185,7 +185,7 @@ const Chart = forwardRef(function Chart({ asset }, ref) {
 
       const symbol   = asset.binance ?? null;
       const yahoo    = asset.yahoo   ?? null;
-      const interval = forex ? '1h' : asset.tf === '4H' ? '4h' : '1d';
+      const interval = forex ? '1h' : asset.tf === '1H' ? '1h' : asset.tf === '15m' ? '15m' : '1d';
 
       const loadCandles = symbol
         ? fetchBinanceCandles(symbol, interval, 700)

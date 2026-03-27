@@ -10,22 +10,22 @@ import Legal from './Legal.jsx';
 
 
 const ASSETS = [
-  { name: 'BTC/USD',  tf: '1D', vol: 0.025, cat: 'crypto',      binance: 'BTCUSDT',  yahoo: null,        base: () => 28000 + Math.random() * 40000 },
-  { name: 'ETH/USD',  tf: '1D', vol: 0.030, cat: 'crypto',      binance: 'ETHUSDT',  yahoo: null,        base: () => 1200  + Math.random() * 2400  },
-  { name: 'SOL/USD',  tf: '1D', vol: 0.035, cat: 'crypto',      binance: 'SOLUSDT',  yahoo: null,        base: () => 80    + Math.random() * 120   },
-  { name: 'XRP/USD',  tf: '1D', vol: 0.030, cat: 'crypto',      binance: 'XRPUSDT',  yahoo: null,        base: () => 0.5   + Math.random() * 2     },
+  { name: 'BTC/USD',  tf: '15m', vol: 0.025, cat: 'crypto',      binance: 'BTCUSDT',  yahoo: null,        base: () => 28000 + Math.random() * 40000 },
+  { name: 'ETH/USD',  tf: '15m', vol: 0.030, cat: 'crypto',      binance: 'ETHUSDT',  yahoo: null,        base: () => 1200  + Math.random() * 2400  },
+  { name: 'SOL/USD',  tf: '15m', vol: 0.035, cat: 'crypto',      binance: 'SOLUSDT',  yahoo: null,        base: () => 80    + Math.random() * 120   },
+  { name: 'XRP/USD',  tf: '15m', vol: 0.030, cat: 'crypto',      binance: 'XRPUSDT',  yahoo: null,        base: () => 0.5   + Math.random() * 2     },
   { name: 'EUR/USD',  tf: '1H', vol: 0.004, cat: 'forex',       binance: null, yahoo: 'EURUSD=X',        base: () => 1.04  + Math.random() * 0.18  },
   { name: 'GBP/USD',  tf: '1H', vol: 0.005, cat: 'forex',       binance: null, yahoo: 'GBPUSD=X',        base: () => 1.20  + Math.random() * 0.20  },
   { name: 'USD/JPY',  tf: '1H', vol: 0.004, cat: 'forex',       binance: null, yahoo: 'JPY=X',           base: () => 130   + Math.random() * 20    },
   { name: 'USD/CHF',  tf: '1H', vol: 0.004, cat: 'forex',       binance: null, yahoo: 'CHF=X',           base: () => 0.88  + Math.random() * 0.15  },
   { name: 'AUD/USD',  tf: '1H', vol: 0.004, cat: 'forex',       binance: null, yahoo: 'AUDUSD=X',        base: () => 0.62  + Math.random() * 0.12  },
   { name: 'USD/CAD',  tf: '1H', vol: 0.004, cat: 'forex',       binance: null, yahoo: 'CAD=X',           base: () => 1.25  + Math.random() * 0.15  },
-  { name: 'S&P 500',  tf: '1D', vol: 0.012, cat: 'indices',     binance: null, yahoo: '^GSPC',           base: () => 3800  + Math.random() * 2000  },
-  { name: 'NASDAQ',   tf: '1D', vol: 0.014, cat: 'indices',     binance: null, yahoo: '^IXIC',           base: () => 11000 + Math.random() * 5000  },
-  { name: 'DOW',      tf: '1D', vol: 0.010, cat: 'indices',     binance: null, yahoo: '^DJI',            base: () => 30000 + Math.random() * 8000  },
-  { name: 'GOLD',     tf: '1D', vol: 0.008, cat: 'commodities', binance: null, yahoo: 'GC=F',            base: () => 1700  + Math.random() * 700   },
-  { name: 'SILVER',   tf: '1D', vol: 0.015, cat: 'commodities', binance: null, yahoo: 'SI=F',            base: () => 20    + Math.random() * 10    },
-  { name: 'OIL/USD',  tf: '1D', vol: 0.020, cat: 'commodities', binance: null, yahoo: 'CL=F',            base: () => 60    + Math.random() * 40    },
+  { name: 'S&P 500',  tf: '1H', vol: 0.012, cat: 'indices',     binance: null, yahoo: '^GSPC',           base: () => 3800  + Math.random() * 2000  },
+  { name: 'NASDAQ',   tf: '1H', vol: 0.014, cat: 'indices',     binance: null, yahoo: '^IXIC',           base: () => 11000 + Math.random() * 5000  },
+  { name: 'DOW',      tf: '1H', vol: 0.010, cat: 'indices',     binance: null, yahoo: '^DJI',            base: () => 30000 + Math.random() * 8000  },
+  { name: 'GOLD',     tf: '1H', vol: 0.008, cat: 'commodities', binance: null, yahoo: 'GC=F',            base: () => 1700  + Math.random() * 700   },
+  { name: 'SILVER',   tf: '1H', vol: 0.015, cat: 'commodities', binance: null, yahoo: 'SI=F',            base: () => 20    + Math.random() * 10    },
+  { name: 'OIL/USD',  tf: '1H', vol: 0.020, cat: 'commodities', binance: null, yahoo: 'CL=F',            base: () => 60    + Math.random() * 40    },
 ];
 
 const CATEGORIES = [
