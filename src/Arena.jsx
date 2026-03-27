@@ -367,7 +367,7 @@ function sendChat(msg) {
 
         <div className="asset-bar">
           <div className="asset-name">{gameData.asset}</div>
-          <div className="timeframe-badge">1D</div>
+          <div className="timeframe-badge">{gameData.interval || gameData.asset?.interval || '1H'}</div>
         </div>
 
         <div className="chart-area">

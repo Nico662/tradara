@@ -138,6 +138,7 @@ async function startRoom(socket1, socket2) {
         round:   1,
         total:   TOTAL_ROUNDS,
         asset:   asset.name,
+        interval: asset.interval,
         visible: win.visible,
         future:  win.future,
       };
@@ -212,6 +213,7 @@ function resolveRound(roomId) {
           round:   room.round,
           total:   TOTAL_ROUNDS,
           asset:   nextAsset.name,
+          interval: nextAsset.interval,
           visible: room.visible,
           future:  room.future,
         });
