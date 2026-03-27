@@ -49,15 +49,15 @@ export default function Home({ onSelect }) {
           </button>
 
           <button className="mode-card active" onClick={() => onSelect('arena')}>
-          <div className="mode-card-left">
-             <span className="mode-icon">⚔️</span>
-             <div>
-              <div className="mode-title">{t.home.mode2}</div>
-              <div className="mode-sub">{t.arena.sub}</div>
-             </div>
-             </div>
-         <span className="mode-arrow">→</span>
-         </button>
+            <div className="mode-card-left">
+              <span className="mode-icon">⚔️</span>
+              <div>
+                <div className="mode-title">{t.home.mode2}</div>
+                <div className="mode-sub">{t.arena.sub}</div>
+              </div>
+            </div>
+            <span className="mode-arrow">→</span>
+          </button>
 
           <button className="mode-card disabled">
             <div className="mode-card-left">
@@ -71,18 +71,32 @@ export default function Home({ onSelect }) {
           </button>
         </div>
 
-        <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', justifyContent: 'center', gap: '16px', alignItems: 'center' }}>
-  <span style={{ fontSize: '9px', color: '#2a3345', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-    {t.home.version}
-  </span>
-  <button onClick={() => onSelect('legal')}
-    style={{ background: 'transparent', border: 'none', color: '#2a3345', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}
-    onMouseEnter={e => e.target.style.color = '#6b7a8d'}
-    onMouseLeave={e => e.target.style.color = '#2a3345'}
-  >
-    Legal
-  </button>
-</div>
+        {/* Footer */}
+        <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
+
+          {/* Product Hunt badge */}
+          <a href="https://www.producthunt.com/posts/tradara?utm_source=badge-featured&utm_medium=badge" target="_blank" rel="noopener noreferrer">
+            <img
+              src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=tradara&theme=dark&t=1"
+              alt="Tradara on Product Hunt"
+              style={{ height: '54px', width: 'auto' }}
+            />
+          </a>
+
+          <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', alignItems: 'center' }}>
+            <span style={{ fontSize: '9px', color: '#2a3345', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+              {t.home.version}
+            </span>
+            <button onClick={() => onSelect('legal')}
+              style={{ background: 'transparent', border: 'none', color: '#2a3345', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}
+              onMouseEnter={e => e.target.style.color = '#6b7a8d'}
+              onMouseLeave={e => e.target.style.color = '#2a3345'}
+            >
+              Legal
+            </button>
+          </div>
+        </div>
+
       </div>
     </div>
   );
