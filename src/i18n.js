@@ -6,6 +6,7 @@ export const LANGS = {
       mode1: 'Guess The Market',
       mode1sub: '24 candles. one decision. go.',
       mode2: 'Arena 1vs1',
+      mode2sub: 'same chart · simultaneous decision · best wins',
       mode3: 'Tournaments',
       coming: 'Coming soon',
       version: 'v0.1 · early access',
@@ -44,9 +45,10 @@ export const LANGS = {
       accuracy: 'Accuracy',
       bestStreak: 'Best streak',
       rounds: 'Rounds',
-      playAgain: 'Play Again',
-      menu: 'Menu',
-    },
+       playAgain: 'Play Again',
+       menu: 'Menu',
+      share: 'Share result',
+},
     cats: {
       all: 'All',
       crypto: 'Crypto',
@@ -98,6 +100,7 @@ export const LANGS = {
       mode1: 'Adivina el Mercado',
       mode1sub: '24 velas. una decisión. ya.',
       mode2: 'Arena 1vs1',
+      mode2sub: 'mismo gráfico · decisión simultánea · gana el mejor',
       mode3: 'Torneos',
       coming: 'Próximamente',
       version: 'v0.1 · acceso anticipado',
@@ -138,6 +141,7 @@ export const LANGS = {
       rounds: 'Rondas',
       playAgain: 'Jugar de nuevo',
       menu: 'Menú',
+      share: 'Compartir',
     },
     cats: {
       all: 'Todo',
@@ -191,6 +195,7 @@ export const LANGS = {
       mode1: 'Markt raten',
       mode1sub: '24 Kerzen. eine Entscheidung. los.',
       mode2: 'Arena 1vs1',
+      mode2sub: 'gleicher chart · gleichzeitige entscheidung · bester gewinnt',
       mode3: 'Turniere',
       coming: 'Demnächst',
       version: 'v0.1 · früher Zugang',
@@ -231,6 +236,7 @@ export const LANGS = {
       rounds: 'Runden',
       playAgain: 'Nochmal spielen',
       menu: 'Menü',
+      share: 'Teilen',
     },
     cats: {
       all: 'Alle',
@@ -283,6 +289,7 @@ export const LANGS = {
       mode1: 'Deviner le Marché',
       mode1sub: '24 bougies. une décision. allez.',
       mode2: 'Arène 1vs1',
+      mode2sub: 'même graphique · décision simultanée · le meilleur gagne',
       mode3: 'Tournois',
       coming: 'Bientôt disponible',
       version: 'v0.1 · accès anticipé',
@@ -323,6 +330,7 @@ export const LANGS = {
       rounds: 'Manches',
       playAgain: 'Rejouer',
       menu: 'Menu',
+       share: 'Partager',
     },
     cats: {
       all: 'Tout',
@@ -367,15 +375,4 @@ export const LANGS = {
   share: 'Partager',
 },
   },
-  // en 'en':
-mode2sub: 'same chart · simultaneous decision · best wins',
-
-// en 'es':
-mode2sub: 'mismo gráfico · decisión simultánea · gana el mejor',
-
-// en 'de':
-mode2sub: 'gleicher chart · gleichzeitige entscheidung · bester gewinnt',
-
-// en 'fr':
-mode2sub: 'même graphique · décision simultanée · le meilleur gagne',
 };
