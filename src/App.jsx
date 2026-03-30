@@ -20,12 +20,12 @@ const ASSETS = [
   { name: 'USD/CHF',  tf: '1H', vol: 0.004, cat: 'forex',       binance: null, yahoo: 'CHF=X',           base: () => 0.88  + Math.random() * 0.15  },
   { name: 'AUD/USD',  tf: '1H', vol: 0.004, cat: 'forex',       binance: null, yahoo: 'AUDUSD=X',        base: () => 0.62  + Math.random() * 0.12  },
   { name: 'USD/CAD',  tf: '1H', vol: 0.004, cat: 'forex',       binance: null, yahoo: 'CAD=X',           base: () => 1.25  + Math.random() * 0.15  },
-  { name: 'S&P 500',  tf: '1H', vol: 0.012, cat: 'indices',     binance: null, yahoo: '^GSPC',           base: () => 3800  + Math.random() * 2000  },
-  { name: 'NASDAQ',   tf: '1H', vol: 0.014, cat: 'indices',     binance: null, yahoo: '^IXIC',           base: () => 11000 + Math.random() * 5000  },
-  { name: 'DOW',      tf: '1H', vol: 0.010, cat: 'indices',     binance: null, yahoo: '^DJI',            base: () => 30000 + Math.random() * 8000  },
-  { name: 'GOLD',     tf: '1H', vol: 0.008, cat: 'commodities', binance: null, yahoo: 'GC=F',            base: () => 1700  + Math.random() * 700   },
-  { name: 'SILVER',   tf: '1H', vol: 0.015, cat: 'commodities', binance: null, yahoo: 'SI=F',            base: () => 20    + Math.random() * 10    },
-  { name: 'OIL/USD',  tf: '1H', vol: 0.020, cat: 'commodities', binance: null, yahoo: 'CL=F',            base: () => 60    + Math.random() * 40    },
+  { name: 'S&P 500',  tf: '15min', vol: 0.012, cat: 'indices',     binance: null, yahoo: null, alphavantage: 'SPY',  base: () => 3800  + Math.random() * 2000 },
+  { name: 'NASDAQ',   tf: '15min', vol: 0.014, cat: 'indices',     binance: null, yahoo: null, alphavantage: 'QQQ',  base: () => 11000 + Math.random() * 5000 },
+  { name: 'DOW',      tf: '15min', vol: 0.010, cat: 'indices',     binance: null, yahoo: null, alphavantage: 'DIA',  base: () => 30000 + Math.random() * 8000 },
+  { name: 'GOLD',     tf: '15min', vol: 0.008, cat: 'commodities', binance: null, yahoo: null, alphavantage: 'GLD',  base: () => 1700  + Math.random() * 700  },
+  { name: 'SILVER',   tf: '15min', vol: 0.015, cat: 'commodities', binance: null, yahoo: null, alphavantage: 'SLV',  base: () => 20    + Math.random() * 10   },
+  { name: 'OIL/USD',  tf: '15min', vol: 0.020, cat: 'commodities', binance: null, yahoo: null, alphavantage: 'USO',  base: () => 60    + Math.random() * 40   },
 ];
 
 const CATEGORIES = [

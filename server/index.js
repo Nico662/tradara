@@ -51,12 +51,12 @@ const ASSETS = [
   { name: 'GBP/USD',  source: 'yahoo',   symbol: 'GBPUSD=X', interval: '1h'  },
   { name: 'USD/JPY',  source: 'yahoo',   symbol: 'JPY=X',    interval: '1h'  },
   { name: 'AUD/USD',  source: 'yahoo',   symbol: 'AUDUSD=X', interval: '1h'  },
-  { name: 'S&P 500',  source: 'yahoo',   symbol: '^GSPC',    interval: '1h'  },
-  { name: 'NASDAQ',   source: 'yahoo',   symbol: '^IXIC',    interval: '1h'  },
-  { name: 'DOW',      source: 'yahoo',   symbol: '^DJI',     interval: '1h'  },
-  { name: 'GOLD',     source: 'yahoo',   symbol: 'GC=F',     interval: '1h'  },
-  { name: 'SILVER',   source: 'yahoo',   symbol: 'SI=F',     interval: '1h'  },
-  { name: 'OIL/USD',  source: 'yahoo',   symbol: 'CL=F',     interval: '1h'  },
+  { name: 'S&P 500',  source: 'alphavantage', symbol: 'SPY',  interval: '15min' },
+  { name: 'NASDAQ',   source: 'alphavantage', symbol: 'QQQ',  interval: '15min' },
+  { name: 'DOW',      source: 'alphavantage', symbol: 'DIA',  interval: '15min' },
+  { name: 'GOLD',     source: 'alphavantage', symbol: 'GLD',  interval: '15min' },
+  { name: 'SILVER',   source: 'alphavantage', symbol: 'SLV',  interval: '15min' },
+  { name: 'OIL/USD',  source: 'alphavantage', symbol: 'USO',  interval: '15min' },  
 ];
 
 const TOTAL_ROUNDS = 10;
@@ -75,6 +75,8 @@ async function fetchCandles(asset) {
       low:   parseFloat(k[3]),
       close: parseFloat(k[4]),
     }));
+  } else if (asset.source === 'alphavantage') {
+    return await fetchAlphaVantage(asset.symbol, asset.interval);
   } else {
     const from = new Date();
     from.setDate(from.getDate() - 29);
@@ -94,7 +96,26 @@ async function fetchCandles(asset) {
     return candles;
   }
 }
+async function fetchAlphaVantage(symbol, interval) {
+  const apiKey = 'ZCWXVK6SON5D524K'; // reemplaza con tu key
+  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=${interval}&outputsize=full&apikey=${apiKey}`;
+  const res  = await fetch(url);
+  const data = await res.json();
+  
+  const key  = `Time Series (${interval})`;
+  const series = data[key];
+  if (!series) throw new Error('No data from Alpha Vantage');
 
+  return Object.entries(series)
+    .map(([time, v]) => ({
+      time:  Math.floor(new Date(time).getTime() / 1000),
+      open:  parseFloat(v['1. open']),
+      high:  parseFloat(v['2. high']),
+      low:   parseFloat(v['3. low']),
+      close: parseFloat(v['4. close']),
+    }))
+    .reverse();
+}
 function randomWindow(candles) {
   const maxStart = Math.max(0, candles.length - 100);
   const start    = Math.floor(Math.random() * maxStart);

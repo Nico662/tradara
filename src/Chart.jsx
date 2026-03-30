@@ -37,7 +37,26 @@ async function fetchYahooCandles(symbol, interval) {
   if (data.error) throw new Error(data.error);
   return data;
 }
+async function fetchAlphaVantageCandles(symbol, interval) {
+  const apiKey = 'ZCWXVK6SON5D524K';
+  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=${interval}&outputsize=full&apikey=${apiKey}`;
+  const res  = await fetch(url);
+  const data = await res.json();
 
+  const key    = `Time Series (${interval})`;
+  const series = data[key];
+  if (!series) throw new Error('No data from Alpha Vantage');
+
+  return Object.entries(series)
+    .map(([time, v]) => ({
+      time:  Math.floor(new Date(time).getTime() / 1000),
+      open:  parseFloat(v['1. open']),
+      high:  parseFloat(v['2. high']),
+      low:   parseFloat(v['3. low']),
+      close: parseFloat(v['4. close']),
+    }))
+    .reverse();
+}
 function toChartData(candles, startIndex = 0) {
   return candles.map((c, i) => {
     const time = c.time ?? (() => {
@@ -187,12 +206,13 @@ const Chart = forwardRef(function Chart({ asset }, ref) {
       const yahoo    = asset.yahoo   ?? null;
       const interval = forex ? '1h' : asset.tf === '1H' ? '1h' : asset.tf === '15m' ? '15m' : '1d';
 
-      const loadCandles = symbol
-        ? fetchBinanceCandles(symbol, interval, 700)
-        : yahoo
-        ? fetchYahooCandles(yahoo, interval)
-        : Promise.resolve(generateCandles(700, asset.base(), asset.vol));
-
+      const loadCandles = asset.binance
+     ? fetchBinanceCandles(asset.binance, interval, 700)
+      : asset.alphavantage
+      ? fetchAlphaVantageCandles(asset.alphavantage, '60min')
+      : asset.yahoo
+     ? fetchYahooCandles(asset.yahoo, interval)
+     : Promise.resolve(generateCandles(700, asset.base(), asset.vol));
       const fn = forex ? toChartDataForex : toChartData;
 
       loadCandles.then(candles => {
