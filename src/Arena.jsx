@@ -243,7 +243,7 @@ function sendChat(msg) {
         <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{t.arena.yourName}</div>
         <input
           type="text" value={name} onChange={e => setName(e.target.value)}
-          placeholder="Nico..." maxLength={16}
+          placeholder="..." maxLength={16}
           style={{ width: '100%', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', padding: '12px 14px', color: '#e2e8f0', fontFamily: "'Space Mono', monospace", fontSize: '13px', outline: 'none' }}
         />
       </div>
