@@ -47,23 +47,53 @@ const ASSETS = [
   { name: 'XRP/USD',  source: 'binance', symbol: 'XRPUSDT',  interval: '15m' },
   { name: 'BNB/USD',  source: 'binance', symbol: 'BNBUSDT',  interval: '15m' },
   { name: 'DOGE/USD', source: 'binance', symbol: 'DOGEUSDT', interval: '15m' },
+  { name: 'LINK/USD', source: 'binance', symbol: 'LINKUSDT', interval: '15m' },
+  { name: 'AVAX/USD', source: 'binance', symbol: 'AVAXUSDT', interval: '15m' },
+  { name: 'ADA/USD',  source: 'binance', symbol: 'ADAUSDT',  interval: '15m' },
+  { name: 'DOT/USD',  source: 'binance', symbol: 'DOTUSDT',  interval: '15m' },
   { name: 'EUR/USD',  source: 'yahoo',   symbol: 'EURUSD=X', interval: '1h'  },
   { name: 'GBP/USD',  source: 'yahoo',   symbol: 'GBPUSD=X', interval: '1h'  },
   { name: 'USD/JPY',  source: 'yahoo',   symbol: 'JPY=X',    interval: '1h'  },
   { name: 'AUD/USD',  source: 'yahoo',   symbol: 'AUDUSD=X', interval: '1h'  },
-  { name: 'S&P 500',  source: 'alphavantage', symbol: 'SPY',  interval: '15min' },
-  { name: 'NASDAQ',   source: 'alphavantage', symbol: 'QQQ',  interval: '15min' },
-  { name: 'DOW',      source: 'alphavantage', symbol: 'DIA',  interval: '15min' },
-  { name: 'GOLD',     source: 'alphavantage', symbol: 'GLD',  interval: '15min' },
-  { name: 'SILVER',   source: 'alphavantage', symbol: 'SLV',  interval: '15min' },
-  { name: 'OIL/USD',  source: 'alphavantage', symbol: 'USO',  interval: '15min' },  
 ];
 
 const TOTAL_ROUNDS = 10;
 const rooms        = {};
 let   waiting      = null;
+const alphaCache   = {};
+
+async function fetchAlphaVantage(symbol, interval) {
+  const cacheKey = `${symbol}_${interval}`;
+  if (alphaCache[cacheKey]) {
+    console.log('Cache hit:', symbol);
+    return alphaCache[cacheKey];
+  }
+
+  const apiKey = 'ZCWXVK6SON5D524K';
+  const url    = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=${interval}&outputsize=full&apikey=${apiKey}`;
+  const res    = await fetch(url);
+  const data   = await res.json();
+
+  const key    = `Time Series (${interval})`;
+  const series = data[key];
+  if (!series) throw new Error('No data from Alpha Vantage for ' + symbol + ': ' + JSON.stringify(data).slice(0, 200));
+
+  const candles = Object.entries(series)
+    .map(([time, v]) => ({
+      time:  Math.floor(new Date(time).getTime() / 1000),
+      open:  parseFloat(v['1. open']),
+      high:  parseFloat(v['2. high']),
+      low:   parseFloat(v['3. low']),
+      close: parseFloat(v['4. close']),
+    }))
+    .reverse();
+
+  alphaCache[cacheKey] = candles;
+  return candles;
+}
 
 async function fetchCandles(asset) {
+  console.log('Fetching:', asset.name, asset.source);
   if (asset.source === 'binance') {
     const url  = `https://api.binance.com/api/v3/klines?symbol=${asset.symbol}&interval=${asset.interval}&limit=700`;
     const res  = await fetch(url);
@@ -75,8 +105,6 @@ async function fetchCandles(asset) {
       low:   parseFloat(k[3]),
       close: parseFloat(k[4]),
     }));
-  } else if (asset.source === 'alphavantage') {
-    return await fetchAlphaVantage(asset.symbol, asset.interval);
   } else {
     const from = new Date();
     from.setDate(from.getDate() - 29);
@@ -95,26 +123,6 @@ async function fetchCandles(asset) {
       }));
     return candles;
   }
-}
-async function fetchAlphaVantage(symbol, interval) {
-  const apiKey = 'ZCWXVK6SON5D524K'; // reemplaza con tu key
-  const url = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=${interval}&outputsize=full&apikey=${apiKey}`;
-  const res  = await fetch(url);
-  const data = await res.json();
-  
-  const key  = `Time Series (${interval})`;
-  const series = data[key];
-  if (!series) throw new Error('No data from Alpha Vantage');
-
-  return Object.entries(series)
-    .map(([time, v]) => ({
-      time:  Math.floor(new Date(time).getTime() / 1000),
-      open:  parseFloat(v['1. open']),
-      high:  parseFloat(v['2. high']),
-      low:   parseFloat(v['3. low']),
-      close: parseFloat(v['4. close']),
-    }))
-    .reverse();
 }
 function randomWindow(candles) {
   const maxStart = Math.max(0, candles.length - 100);
@@ -137,16 +145,16 @@ async function startRoom(socket1, socket2) {
       const win    = randomWindow(candles);
 
       rooms[roomId] = {
-        players:      [socket1.id, socket2.id],
-        scores:       { [socket1.id]: 0, [socket2.id]: 0 },
-        names:        { [socket1.id]: socket1.playerName, [socket2.id]: socket2.playerName },
-        round:        1,
-        choices:      {},
-        allCandles:   candles,
-        visible:      win.visible,
-        future:       win.future,
+        players:    [socket1.id, socket2.id],
+        scores:     { [socket1.id]: 0, [socket2.id]: 0 },
+        names:      { [socket1.id]: socket1.playerName, [socket2.id]: socket2.playerName },
+        round:      1,
+        choices:    {},
+        allCandles: candles,
+        visible:    win.visible,
+        future:     win.future,
         asset,
-        usedAssets:   [asset.name],
+        usedAssets: [asset.name],
       };
 
       socket1.join(roomId);
@@ -156,12 +164,12 @@ async function startRoom(socket1, socket2) {
 
       const payload = {
         roomId,
-        round:   1,
-        total:   TOTAL_ROUNDS,
-        asset:   asset.name,
+        round:    1,
+        total:    TOTAL_ROUNDS,
+        asset:    asset.name,
         interval: asset.interval,
-        visible: win.visible,
-        future:  win.future,
+        visible:  win.visible,
+        future:   win.future,
       };
 
       socket1.emit('game:start', { ...payload, opponent: socket2.playerName });
@@ -189,9 +197,9 @@ function resolveRound(roomId) {
   const roundResult = {};
   for (const [pid, choice] of Object.entries(room.choices)) {
     const win = (choice === 'long'  && direction === 'up')
-         || (choice === 'short' && direction === 'down')
-         || (choice === 'skip'  && direction === 'flat');
-     const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
+             || (choice === 'short' && direction === 'down')
+             || (choice === 'skip'  && direction === 'flat');
+    const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
     room.scores[pid] += pts;
     roundResult[pid]  = { choice, win, pts };
   }
@@ -216,19 +224,13 @@ function resolveRound(roomId) {
     room.round++;
     room.choices = {};
 
-    
-    // evitar repetir activos hasta agotar todos
     const available = ASSETS.filter(a => !room.usedAssets.includes(a.name));
-
-    // si quedan menos de 3 disponibles, resetear pero evitar el último usado
     if (available.length < 3) {
-    room.usedAssets = [room.asset.name];
-     }
-
+      room.usedAssets = [room.asset.name];
+    }
     const pool      = ASSETS.filter(a => !room.usedAssets.includes(a.name));
     const nextAsset = pool[Math.floor(Math.random() * pool.length)];
     room.usedAssets.push(nextAsset.name);
-    
 
     fetchCandles(nextAsset).then(candles => {
       const win       = randomWindow(candles);
@@ -239,15 +241,16 @@ function resolveRound(roomId) {
 
       setTimeout(() => {
         io.to(roomId).emit('game:next_round', {
-          round:   room.round,
-          total:   TOTAL_ROUNDS,
-          asset:   nextAsset.name,
+          round:    room.round,
+          total:    TOTAL_ROUNDS,
+          asset:    nextAsset.name,
           interval: nextAsset.interval,
-          visible: room.visible,
-          future:  room.future,
+          visible:  room.visible,
+          future:   room.future,
         });
       }, 3000);
-    }).catch(() => {
+    }).catch(err => {
+      console.log('Error next round:', err.message);
       const win    = randomWindow(room.allCandles);
       room.visible = win.visible;
       room.future  = win.future;

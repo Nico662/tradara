@@ -207,12 +207,12 @@ const Chart = forwardRef(function Chart({ asset }, ref) {
       const interval = forex ? '1h' : asset.tf === '1H' ? '1h' : asset.tf === '15m' ? '15m' : '1d';
 
       const loadCandles = asset.binance
-     ? fetchBinanceCandles(asset.binance, interval, 700)
-      : asset.alphavantage
-      ? fetchAlphaVantageCandles(asset.alphavantage, '60min')
-      : asset.yahoo
-     ? fetchYahooCandles(asset.yahoo, interval)
-     : Promise.resolve(generateCandles(700, asset.base(), asset.vol));
+  ? fetchBinanceCandles(asset.binance, interval, 700)
+  : asset.alphavantage
+  ? fetchAlphaVantageCandles(asset.alphavantage, '15min')
+  : asset.yahoo
+  ? fetchYahooCandles(asset.yahoo, interval)
+  : Promise.resolve(generateCandles(700, asset.base(), asset.vol));
       const fn = forex ? toChartDataForex : toChartData;
 
       loadCandles.then(candles => {
