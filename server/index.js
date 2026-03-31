@@ -216,11 +216,19 @@ function resolveRound(roomId) {
     room.round++;
     room.choices = {};
 
-    // evitar repetir activos
+    
+    // evitar repetir activos hasta agotar todos
     const available = ASSETS.filter(a => !room.usedAssets.includes(a.name));
-    const pool      = available.length > 0 ? available : ASSETS;
+
+    // si quedan menos de 3 disponibles, resetear pero evitar el último usado
+    if (available.length < 3) {
+    room.usedAssets = [room.asset.name];
+     }
+
+    const pool      = ASSETS.filter(a => !room.usedAssets.includes(a.name));
     const nextAsset = pool[Math.floor(Math.random() * pool.length)];
     room.usedAssets.push(nextAsset.name);
+    
 
     fetchCandles(nextAsset).then(candles => {
       const win       = randomWindow(candles);
