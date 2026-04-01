@@ -103,7 +103,7 @@ export default function Home({ onSelect }) {
   <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
     <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22d3a5', animation: 'pulse 1.5s infinite' }} />
     <span style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-      {online} online
+      {Math.max(online, 1)} online
     </span>
   </div>
 )}
