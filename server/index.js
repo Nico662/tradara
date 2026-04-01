@@ -60,37 +60,6 @@ const ASSETS = [
 const TOTAL_ROUNDS = 10;
 const rooms        = {};
 let   waiting      = null;
-const alphaCache   = {};
-
-async function fetchAlphaVantage(symbol, interval) {
-  const cacheKey = `${symbol}_${interval}`;
-  if (alphaCache[cacheKey]) {
-    console.log('Cache hit:', symbol);
-    return alphaCache[cacheKey];
-  }
-
-  const apiKey = 'ZCWXVK6SON5D524K';
-  const url    = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=${interval}&outputsize=full&apikey=${apiKey}`;
-  const res    = await fetch(url);
-  const data   = await res.json();
-
-  const key    = `Time Series (${interval})`;
-  const series = data[key];
-  if (!series) throw new Error('No data from Alpha Vantage for ' + symbol + ': ' + JSON.stringify(data).slice(0, 200));
-
-  const candles = Object.entries(series)
-    .map(([time, v]) => ({
-      time:  Math.floor(new Date(time).getTime() / 1000),
-      open:  parseFloat(v['1. open']),
-      high:  parseFloat(v['2. high']),
-      low:   parseFloat(v['3. low']),
-      close: parseFloat(v['4. close']),
-    }))
-    .reverse();
-
-  alphaCache[cacheKey] = candles;
-  return candles;
-}
 
 async function fetchCandles(asset) {
   console.log('Fetching:', asset.name, asset.source);
@@ -124,6 +93,7 @@ async function fetchCandles(asset) {
     return candles;
   }
 }
+
 function randomWindow(candles) {
   const maxStart = Math.max(0, candles.length - 100);
   const start    = Math.floor(Math.random() * maxStart);
@@ -220,52 +190,86 @@ function resolveRound(roomId) {
       io.to(roomId).emit('game:over', { scores: room.scores, names: room.names });
       delete rooms[roomId];
     }, 3000);
-  } else {
-    room.round++;
-    room.choices = {};
-
-    const available = ASSETS.filter(a => !room.usedAssets.includes(a.name));
-    if (available.length < 3) {
-      room.usedAssets = [room.asset.name];
-    }
-    const pool      = ASSETS.filter(a => !room.usedAssets.includes(a.name));
-    const nextAsset = pool[Math.floor(Math.random() * pool.length)];
-    room.usedAssets.push(nextAsset.name);
-
-    fetchCandles(nextAsset).then(candles => {
-      const win       = randomWindow(candles);
-      room.visible    = win.visible;
-      room.future     = win.future;
-      room.asset      = nextAsset;
-      room.allCandles = candles;
-
-      setTimeout(() => {
-        io.to(roomId).emit('game:next_round', {
-          round:    room.round,
-          total:    TOTAL_ROUNDS,
-          asset:    nextAsset.name,
-          interval: nextAsset.interval,
-          visible:  room.visible,
-          future:   room.future,
-        });
-      }, 3000);
-    }).catch(err => {
-      console.log('Error next round:', err.message);
-      const win    = randomWindow(room.allCandles);
-      room.visible = win.visible;
-      room.future  = win.future;
-
-      setTimeout(() => {
-        io.to(roomId).emit('game:next_round', {
-          round:   room.round,
-          total:   TOTAL_ROUNDS,
-          asset:   room.asset.name,
-          visible: room.visible,
-          future:  room.future,
-        });
-      }, 3000);
-    });
+    return;
   }
+
+  room.round++;
+  room.choices = {};
+
+  const available = ASSETS.filter(a => !room.usedAssets.includes(a.name));
+  if (available.length < 3) {
+    room.usedAssets = [room.asset.name];
+  }
+  const pool      = ASSETS.filter(a => !room.usedAssets.includes(a.name));
+  const nextAsset = pool[Math.floor(Math.random() * pool.length)];
+  room.usedAssets.push(nextAsset.name);
+
+  fetchCandles(nextAsset).then(candles => {
+    const win       = randomWindow(candles);
+    room.visible    = win.visible;
+    room.future     = win.future;
+    room.asset      = nextAsset;
+    room.allCandles = candles;
+
+    setTimeout(() => {
+      io.to(roomId).emit('game:next_round', {
+        round:    room.round,
+        total:    TOTAL_ROUNDS,
+        asset:    nextAsset.name,
+        interval: nextAsset.interval,
+        visible:  room.visible,
+        future:   room.future,
+      });
+    }, 3000);
+
+  }).catch(async (err) => {
+    console.log('Error next round:', err.message, '— trying fallback');
+
+    const fallbackPool = ASSETS.filter(a =>
+      a.name !== nextAsset.name && !room.usedAssets.includes(a.name)
+    );
+
+    if (fallbackPool.length > 0) {
+      const fallback = fallbackPool[Math.floor(Math.random() * fallbackPool.length)];
+      try {
+        const candles = await fetchCandles(fallback);
+        const win     = randomWindow(candles);
+        room.visible    = win.visible;
+        room.future     = win.future;
+        room.asset      = fallback;
+        room.allCandles = candles;
+        room.usedAssets.push(fallback.name);
+
+        setTimeout(() => {
+          io.to(roomId).emit('game:next_round', {
+            round:    room.round,
+            total:    TOTAL_ROUNDS,
+            asset:    fallback.name,
+            interval: fallback.interval,
+            visible:  room.visible,
+            future:   room.future,
+          });
+        }, 3000);
+        return;
+      } catch (e) {
+        console.log('Fallback failed:', e.message);
+      }
+    }
+
+    const win = randomWindow(room.allCandles);
+    room.visible = win.visible;
+    room.future  = win.future;
+    setTimeout(() => {
+      io.to(roomId).emit('game:next_round', {
+        round:    room.round,
+        total:    TOTAL_ROUNDS,
+        asset:    room.asset.name,
+        interval: room.asset.interval,
+        visible:  room.visible,
+        future:   room.future,
+      });
+    }, 3000);
+  });
 }
 
 const privateLobby = {};
