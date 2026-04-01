@@ -35,7 +35,15 @@ async function fetchYahooCandles(symbol, interval) {
   const res  = await fetch(`https://tradara-production.up.railway.app/candles?symbol=${encodeURIComponent(symbol)}&interval=${interval}`);
   const data = await res.json();
   if (data.error) throw new Error(data.error);
-  return data;
+  
+  // filtrar velas con gaps de más de 4 horas entre ellas
+  const filtered = data.filter((candle, i) => {
+    if (i === 0) return true;
+    const diff = candle.time - data[i - 1].time;
+    return diff <= 14400; // 4 horas en segundos
+  });
+  
+  return filtered;
 }
 async function fetchAlphaVantageCandles(symbol, interval) {
   const apiKey = 'ZCWXVK6SON5D524K';
