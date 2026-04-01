@@ -1,7 +1,21 @@
 import { useLang } from './LangContext';
 import { LANGS } from './i18n';
-
+import { useState, useEffect } from 'react';
 export default function Home({ onSelect }) {
+  const [online, setOnline] = useState(0);
+
+ useEffect(() => {
+  const fetchOnline = async () => {
+    try {
+      const res  = await fetch('https://tradara-production.up.railway.app/online');
+      const data = await res.json();
+      setOnline(data.online);
+    } catch {}
+  };
+  fetchOnline();
+  const interval = setInterval(fetchOnline, 10000);
+  return () => clearInterval(interval);
+ }, []); 
   const { lang, setLang, t } = useLang();
 
   return (
@@ -82,6 +96,17 @@ export default function Home({ onSelect }) {
               style={{ height: '54px', width: 'auto' }}
             />
           </a>
+          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '6px' }}>
+  {t.home.tagline}
+</div>
+{online > 0 && (
+  <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}>
+    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22d3a5', animation: 'pulse 1.5s infinite' }} />
+    <span style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+      {online} online
+    </span>
+  </div>
+)}
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', alignItems: 'center' }}>
             <span style={{ fontSize: '9px', color: '#2a3345', letterSpacing: '0.1em', textTransform: 'uppercase' }}>

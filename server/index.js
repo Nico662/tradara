@@ -39,7 +39,10 @@ app.get('/candles', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-
+app.get('/online', (req, res) => {
+  const count = io.engine.clientsCount;
+  res.json({ online: count });
+});
 const ASSETS = [
   { name: 'BTC/USD',  source: 'binance', symbol: 'BTCUSDT',  interval: '15m' },
   { name: 'ETH/USD',  source: 'binance', symbol: 'ETHUSDT',  interval: '15m' },
