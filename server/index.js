@@ -72,22 +72,40 @@ async function fetchCandles(asset) {
   console.log('Fetching:', asset.name, asset.source);
 
   if (asset.source === 'kraken') {
-  const intervalMap = { '15m': 15, '1h': 60, '1d': 1440 };
-  const minutes = intervalMap[asset.interval] || 15;
-  const url  = `https://api.kraken.com/0/public/OHLC?pair=${asset.symbol}&interval=${minutes}`;
-  const res  = await fetch(url);
-  const data = await res.json();
-  if (data.error && data.error.length > 0) throw new Error('Kraken error: ' + data.error[0]);
-  const pair   = Object.keys(data.result).find(k => k !== 'last');
-  const candles = data.result[pair].map(k => ({
-    time:  k[0],
-    open:  parseFloat(k[1]),
-    high:  parseFloat(k[2]),
-    low:   parseFloat(k[3]),
-    close: parseFloat(k[4]),
-  }));
-  return candles;
-}}
+    const intervalMap = { '15m': 15, '1h': 60, '1d': 1440 };
+    const minutes = intervalMap[asset.interval] || 15;
+    const url  = `https://api.kraken.com/0/public/OHLC?pair=${asset.symbol}&interval=${minutes}`;
+    const res  = await fetch(url);
+    const data = await res.json();
+    if (data.error && data.error.length > 0) throw new Error('Kraken error: ' + data.error[0]);
+    const pair    = Object.keys(data.result).find(k => k !== 'last');
+    const candles = data.result[pair].map(k => ({
+      time:  k[0],
+      open:  parseFloat(k[1]),
+      high:  parseFloat(k[2]),
+      low:   parseFloat(k[3]),
+      close: parseFloat(k[4]),
+    }));
+    return candles;
+  } else {
+    const from = new Date();
+    from.setDate(from.getDate() - 29);
+    const result = await yf.chart(asset.symbol, {
+      interval: '1h',
+      period1:  from.toISOString().split('T')[0],
+    });
+    const candles = result.quotes
+      .filter(q => q.open && q.high && q.low && q.close)
+      .map(q => ({
+        time:  Math.floor(new Date(q.date).getTime() / 1000),
+        open:  q.open,
+        high:  q.high,
+        low:   q.low,
+        close: q.close,
+      }));
+    return candles;
+  }
+}
 
 function randomWindow(candles) {
   const maxStart = Math.max(0, candles.length - 100);
