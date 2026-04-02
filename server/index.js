@@ -48,20 +48,19 @@ app.get('/stats', (req, res) => {
 });
 
 const ASSETS = [
-  { name: 'BTC/USD',  source: 'coingecko', symbol: 'BTCUSDT',  coinId: 'bitcoin',      interval: '15m' },
-  { name: 'ETH/USD',  source: 'coingecko', symbol: 'ETHUSDT',  coinId: 'ethereum',      interval: '15m' },
-  { name: 'SOL/USD',  source: 'coingecko', symbol: 'SOLUSDT',  coinId: 'solana',        interval: '15m' },
-  { name: 'XRP/USD',  source: 'coingecko', symbol: 'XRPUSDT',  coinId: 'ripple',        interval: '15m' },
-  { name: 'BNB/USD',  source: 'coingecko', symbol: 'BNBUSDT',  coinId: 'binancecoin',   interval: '15m' },
-  { name: 'DOGE/USD', source: 'coingecko', symbol: 'DOGEUSDT', coinId: 'dogecoin',      interval: '15m' },
-  { name: 'LINK/USD', source: 'coingecko', symbol: 'LINKUSDT', coinId: 'chainlink',     interval: '15m' },
-  { name: 'AVAX/USD', source: 'coingecko', symbol: 'AVAXUSDT', coinId: 'avalanche-2',   interval: '15m' },
-  { name: 'ADA/USD',  source: 'coingecko', symbol: 'ADAUSDT',  coinId: 'cardano',       interval: '15m' },
-  { name: 'DOT/USD',  source: 'coingecko', symbol: 'DOTUSDT',  coinId: 'polkadot',      interval: '15m' },
-  { name: 'EUR/USD',  source: 'yahoo',     symbol: 'EURUSD=X', interval: '1h'  },
-  { name: 'GBP/USD',  source: 'yahoo',     symbol: 'GBPUSD=X', interval: '1h'  },
-  { name: 'USD/JPY',  source: 'yahoo',     symbol: 'JPY=X',    interval: '1h'  },
-  { name: 'AUD/USD',  source: 'yahoo',     symbol: 'AUDUSD=X', interval: '1h'  },
+  { name: 'BTC/USD',  source: 'kraken', symbol: 'XBTUSD',  interval: '15m' },
+  { name: 'ETH/USD',  source: 'kraken', symbol: 'ETHUSD',  interval: '15m' },
+  { name: 'SOL/USD',  source: 'kraken', symbol: 'SOLUSD',  interval: '15m' },
+  { name: 'XRP/USD',  source: 'kraken', symbol: 'XRPUSD',  interval: '15m' },
+  { name: 'DOGE/USD', source: 'kraken', symbol: 'DOGEUSD', interval: '15m' },
+  { name: 'LINK/USD', source: 'kraken', symbol: 'LINKUSD', interval: '15m' },
+  { name: 'AVAX/USD', source: 'kraken', symbol: 'AVAXUSD', interval: '15m' },
+  { name: 'ADA/USD',  source: 'kraken', symbol: 'ADAUSD',  interval: '15m' },
+  { name: 'DOT/USD',  source: 'kraken', symbol: 'DOTUSD',  interval: '15m' },
+  { name: 'EUR/USD',  source: 'yahoo',  symbol: 'EURUSD=X', interval: '1h' },
+  { name: 'GBP/USD',  source: 'yahoo',  symbol: 'GBPUSD=X', interval: '1h' },
+  { name: 'USD/JPY',  source: 'yahoo',  symbol: 'JPY=X',    interval: '1h' },
+  { name: 'AUD/USD',  source: 'yahoo',  symbol: 'AUDUSD=X', interval: '1h' },
 ];
 
 const TOTAL_ROUNDS   = 10;
@@ -72,37 +71,23 @@ let   totalGamesPlayed = 0;
 async function fetchCandles(asset) {
   console.log('Fetching:', asset.name, asset.source);
 
-  if (asset.source === 'coingecko') {
-    const url  = `https://api.coingecko.com/api/v3/coins/${asset.coinId}/ohlc?vs_currency=usd&days=7`;
-    const res  = await fetch(url);
-    const data = await res.json();
-    if (!Array.isArray(data)) throw new Error('CoinGecko error: ' + JSON.stringify(data).slice(0, 100));
-    return data.map(k => ({
-      time:  Math.floor(k[0] / 1000),
-      open:  k[1],
-      high:  k[2],
-      low:   k[3],
-      close: k[4],
-    }));
-  } else {
-    const from = new Date();
-    from.setDate(from.getDate() - 29);
-    const result = await yf.chart(asset.symbol, {
-      interval: '1h',
-      period1:  from.toISOString().split('T')[0],
-    });
-    const candles = result.quotes
-      .filter(q => q.open && q.high && q.low && q.close)
-      .map(q => ({
-        time:  Math.floor(new Date(q.date).getTime() / 1000),
-        open:  q.open,
-        high:  q.high,
-        low:   q.low,
-        close: q.close,
-      }));
-    return candles;
-  }
-}
+  if (asset.source === 'kraken') {
+  const intervalMap = { '15m': 15, '1h': 60, '1d': 1440 };
+  const minutes = intervalMap[asset.interval] || 15;
+  const url  = `https://api.kraken.com/0/public/OHLC?pair=${asset.symbol}&interval=${minutes}`;
+  const res  = await fetch(url);
+  const data = await res.json();
+  if (data.error && data.error.length > 0) throw new Error('Kraken error: ' + data.error[0]);
+  const pair   = Object.keys(data.result).find(k => k !== 'last');
+  const candles = data.result[pair].map(k => ({
+    time:  k[0],
+    open:  parseFloat(k[1]),
+    high:  parseFloat(k[2]),
+    low:   parseFloat(k[3]),
+    close: parseFloat(k[4]),
+  }));
+  return candles;
+}}
 
 function randomWindow(candles) {
   const maxStart = Math.max(0, candles.length - 100);
