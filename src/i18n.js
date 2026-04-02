@@ -90,6 +90,8 @@ export const LANGS = {
   forfeitWon: 'opponent forfeited',
   forfeitLost:'you forfeited',
   share: 'Share result',
+  createRoom: 'Create private room',
+  joinRoom: 'Join →',
 },
   },
 
@@ -184,6 +186,8 @@ export const LANGS = {
   forfeitWon: 'el oponente abandonó la partida',
   forfeitLost:'has abandonado la partida',
   share: 'Compartir',
+  createRoom: 'Crear sala privada',
+  joinRoom: 'Unirse →',
 },
 
   },
@@ -279,6 +283,8 @@ export const LANGS = {
   forfeitWon: 'gegner hat aufgegeben',
   forfeitLost:'du hast aufgegeben',
   share: 'Teilen',
+  createRoom: 'Private Raum erstellen',
+  joinRoom: 'Beitreten →',
 },
   },
 
@@ -373,6 +379,8 @@ export const LANGS = {
   forfeitWon: 'l\'adversaire a abandonné',
   forfeitLost:'tu as abandonné',
   share: 'Partager',
+  createRoom: 'Créer une salle privée',
+  joinRoom: 'Rejoindre →',
 },
   },
 };

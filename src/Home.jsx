@@ -3,19 +3,21 @@ import { LANGS } from './i18n';
 import { useState, useEffect } from 'react';
 export default function Home({ onSelect }) {
   const [online, setOnline] = useState(0);
+const [gamesPlayed, setGamesPlayed] = useState(0);
 
- useEffect(() => {
-  const fetchOnline = async () => {
+useEffect(() => {
+  const fetchStats = async () => {
     try {
-      const res  = await fetch('https://tradara-production.up.railway.app/online');
+      const res  = await fetch('https://tradara-production.up.railway.app/stats');
       const data = await res.json();
       setOnline(data.online);
+      setGamesPlayed(data.gamesPlayed);
     } catch {}
   };
-  fetchOnline();
-  const interval = setInterval(fetchOnline, 10000);
+  fetchStats();
+  const interval = setInterval(fetchStats, 10000);
   return () => clearInterval(interval);
- }, []); 
+}, []);
   const { lang, setLang, t } = useLang();
 
   return (
@@ -107,6 +109,19 @@ export default function Home({ onSelect }) {
     </span>
   </div>
 )}
+<div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+    <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22d3a5', animation: 'pulse 1.5s infinite' }} />
+    <span style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+      {Math.max(online, 1)} online
+    </span>
+  </div>
+  {gamesPlayed > 0 && (
+    <span style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+      {gamesPlayed} games played
+    </span>
+  )}
+</div>
 
           <div style={{ display: 'flex', justifyContent: 'center', gap: '16px', alignItems: 'center' }}>
             <span style={{ fontSize: '9px', color: '#2a3345', letterSpacing: '0.1em', textTransform: 'uppercase' }}>

@@ -262,7 +262,7 @@ function sendChat(msg) {
         {/* Crear sala */}
         <button onClick={createRoom} disabled={!name.trim()}
           style={{ width: '100%', padding: '14px', background: '#0f141b', border: `1px solid ${name.trim() ? '#2a3345' : '#1e2530'}`, borderRadius: '6px', color: name.trim() ? '#8899b0' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed' }}
-        >🔒 Crear sala privada</button>
+        >🔒 {t.arena.createRoom}</button>
 
         {/* Unirse con código */}
         <div style={{ display: 'flex', gap: '8px' }}>
@@ -275,7 +275,7 @@ function sendChat(msg) {
           />
           <button onClick={joinRoom} disabled={!name.trim() || joinCode.length < 4}
             style={{ padding: '12px 20px', background: name.trim() && joinCode.length >= 4 ? 'rgba(245,200,66,0.08)' : '#0f141b', border: `1px solid ${name.trim() && joinCode.length >= 4 ? '#f5c842' : '#2a3345'}`, borderRadius: '6px', color: name.trim() && joinCode.length >= 4 ? '#f5c842' : '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, cursor: name.trim() && joinCode.length >= 4 ? 'pointer' : 'not-allowed', letterSpacing: '0.06em', whiteSpace: 'nowrap' }}
-          >Unirse →</button>
+          >{t.arena.joinRoom}</button>
         </div>
       </div>
 

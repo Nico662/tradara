@@ -43,6 +43,12 @@ app.get('/online', (req, res) => {
   const count = io.engine.clientsCount;
   res.json({ online: count });
 });
+app.get('/stats', (req, res) => {
+  res.json({ 
+    online: io.engine.clientsCount,
+    gamesPlayed: totalGamesPlayed 
+  });
+});
 const ASSETS = [
   { name: 'BTC/USD',  source: 'binance', symbol: 'BTCUSDT',  interval: '15m' },
   { name: 'ETH/USD',  source: 'binance', symbol: 'ETHUSDT',  interval: '15m' },
@@ -63,6 +69,7 @@ const ASSETS = [
 const TOTAL_ROUNDS = 10;
 const rooms        = {};
 let   waiting      = null;
+let totalGamesPlayed = 0;
 
 async function fetchCandles(asset) {
   console.log('Fetching:', asset.name, asset.source);
@@ -146,6 +153,7 @@ async function startRoom(socket1, socket2) {
       };
 
       socket1.emit('game:start', { ...payload, opponent: socket2.playerName });
+      totalGamesPlayed++;
       socket2.emit('game:start', { ...payload, opponent: socket1.playerName });
       return;
 
