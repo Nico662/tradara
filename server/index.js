@@ -39,53 +39,50 @@ app.get('/candles', async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
-app.get('/online', (req, res) => {
-  const count = io.engine.clientsCount;
-  res.json({ online: count });
-});
+
 app.get('/stats', (req, res) => {
-  res.json({ 
-    online: io.engine.clientsCount,
-    gamesPlayed: totalGamesPlayed 
+  res.json({
+    online:      io.engine.clientsCount,
+    gamesPlayed: totalGamesPlayed,
   });
 });
+
 const ASSETS = [
-  { name: 'BTC/USD',  source: 'binance', symbol: 'BTCUSDT',  interval: '15m' },
-  { name: 'ETH/USD',  source: 'binance', symbol: 'ETHUSDT',  interval: '15m' },
-  { name: 'SOL/USD',  source: 'binance', symbol: 'SOLUSDT',  interval: '15m' },
-  { name: 'XRP/USD',  source: 'binance', symbol: 'XRPUSDT',  interval: '15m' },
-  { name: 'BNB/USD',  source: 'binance', symbol: 'BNBUSDT',  interval: '15m' },
-  { name: 'DOGE/USD', source: 'binance', symbol: 'DOGEUSDT', interval: '15m' },
-  { name: 'LINK/USD', source: 'binance', symbol: 'LINKUSDT', interval: '15m' },
-  { name: 'AVAX/USD', source: 'binance', symbol: 'AVAXUSDT', interval: '15m' },
-  { name: 'ADA/USD',  source: 'binance', symbol: 'ADAUSDT',  interval: '15m' },
-  { name: 'DOT/USD',  source: 'binance', symbol: 'DOTUSDT',  interval: '15m' },
-  { name: 'EUR/USD',  source: 'yahoo',   symbol: 'EURUSD=X', interval: '1h'  },
-  { name: 'GBP/USD',  source: 'yahoo',   symbol: 'GBPUSD=X', interval: '1h'  },
-  { name: 'USD/JPY',  source: 'yahoo',   symbol: 'JPY=X',    interval: '1h'  },
-  { name: 'AUD/USD',  source: 'yahoo',   symbol: 'AUDUSD=X', interval: '1h'  },
+  { name: 'BTC/USD',  source: 'coingecko', symbol: 'BTCUSDT',  coinId: 'bitcoin',      interval: '15m' },
+  { name: 'ETH/USD',  source: 'coingecko', symbol: 'ETHUSDT',  coinId: 'ethereum',      interval: '15m' },
+  { name: 'SOL/USD',  source: 'coingecko', symbol: 'SOLUSDT',  coinId: 'solana',        interval: '15m' },
+  { name: 'XRP/USD',  source: 'coingecko', symbol: 'XRPUSDT',  coinId: 'ripple',        interval: '15m' },
+  { name: 'BNB/USD',  source: 'coingecko', symbol: 'BNBUSDT',  coinId: 'binancecoin',   interval: '15m' },
+  { name: 'DOGE/USD', source: 'coingecko', symbol: 'DOGEUSDT', coinId: 'dogecoin',      interval: '15m' },
+  { name: 'LINK/USD', source: 'coingecko', symbol: 'LINKUSDT', coinId: 'chainlink',     interval: '15m' },
+  { name: 'AVAX/USD', source: 'coingecko', symbol: 'AVAXUSDT', coinId: 'avalanche-2',   interval: '15m' },
+  { name: 'ADA/USD',  source: 'coingecko', symbol: 'ADAUSDT',  coinId: 'cardano',       interval: '15m' },
+  { name: 'DOT/USD',  source: 'coingecko', symbol: 'DOTUSDT',  coinId: 'polkadot',      interval: '15m' },
+  { name: 'EUR/USD',  source: 'yahoo',     symbol: 'EURUSD=X', interval: '1h'  },
+  { name: 'GBP/USD',  source: 'yahoo',     symbol: 'GBPUSD=X', interval: '1h'  },
+  { name: 'USD/JPY',  source: 'yahoo',     symbol: 'JPY=X',    interval: '1h'  },
+  { name: 'AUD/USD',  source: 'yahoo',     symbol: 'AUDUSD=X', interval: '1h'  },
 ];
 
-const TOTAL_ROUNDS = 10;
-const rooms        = {};
-let   waiting      = null;
-let totalGamesPlayed = 0;
+const TOTAL_ROUNDS   = 10;
+const rooms          = {};
+let   waiting        = null;
+let   totalGamesPlayed = 0;
 
 async function fetchCandles(asset) {
   console.log('Fetching:', asset.name, asset.source);
-  if (asset.source === 'binance') {
-    const url  = `https://api.binance.com/api/v3/klines?symbol=${asset.symbol}&interval=${asset.interval}&limit=700`;
+
+  if (asset.source === 'coingecko') {
+    const url  = `https://api.coingecko.com/api/v3/coins/${asset.coinId}/ohlc?vs_currency=usd&days=7`;
     const res  = await fetch(url);
     const data = await res.json();
-    if (!Array.isArray(data)) {
-    throw new Error('Binance blocked or error: ' + JSON.stringify(data).slice(0, 100));
-  }
+    if (!Array.isArray(data)) throw new Error('CoinGecko error: ' + JSON.stringify(data).slice(0, 100));
     return data.map(k => ({
       time:  Math.floor(k[0] / 1000),
-      open:  parseFloat(k[1]),
-      high:  parseFloat(k[2]),
-      low:   parseFloat(k[3]),
-      close: parseFloat(k[4]),
+      open:  k[1],
+      high:  k[2],
+      low:   k[3],
+      close: k[4],
     }));
   } else {
     const from = new Date();
@@ -156,8 +153,8 @@ async function startRoom(socket1, socket2) {
       };
 
       socket1.emit('game:start', { ...payload, opponent: socket2.playerName });
-      totalGamesPlayed++;
       socket2.emit('game:start', { ...payload, opponent: socket1.playerName });
+      totalGamesPlayed++;
       return;
 
     } catch (err) {
