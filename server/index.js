@@ -381,5 +381,5 @@ io.on('connection', (socket) => {
   });
 });
 // v2.0
-const express = require('express');
+
 httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
