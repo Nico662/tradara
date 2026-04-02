@@ -33,7 +33,7 @@ export default function Arena({ onBack }) {
  const [showChat,    setShowChat]    = useState(false);
 
   useEffect(() => {
-    return () => {
+    return () => {   
       socketRef.current?.disconnect();
       clearInterval(timerRef.current);
     };
