@@ -77,6 +77,9 @@ async function fetchCandles(asset) {
     const url  = `https://api.binance.com/api/v3/klines?symbol=${asset.symbol}&interval=${asset.interval}&limit=700`;
     const res  = await fetch(url);
     const data = await res.json();
+    if (!Array.isArray(data)) {
+    throw new Error('Binance blocked or error: ' + JSON.stringify(data).slice(0, 100));
+  }
     return data.map(k => ({
       time:  Math.floor(k[0] / 1000),
       open:  parseFloat(k[1]),
