@@ -13,7 +13,27 @@
     <meta name="theme-color" content="#060810" />
   </head>
   <body>
+    <div id="splash" style="position:fixed;inset:0;z-index:9999;background:#0a0c0f;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;transition:opacity 0.5s ease;">
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200" width="60">
+        <line x1="50" y1="10" x2="50" y2="40" stroke="#22d3a5" stroke-width="8" stroke-linecap="round"/>
+        <rect x="25" y="40" width="50" height="110" rx="6" fill="#22d3a5"/>
+        <line x1="50" y1="150" x2="50" y2="190" stroke="#22d3a5" stroke-width="8" stroke-linecap="round"/>
+      </svg>
+      <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:28px;color:#f0f0f0;letter-spacing:0.05em;">TRADARA</div>
+      <div style="font-family:'Space Mono',monospace;font-size:9px;color:#3a4455;letter-spacing:0.2em;text-transform:uppercase;">loading...</div>
+    </div>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      window.addEventListener('load', () => {
+        setTimeout(() => {
+          const splash = document.getElementById('splash');
+          if (splash) {
+            splash.style.opacity = '0';
+            setTimeout(() => splash.remove(), 500);
+          }
+        }, 1200);
+      });
+    </script>
   </body>
 </html>
