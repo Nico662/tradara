@@ -271,9 +271,12 @@ export default function App() {
               {t.gameover.playAgain}
             </button>
             <button onClick={goHome}
-              style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-              {t.gameover.menu}
-            </button>
+               style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', zIndex: 10, padding: '4px 0', transition: 'color 0.15s' }}
+             onMouseEnter={e => e.target.style.color = '#e2e8f0'}
+             onMouseLeave={e => e.target.style.color = '#3a4455'}
+            >
+            {t.game.menu}
+           </button>
           </div>
         </div>
       </div>
