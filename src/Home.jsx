@@ -6,6 +6,9 @@ export default function Home({ onSelect }) {
   const [online, setOnline] = useState(0);
   const [gamesPlayed, setGamesPlayed] = useState(0);
   const { lang, setLang, t } = useLang();
+  const [dailyStreak, setDailyStreak] = useState(() => {
+  return parseInt(localStorage.getItem('tradara_daily_streak') || '0');
+ }); 
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -66,6 +69,14 @@ export default function Home({ onSelect }) {
             )}
           </div>
         </div>
+        {dailyStreak > 0 && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+       <span style={{ fontSize: '14px' }}>🔥</span>
+       <span style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+        {dailyStreak} day streak
+      </span>
+    </div>
+  )}
 
         {/* Mode cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>

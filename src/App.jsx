@@ -65,13 +65,35 @@ export default function App() {
   const [revealing, setRevealing]= useState(false);
   const [highscore, setHighscore]= useState(() => {
     return parseInt(localStorage.getItem('tradara_highscore') || '0');
+  const [dailyStreak, setDailyStreak] = useState(() => {
+   return parseInt(localStorage.getItem('tradara_daily_streak') || '0');
+   }); 
   });
 
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
 
+  function updateDailyStreak() {
+  const today     = new Date().toDateString();
+  const lastPlayed = localStorage.getItem('tradara_last_played');
+  const yesterday = new Date(Date.now() - 86400000).toDateString();
+
+  if (lastPlayed === today) return; // ya jugó hoy
+
+  let newStreak;
+  if (lastPlayed === yesterday) {
+    newStreak = dailyStreak + 1; // día consecutivo
+  } else {
+    newStreak = 1; // racha rota
+  }
+
+  setDailyStreak(newStreak);
+  localStorage.setItem('tradara_daily_streak', String(newStreak));
+  localStorage.setItem('tradara_last_played', today);
+}
   const makeChoice = useCallback((choice) => {
     if (phase !== 'choose') return;
+    updateDailyStreak();
     setSelected(choice);
     setPhase('reveal');
     setRevealing(true);
