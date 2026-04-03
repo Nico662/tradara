@@ -5,30 +5,31 @@ import { useLang } from './LangContext.jsx';
 import { LANGS } from './i18n';
 import Arena from './Arena.jsx';
 import html2canvas from 'html2canvas';
-import { playWin, playLose, playClick, playStreak, playReveal } from './sounds.js';
+import { playWin, playLose, playClick, playStreak } from './sounds.js';
 import Legal from './Legal.jsx';
 
 function randomTF() {
   const tfs = ['1m', '5m', '15m'];
   return tfs[Math.floor(Math.random() * tfs.length)];
 }
+
 const ASSETS = [
-  { name: 'BTC/USD',  tf: randomTF(), vol: 0.025, cat: 'crypto',      binance: 'BTCUSDT',  yahoo: null,        alphavantage: null,  base: () => 28000 + Math.random() * 40000 },
-  { name: 'ETH/USD',  tf: randomTF(), vol: 0.030, cat: 'crypto',      binance: 'ETHUSDT',  yahoo: null,        alphavantage: null,  base: () => 1200  + Math.random() * 2400  },
-  { name: 'SOL/USD',  tf: randomTF(), vol: 0.035, cat: 'crypto',      binance: 'SOLUSDT',  yahoo: null,        alphavantage: null,  base: () => 80    + Math.random() * 120   },
-  { name: 'XRP/USD',  tf: randomTF(), vol: 0.030, cat: 'crypto',      binance: 'XRPUSDT',  yahoo: null,        alphavantage: null,  base: () => 0.5   + Math.random() * 2     },
-  { name: 'BNB/USD',  tf: randomTF(), vol: 0.025, cat: 'crypto',      binance: 'BNBUSDT',  yahoo: null,        alphavantage: null,  base: () => 200   + Math.random() * 400   },
-  { name: 'DOGE/USD', tf: randomTF(), vol: 0.040, cat: 'crypto',      binance: 'DOGEUSDT', yahoo: null,        alphavantage: null,  base: () => 0.05  + Math.random() * 0.3   },
-  { name: 'LINK/USD', tf: randomTF(), vol: 0.035, cat: 'crypto',      binance: 'LINKUSDT', yahoo: null,        alphavantage: null,  base: () => 5     + Math.random() * 20    },
-  { name: 'AVAX/USD', tf: randomTF(), vol: 0.035, cat: 'crypto',      binance: 'AVAXUSDT', yahoo: null,        alphavantage: null,  base: () => 10    + Math.random() * 50    },
-  { name: 'ADA/USD',  tf: randomTF(), vol: 0.030, cat: 'crypto',      binance: 'ADAUSDT',  yahoo: null,        alphavantage: null,  base: () => 0.2   + Math.random() * 1     },
-  { name: 'DOT/USD',  tf: randomTF(), vol: 0.035, cat: 'crypto',      binance: 'DOTUSDT',  yahoo: null,        alphavantage: null,  base: () => 3     + Math.random() * 15    },
-  { name: 'EUR/USD',  tf: '1H',  vol: 0.004, cat: 'forex',       binance: null, yahoo: 'EURUSD=X',        alphavantage: null,  base: () => 1.04  + Math.random() * 0.18  },
-  { name: 'GBP/USD',  tf: '1H',  vol: 0.005, cat: 'forex',       binance: null, yahoo: 'GBPUSD=X',        alphavantage: null,  base: () => 1.20  + Math.random() * 0.20  },
-  { name: 'USD/JPY',  tf: '1H',  vol: 0.004, cat: 'forex',       binance: null, yahoo: 'JPY=X',           alphavantage: null,  base: () => 130   + Math.random() * 20    },
-  { name: 'USD/CHF',  tf: '1H',  vol: 0.004, cat: 'forex',       binance: null, yahoo: 'CHF=X',           alphavantage: null,  base: () => 0.88  + Math.random() * 0.15  },
-  { name: 'AUD/USD',  tf: '1H',  vol: 0.004, cat: 'forex',       binance: null, yahoo: 'AUDUSD=X',        alphavantage: null,  base: () => 0.62  + Math.random() * 0.12  },
-  { name: 'USD/CAD',  tf: '1H',  vol: 0.004, cat: 'forex',       binance: null, yahoo: 'CAD=X',           alphavantage: null,  base: () => 1.25  + Math.random() * 0.15  },
+  { name: 'BTC/USD',  tf: randomTF(), vol: 0.025, cat: 'crypto',      binance: 'BTCUSDT',  yahoo: null, alphavantage: null,  base: () => 28000 + Math.random() * 40000 },
+  { name: 'ETH/USD',  tf: randomTF(), vol: 0.030, cat: 'crypto',      binance: 'ETHUSDT',  yahoo: null, alphavantage: null,  base: () => 1200  + Math.random() * 2400  },
+  { name: 'SOL/USD',  tf: randomTF(), vol: 0.035, cat: 'crypto',      binance: 'SOLUSDT',  yahoo: null, alphavantage: null,  base: () => 80    + Math.random() * 120   },
+  { name: 'XRP/USD',  tf: randomTF(), vol: 0.030, cat: 'crypto',      binance: 'XRPUSDT',  yahoo: null, alphavantage: null,  base: () => 0.5   + Math.random() * 2     },
+  { name: 'BNB/USD',  tf: randomTF(), vol: 0.025, cat: 'crypto',      binance: 'BNBUSDT',  yahoo: null, alphavantage: null,  base: () => 200   + Math.random() * 400   },
+  { name: 'DOGE/USD', tf: randomTF(), vol: 0.040, cat: 'crypto',      binance: 'DOGEUSDT', yahoo: null, alphavantage: null,  base: () => 0.05  + Math.random() * 0.3   },
+  { name: 'LINK/USD', tf: randomTF(), vol: 0.035, cat: 'crypto',      binance: 'LINKUSDT', yahoo: null, alphavantage: null,  base: () => 5     + Math.random() * 20    },
+  { name: 'AVAX/USD', tf: randomTF(), vol: 0.035, cat: 'crypto',      binance: 'AVAXUSDT', yahoo: null, alphavantage: null,  base: () => 10    + Math.random() * 50    },
+  { name: 'ADA/USD',  tf: randomTF(), vol: 0.030, cat: 'crypto',      binance: 'ADAUSDT',  yahoo: null, alphavantage: null,  base: () => 0.2   + Math.random() * 1     },
+  { name: 'DOT/USD',  tf: randomTF(), vol: 0.035, cat: 'crypto',      binance: 'DOTUSDT',  yahoo: null, alphavantage: null,  base: () => 3     + Math.random() * 15    },
+  { name: 'EUR/USD',  tf: '1H',  vol: 0.004, cat: 'forex',       binance: null, yahoo: 'EURUSD=X',  alphavantage: null,  base: () => 1.04  + Math.random() * 0.18  },
+  { name: 'GBP/USD',  tf: '1H',  vol: 0.005, cat: 'forex',       binance: null, yahoo: 'GBPUSD=X',  alphavantage: null,  base: () => 1.20  + Math.random() * 0.20  },
+  { name: 'USD/JPY',  tf: '1H',  vol: 0.004, cat: 'forex',       binance: null, yahoo: 'JPY=X',     alphavantage: null,  base: () => 130   + Math.random() * 20    },
+  { name: 'USD/CHF',  tf: '1H',  vol: 0.004, cat: 'forex',       binance: null, yahoo: 'CHF=X',     alphavantage: null,  base: () => 0.88  + Math.random() * 0.15  },
+  { name: 'AUD/USD',  tf: '1H',  vol: 0.004, cat: 'forex',       binance: null, yahoo: 'AUDUSD=X',  alphavantage: null,  base: () => 0.62  + Math.random() * 0.12  },
+  { name: 'USD/CAD',  tf: '1H',  vol: 0.004, cat: 'forex',       binance: null, yahoo: 'CAD=X',     alphavantage: null,  base: () => 1.25  + Math.random() * 0.15  },
   { name: 'S&P 500',  tf: randomTF(), vol: 0.012, cat: 'indices',     binance: null, yahoo: null, alphavantage: 'SPY',  base: () => 3800  + Math.random() * 2000  },
   { name: 'NASDAQ',   tf: randomTF(), vol: 0.014, cat: 'indices',     binance: null, yahoo: null, alphavantage: 'QQQ',  base: () => 11000 + Math.random() * 5000  },
   { name: 'DOW',      tf: randomTF(), vol: 0.010, cat: 'indices',     binance: null, yahoo: null, alphavantage: 'DIA',  base: () => 30000 + Math.random() * 8000  },
@@ -51,45 +52,40 @@ function randomAsset(cat = 'all') {
 }
 
 export default function App() {
-  const [screen,    setScreen]   = useState('home');
-  const [category,  setCategory] = useState('all');
-  const [asset,     setAsset]    = useState(() => randomAsset('all'));
-  const [phase,     setPhase]    = useState('choose');
-  const [result,    setResult]   = useState(null);
-  const [score,     setScore]    = useState(0);
-  const [streak,    setStreak]   = useState(0);
-  const [round,     setRound]    = useState(1);
-  const [history,   setHistory]  = useState([]);
-  const [selected,  setSelected] = useState(null);
-  const [gameOver,  setGameOver] = useState(false);
-  const [revealing, setRevealing]= useState(false);
-  const [highscore, setHighscore]= useState(() => {
-    return parseInt(localStorage.getItem('tradara_highscore') || '0');
-  const [dailyStreak, setDailyStreak] = useState(() => {
-   return parseInt(localStorage.getItem('tradara_daily_streak') || '0');
-   }); 
-  });
+  const [screen,      setScreen]     = useState('home');
+  const [category,    setCategory]   = useState('all');
+  const [asset,       setAsset]      = useState(() => randomAsset('all'));
+  const [phase,       setPhase]      = useState('choose');
+  const [result,      setResult]     = useState(null);
+  const [score,       setScore]      = useState(0);
+  const [streak,      setStreak]     = useState(0);
+  const [round,       setRound]      = useState(1);
+  const [history,     setHistory]    = useState([]);
+  const [selected,    setSelected]   = useState(null);
+  const [gameOver,    setGameOver]   = useState(false);
+  const [revealing,   setRevealing]  = useState(false);
+  const [highscore,   setHighscore]  = useState(() => parseInt(localStorage.getItem('tradara_highscore') || '0'));
+  const [dailyStreak, setDailyStreak]= useState(() => parseInt(localStorage.getItem('tradara_daily_streak') || '0'));
 
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
 
   function updateDailyStreak() {
-  const today      = new Date().toDateString();
-  const lastPlayed = localStorage.getItem('tradara_last_played');
-  const yesterday  = new Date(Date.now() - 86400000).toDateString();
+    const today      = new Date().toDateString();
+    const lastPlayed = localStorage.getItem('tradara_last_played');
+    const yesterday  = new Date(Date.now() - 86400000).toDateString();
+    if (lastPlayed === today) return;
+    const current   = parseInt(localStorage.getItem('tradara_daily_streak') || '0');
+    const newStreak = lastPlayed === yesterday ? current + 1 : 1;
+    setDailyStreak(newStreak);
+    localStorage.setItem('tradara_daily_streak', String(newStreak));
+    localStorage.setItem('tradara_last_played', today);
+  }
 
-  if (lastPlayed === today) return;
-
-  const current  = parseInt(localStorage.getItem('tradara_daily_streak') || '0');
-  const newStreak = lastPlayed === yesterday ? current + 1 : 1;
-
-  setDailyStreak(newStreak);
-  localStorage.setItem('tradara_daily_streak', String(newStreak));
-  localStorage.setItem('tradara_last_played', today);
-}
   const makeChoice = useCallback((choice) => {
     if (phase !== 'choose') return;
     updateDailyStreak();
+    playClick();
     setSelected(choice);
     setPhase('reveal');
     setRevealing(true);
@@ -111,52 +107,32 @@ export default function App() {
     const neutral = choice === 'skip';
 
     let pts = 0;
-if (win && !neutral) {
-  pts = 100 + streak * 10;
-  const newScore = score + pts;
-  setScore(newScore);
-  if (newScore > highscore) {
-    setHighscore(newScore);
-    localStorage.setItem('tradara_highscore', String(newScore));
-  }
-  setStreak(s => s + 1);
-  if (streak >= 2) playStreak(); else playWin();
-} else if (win && neutral) {
-  pts = 50;
-  const newScore = score + pts;
-  setScore(newScore);
-  if (newScore > highscore) {
-    setHighscore(newScore);
-    localStorage.setItem('tradara_highscore', String(newScore));
-  }
-  setStreak(s => s + 1);
-  playWin();
-} else if (!win && !neutral) {
-  pts = -50;
-  setScore(s => Math.max(0, s + pts));
-  setStreak(0);
-  playLose();
-}
-    // al elegir
-playClick();
-
-// en el resultado, después de calcular win/neutral:
-if (win && !neutral) {
-  pts = 100 + streak * 10;
-  const newScore = score + pts;
-  setScore(newScore);
-  if (newScore > highscore) {
-    setHighscore(newScore);
-    localStorage.setItem('tradara_highscore', String(newScore));
-  }
-  setStreak(s => s + 1);
-  if (streak >= 2) playStreak(); else playWin();  // ← añade esto
-} else if (!win && !neutral) {
-  pts = -50;
-  setScore(s => Math.max(0, s + pts));
-  setStreak(0);
-  playLose();  // ← añade esto
-}
+    if (win && !neutral) {
+      pts = 100 + streak * 10;
+      const newScore = score + pts;
+      setScore(newScore);
+      if (newScore > highscore) {
+        setHighscore(newScore);
+        localStorage.setItem('tradara_highscore', String(newScore));
+      }
+      setStreak(s => s + 1);
+      if (streak >= 2) playStreak(); else playWin();
+    } else if (win && neutral) {
+      pts = 50;
+      const newScore = score + pts;
+      setScore(newScore);
+      if (newScore > highscore) {
+        setHighscore(newScore);
+        localStorage.setItem('tradara_highscore', String(newScore));
+      }
+      setStreak(s => s + 1);
+      playWin();
+    } else if (!win && !neutral) {
+      pts = -50;
+      setScore(s => Math.max(0, s + pts));
+      setStreak(0);
+      playLose();
+    }
 
     const outcome = win && !neutral ? 'win' : !win && !neutral ? 'lose' : 'skip';
     setHistory(h => [...h, outcome]);
@@ -243,22 +219,13 @@ if (win && !neutral) {
       <div id="gtm-root" style={{ position: 'relative' }}>
         <div className="scanlines" />
         <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2 }}>
-
-          {/* Tarjeta que se captura */}
-          <div id="share-card" style={{
-            background: '#0a0c0f',
-            border: '1px solid #1e2530',
-            borderRadius: '12px',
-            padding: '28px 24px',
-            marginBottom: '16px',
-          }}>
+          <div id="share-card" style={{ background: '#0a0c0f', border: '1px solid #1e2530', borderRadius: '12px', padding: '28px 24px', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f0f0f0' }}>
                 GUESS <span style={{ color: '#22d3a5' }}>THE</span> MARKET
               </div>
               <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em' }}>tradara.dev</div>
             </div>
-
             <div style={{ textAlign: 'center', marginBottom: '20px' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '52px', color: '#f5c842', letterSpacing: '-0.02em', lineHeight: 1 }}>
                 {score}
@@ -271,16 +238,13 @@ if (win && !neutral) {
                   ★ new highscore!
                 </div>
               )}
-              <div style={{ fontSize: '11px', color: '#3a4455', marginTop: '4px' }}>
-                best: {highscore}
-              </div>
+              <div style={{ fontSize: '11px', color: '#3a4455', marginTop: '4px' }}>best: {highscore}</div>
             </div>
-
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '20px' }}>
               {[
-                { label: t.gameover.correct,    value: wins,          color: '#22d3a5' },
-                { label: t.gameover.accuracy,   value: accuracy + '%',color: '#e2e8f0' },
-                { label: t.gameover.bestStreak, value: maxStreak+'x', color: '#f5c842' },
+                { label: t.gameover.correct,    value: wins,           color: '#22d3a5' },
+                { label: t.gameover.accuracy,   value: accuracy + '%', color: '#e2e8f0' },
+                { label: t.gameover.bestStreak, value: maxStreak+'x',  color: '#f5c842' },
               ].map(s => (
                 <div key={s.label} style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px 8px', textAlign: 'center' }}>
                   <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
@@ -288,25 +252,19 @@ if (win && !neutral) {
                 </div>
               ))}
             </div>
-
             <div style={{ display: 'flex', gap: '4px', flexWrap: 'wrap', justifyContent: 'center' }}>
               {history.map((h, i) => (
-                <div key={i} style={{
-                  width: '10px', height: '10px', borderRadius: '50%',
-                  background: h === 'win' ? '#22d3a5' : h === 'lose' ? '#f05454' : '#f5c842',
-                }} />
+                <div key={i} style={{ width: '10px', height: '10px', borderRadius: '50%', background: h === 'win' ? '#22d3a5' : h === 'lose' ? '#f05454' : '#f5c842' }} />
               ))}
             </div>
           </div>
 
-          {/* Botones */}
           <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
             <button onClick={shareResult}
               style={{ flex: 1, padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
               📸 {t.gameover.share ?? 'Compartir'}
             </button>
           </div>
-
           <div style={{ display: 'flex', gap: '10px' }}>
             <button onClick={playAgain}
               style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
@@ -324,20 +282,20 @@ if (win && !neutral) {
 
   // ── Home ──────────────────────────────────────────────────────────
   if (screen === 'home') {
-  return <Home onSelect={(mode) => {
-    if (mode === 'arena') setScreen('arena');
-    else if (mode === 'legal') setScreen('legal');
-    else setScreen('game');
-  }} />;
-}
+    return <Home onSelect={(mode) => {
+      if (mode === 'arena') setScreen('arena');
+      else if (mode === 'legal') setScreen('legal');
+      else setScreen('game');
+    }} />;
+  }
 
-if (screen === 'arena') {
-  return <Arena onBack={() => setScreen('home')} />;
-}
+  if (screen === 'arena') {
+    return <Arena onBack={() => setScreen('home')} />;
+  }
 
-if (screen === 'legal') {
-  return <Legal onBack={() => setScreen('home')} />;
-}
+  if (screen === 'legal') {
+    return <Legal onBack={() => setScreen('home')} />;
+  }
 
   // ── Game ──────────────────────────────────────────────────────────
   const cls      = result ? (result.win && !result.neutral ? 'win' : !result.win && !result.neutral ? 'lose' : 'neutral') : '';
@@ -460,33 +418,24 @@ if (screen === 'legal') {
         </div>
       )}
 
-      {/* Session stats */}
-<div style={{ padding: '12px 20px', borderTop: '1px solid #1e2530', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', position: 'relative', zIndex: 2 }}>
-  {[
-    {
-      label: 'CORRECT',
-      value: history.filter(h => h === 'win').length,
-      color: '#22d3a5'
-    },
-    {
-      label: 'WRONG',
-      value: history.filter(h => h === 'lose').length,
-      color: '#f05454'
-    },
-    {
-      label: 'ACCURACY',
-      value: history.filter(h => h !== 'skip').length > 0
-        ? Math.round(history.filter(h => h === 'win').length / history.filter(h => h !== 'skip').length * 100) + '%'
-        : '—',
-      color: '#f5c842'
-    },
-  ].map(s => (
-    <div key={s.label} style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px 8px', textAlign: 'center' }}>
-      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
-      <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: '2px' }}>{s.label}</div>
-    </div>
-  ))}
-</div>
+      <div style={{ padding: '12px 20px', borderTop: '1px solid #1e2530', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', position: 'relative', zIndex: 2 }}>
+        {[
+          { label: 'CORRECT',  value: history.filter(h => h === 'win').length,  color: '#22d3a5' },
+          { label: 'WRONG',    value: history.filter(h => h === 'lose').length, color: '#f05454' },
+          { label: 'ACCURACY', value: history.filter(h => h !== 'skip').length > 0
+              ? Math.round(history.filter(h => h === 'win').length / history.filter(h => h !== 'skip').length * 100) + '%'
+              : '—', color: '#f5c842' },
+        ].map(s => (
+          <div key={s.label} style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px 8px', textAlign: 'center' }}>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
+            <div style={{ fontSize: '8px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginTop: '2px' }}>{s.label}</div>
+          </div>
+        ))}
+      </div>
+
+      <div className="ticker-tape">
+        BTC +3.2% · ETH -1.8% · SPX +0.4% · GOLD +0.9% · EUR/USD -0.2% · OIL -2.1% · TSLA +5.7%
+      </div>
     </div>
   );
 }
