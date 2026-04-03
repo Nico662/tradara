@@ -74,18 +74,14 @@ export default function App() {
   const chartRef = useRef(null);
 
   function updateDailyStreak() {
-  const today     = new Date().toDateString();
+  const today      = new Date().toDateString();
   const lastPlayed = localStorage.getItem('tradara_last_played');
-  const yesterday = new Date(Date.now() - 86400000).toDateString();
+  const yesterday  = new Date(Date.now() - 86400000).toDateString();
 
-  if (lastPlayed === today) return; // ya jugó hoy
+  if (lastPlayed === today) return;
 
-  let newStreak;
-  if (lastPlayed === yesterday) {
-    newStreak = dailyStreak + 1; // día consecutivo
-  } else {
-    newStreak = 1; // racha rota
-  }
+  const current  = parseInt(localStorage.getItem('tradara_daily_streak') || '0');
+  const newStreak = lastPlayed === yesterday ? current + 1 : 1;
 
   setDailyStreak(newStreak);
   localStorage.setItem('tradara_daily_streak', String(newStreak));
