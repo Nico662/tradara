@@ -1,7 +1,9 @@
 import { BADGES, getUnlocked } from './badges.js';
+import { useLang } from './LangContext.jsx';
 
 export default function Badges({ onBack }) {
   const unlocked = getUnlocked();
+  const { t } = useLang();
 
   return (
     <div id="gtm-root" style={{ position: 'relative' }}>
