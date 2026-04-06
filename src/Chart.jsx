@@ -210,22 +210,31 @@ const Chart = forwardRef(function Chart({ asset }, ref) {
   : asset.tf === '5m'  ? '5m'
   : asset.tf === '15m' ? '15m'
   : '1d';
-
-      const loadCandles = asset.binance
+const loadCandles = asset._dailyVisible
+  ? Promise.resolve([...asset._dailyVisible, ...asset._dailyFuture])
+  : asset.binance
   ? fetchBinanceCandles(asset.binance, interval, 700)
   : asset.alphavantage
   ? fetchAlphaVantageCandles(asset.alphavantage, asset.tf === '1m' ? '1min' : asset.tf === '5m' ? '5min' : '15min')
   : asset.yahoo
   ? fetchYahooCandles(asset.yahoo, interval)
+
   : Promise.resolve(generateCandles(700, asset.base(), asset.vol));
       const fn = forex ? toChartDataForex : toChartData;
 
       loadCandles.then(candles => {
-        allCandlesRef.current = candles;
-        const maxStart = Math.max(0, candles.length - 100);
-        const start    = Math.floor(Math.random() * maxStart);
-        candlesRef.current    = candles.slice(start, start + 80);
-        revealPoolRef.current = candles.slice(start + 80, start + 100);
+  allCandlesRef.current = candles;
+  let start = 0;
+  if (asset._dailyVisible) {
+    // daily: mostrar exactamente las velas del servidor
+    candlesRef.current    = asset._dailyVisible;
+    revealPoolRef.current = asset._dailyFuture;
+  } else {
+    const maxStart = Math.max(0, candles.length - 100);
+    start = Math.floor(Math.random() * maxStart);
+    candlesRef.current    = candles.slice(start, start + 80);
+    revealPoolRef.current = candles.slice(start + 80, start + 100);
+  }
         series.setData(fn(candlesRef.current, 0));
         chart.timeScale().fitContent();
       }).catch(() => {

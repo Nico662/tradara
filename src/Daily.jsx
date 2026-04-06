@@ -1,25 +1,23 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLang } from './LangContext.jsx';
-import Chart, { generateCandles } from './Chart.jsx';
+import Chart from './Chart.jsx';
 
 export default function Daily({ onBack }) {
   const { t } = useLang();
-  const [phase, setPhase]       = useState('loading'); // loading, choose, reveal, done, already
-  const [candles, setCandles]   = useState(null);
-  const [future, setFuture]     = useState(null);
-  const [asset, setAsset]       = useState(null);
-  const [interval, setInterval] = useState('15m');
-  const [result, setResult]     = useState(null);
-  const [timeLeft, setTimeLeft] = useState('');
+  const [phase, setPhase]         = useState('loading');
+  const [dailyAsset, setDailyAsset] = useState(null);
+  const [future, setFuture]       = useState(null);
+  const [result, setResult]       = useState(null);
+  const [revealing, setRevealing] = useState(false);
+  const [timeLeft, setTimeLeft]   = useState('');
   const chartRef = useRef(null);
 
   useEffect(() => {
-    // cuenta atrás hasta medianoche
     const timer = setInterval(() => {
-      const now       = new Date();
-      const midnight  = new Date();
+      const now      = new Date();
+      const midnight = new Date();
       midnight.setHours(24, 0, 0, 0);
-      const diff      = midnight - now;
+      const diff = midnight - now;
       const h = Math.floor(diff / 3600000);
       const m = Math.floor((diff % 3600000) / 60000);
       const s = Math.floor((diff % 60000) / 1000);
@@ -29,8 +27,8 @@ export default function Daily({ onBack }) {
   }, []);
 
   useEffect(() => {
-    const today   = new Date().toISOString().split('T')[0];
-    const played  = localStorage.getItem('tradara_daily_played');
+    const today  = new Date().toISOString().split('T')[0];
+    const played = localStorage.getItem('tradara_daily_played');
     if (played === today) {
       const saved = JSON.parse(localStorage.getItem('tradara_daily_result') || 'null');
       setResult(saved);
@@ -41,10 +39,19 @@ export default function Daily({ onBack }) {
     fetch('https://tradara-production.up.railway.app/daily')
       .then(r => r.json())
       .then(data => {
-        setCandles(data.visible);
+        setDailyAsset({
+          name:         data.asset,
+          tf:           data.interval,
+          vol:          0.02,
+          cat:          'crypto',
+          binance:      null,
+          yahoo:        null,
+          alphavantage: null,
+          base:         () => data.visible[0]?.close || 100,
+          _dailyVisible: data.visible,
+          _dailyFuture:  data.future,
+        });
         setFuture(data.future);
-        setAsset(data.asset);
-        setInterval(data.interval);
         setPhase('choose');
       })
       .catch(() => setPhase('error'));
@@ -52,7 +59,12 @@ export default function Daily({ onBack }) {
 
   const makeChoice = (choice) => {
     if (phase !== 'choose' || !future || future.length === 0) return;
-    const lastClose  = candles[candles.length - 1].close;
+    setPhase('reveal');
+    setRevealing(true);
+
+    chartRef.current?.revealFuture(future, () => setRevealing(false));
+
+    const lastClose  = chartRef.current?.getCandles?.()?.slice(-1)[0]?.close ?? future[0].close;
     const lastFuture = future[future.length - 1].close;
     const pctMove    = (lastFuture - lastClose) / lastClose * 100;
     const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
@@ -62,7 +74,6 @@ export default function Daily({ onBack }) {
 
     const res = { choice, direction, pctMove, win };
     setResult(res);
-    setPhase('reveal');
 
     const today = new Date().toISOString().split('T')[0];
     localStorage.setItem('tradara_daily_played', today);
@@ -96,39 +107,32 @@ export default function Daily({ onBack }) {
         </div>
 
         {phase === 'loading' && (
-          <div style={{ textAlign: 'center', color: '#3a4455', fontSize: '11px', marginTop: '60px' }}>
-            loading...
-          </div>
+          <div style={{ textAlign: 'center', color: '#3a4455', fontSize: '11px', marginTop: '60px' }}>loading...</div>
         )}
 
         {phase === 'error' && (
-          <div style={{ textAlign: 'center', color: '#f05454', fontSize: '11px', marginTop: '60px' }}>
-            error loading challenge. try again later.
-          </div>
+          <div style={{ textAlign: 'center', color: '#f05454', fontSize: '11px', marginTop: '60px' }}>error loading challenge. try again later.</div>
         )}
 
-        {(phase === 'choose' || phase === 'reveal') && candles && (
+        {(phase === 'choose' || phase === 'reveal') && dailyAsset && (
           <>
             <div className="asset-bar" style={{ marginBottom: '8px' }}>
-              <div className="asset-name">{asset}</div>
-              <div className="timeframe-badge" style={{ marginLeft: 'auto' }}>{interval}</div>
+              <div className="asset-name">{dailyAsset.name}</div>
+              <div className="timeframe-badge" style={{ marginLeft: 'auto' }}>{dailyAsset.tf}</div>
             </div>
 
-            <div style={{ height: '220px', marginBottom: '12px' }}>
-              <Chart
-                ref={chartRef}
-                asset={{ name: asset, tf: interval, vol: 0.02, cat: 'crypto', binance: null, yahoo: null, alphavantage: null, base: () => candles[0]?.close || 100 }}
-                overrideCandles={candles}
-                overrideFuture={future}
-              />
+            <div className="chart-area">
+              <div className="chart-wrapper">
+                <Chart ref={chartRef} asset={dailyAsset} />
+              </div>
             </div>
 
             {phase === 'choose' && (
               <>
-                <div style={{ fontSize: '10px', color: '#5a6a7d', letterSpacing: '0.06em', textTransform: 'uppercase', marginBottom: '10px', textAlign: 'center' }}>
+                <div style={{ fontSize: '10px', color: '#5a6a7d', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '12px 0 10px', textAlign: 'center' }}>
                   one shot — what happens next?
                 </div>
-                <div className="buttons-row">
+                <div className="buttons-row" style={{ padding: '0 20px' }}>
                   <button className="trade-btn long" onClick={() => makeChoice('long')}>
                     <span className="btn-icon">▲</span>
                     <span>Long</span>
@@ -148,8 +152,8 @@ export default function Daily({ onBack }) {
               </>
             )}
 
-            {phase === 'reveal' && result && (
-              <div style={{ background: result.win ? 'rgba(34,211,165,0.05)' : 'rgba(240,84,84,0.05)', border: `1px solid ${resultColor}`, borderRadius: '8px', padding: '20px', textAlign: 'center' }}>
+            {phase === 'reveal' && result && !revealing && (
+              <div style={{ margin: '12px 20px 0', background: result.win ? 'rgba(34,211,165,0.05)' : 'rgba(240,84,84,0.05)', border: `1px solid ${resultColor}`, borderRadius: '8px', padding: '20px', textAlign: 'center' }}>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: resultColor, marginBottom: '8px' }}>
                   {result.win ? '✓ CORRECT' : '✗ WRONG'}
                 </div>
@@ -166,9 +170,7 @@ export default function Daily({ onBack }) {
 
         {phase === 'already' && result && (
           <div style={{ background: result.win ? 'rgba(34,211,165,0.05)' : 'rgba(240,84,84,0.05)', border: `1px solid ${result.win ? '#22d3a5' : '#f05454'}`, borderRadius: '8px', padding: '28px', textAlign: 'center' }}>
-            <div style={{ fontSize: '13px', color: '#4a5568', marginBottom: '12px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>
-              today's result
-            </div>
+            <div style={{ fontSize: '13px', color: '#4a5568', marginBottom: '12px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>today's result</div>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: result.win ? '#22d3a5' : '#f05454', marginBottom: '8px' }}>
               {result.win ? '✓ CORRECT' : '✗ WRONG'}
             </div>
