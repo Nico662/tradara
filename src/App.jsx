@@ -7,6 +7,8 @@ import Arena from './Arena.jsx';
 import html2canvas from 'html2canvas';
 import { playWin, playLose, playClick, playStreak } from './sounds.js';
 import Legal from './Legal.jsx';
+import { BADGES, unlockBadge } from './badges.js';
+import BadgeNotification from './BadgeNotification.jsx';
 
 function randomTF() {
   const tfs = ['1m', '5m', '15m'];
@@ -66,9 +68,18 @@ export default function App() {
   const [revealing,   setRevealing]  = useState(false);
   const [highscore,   setHighscore]  = useState(() => parseInt(localStorage.getItem('tradara_highscore') || '0'));
   const [dailyStreak, setDailyStreak]= useState(() => parseInt(localStorage.getItem('tradara_daily_streak') || '0'));
+  const [newBadge,    setNewBadge]   = useState(null);
 
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
+
+  function tryUnlockBadge(id) {
+    const unlocked = unlockBadge(id);
+    if (unlocked) {
+      const badge = BADGES.find(b => b.id === id);
+      if (badge) setNewBadge(badge);
+    }
+  }
 
   function updateDailyStreak() {
     const today      = new Date().toDateString();
@@ -80,6 +91,9 @@ export default function App() {
     setDailyStreak(newStreak);
     localStorage.setItem('tradara_daily_streak', String(newStreak));
     localStorage.setItem('tradara_last_played', today);
+    if (newStreak >= 3)  tryUnlockBadge('consistent');
+    if (newStreak >= 7)  tryUnlockBadge('dedicated');
+    if (newStreak >= 30) tryUnlockBadge('legend');
   }
 
   const makeChoice = useCallback((choice) => {
@@ -134,6 +148,33 @@ export default function App() {
       playLose();
     }
 
+    // badges de habilidad
+    if (win && streak + 1 >= 5)  tryUnlockBadge('sniper');
+    if (win && streak + 1 >= 10) tryUnlockBadge('on_fire');
+    if (choice === 'skip' && win) {
+      const skipStreak = parseInt(localStorage.getItem('tradara_skip_streak') || '0') + 1;
+      localStorage.setItem('tradara_skip_streak', String(skipStreak));
+      if (skipStreak >= 3) tryUnlockBadge('diamond_hands');
+    } else {
+      localStorage.setItem('tradara_skip_streak', '0');
+    }
+
+    // badge BTC
+    if (asset.name === 'BTC/USD' && win) {
+      const btcWins = parseInt(localStorage.getItem('tradara_btc_wins') || '0') + 1;
+      localStorage.setItem('tradara_btc_wins', String(btcWins));
+      if (btcWins >= 10) tryUnlockBadge('bitcoin_maxi');
+    }
+
+    // badge forex
+    if (asset.cat === 'forex' && win) {
+      const forexStreak = parseInt(localStorage.getItem('tradara_forex_streak') || '0') + 1;
+      localStorage.setItem('tradara_forex_streak', String(forexStreak));
+      if (forexStreak >= 5) tryUnlockBadge('forex_king');
+    } else if (asset.cat === 'forex' && !win) {
+      localStorage.setItem('tradara_forex_streak', '0');
+    }
+
     const outcome = win && !neutral ? 'win' : !win && !neutral ? 'lose' : 'skip';
     setHistory(h => [...h, outcome]);
     setResult({ win, neutral, pts, pctMove, direction, choice });
@@ -178,6 +219,14 @@ export default function App() {
   };
 
   const playAgain = () => {
+    // comprobaciones de badges de game over
+    const wins     = history.filter(h => h === 'win').length;
+    const nonSkips = history.filter(h => h !== 'skip').length;
+    const acc      = nonSkips > 0 ? Math.round(wins / nonSkips * 100) : 0;
+    if (acc >= 90) tryUnlockBadge('big_brain');
+    const catsWon = new Set(history.map((h, i) => h === 'win' ? ASSETS[i % ASSETS.length].cat : null).filter(Boolean));
+    if (catsWon.size >= 4) tryUnlockBadge('all_rounder');
+
     setGameOver(false);
     setRound(1);
     setScore(0);
@@ -192,10 +241,7 @@ export default function App() {
   const shareResult = async () => {
     const el = document.getElementById('share-card');
     if (!el) return;
-    const canvas = await html2canvas(el, {
-      backgroundColor: '#0a0c0f',
-      scale: 2,
-    });
+    const canvas = await html2canvas(el, { backgroundColor: '#0a0c0f', scale: 2 });
     const link = document.createElement('a');
     link.download = 'tradara-result.png';
     link.href = canvas.toDataURL();
@@ -206,7 +252,6 @@ export default function App() {
   if (gameOver) {
     const wins      = history.filter(h => h === 'win').length;
     const losses    = history.filter(h => h === 'lose').length;
-    const skips     = history.filter(h => h === 'skip').length;
     const accuracy  = Math.round(wins / (wins + losses || 1) * 100);
     const maxStreak = history.reduce((acc, h, i) => {
       if (h !== 'win') return acc;
@@ -262,7 +307,7 @@ export default function App() {
           <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
             <button onClick={shareResult}
               style={{ flex: 1, padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-              📸 {t.gameover.share ?? 'Compartir'}
+              📸 {t.gameover.share ?? 'Share'}
             </button>
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
@@ -271,14 +316,12 @@ export default function App() {
               {t.gameover.playAgain}
             </button>
             <button onClick={goHome}
-               style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', zIndex: 10, padding: '4px 0', transition: 'color 0.15s' }}
-             onMouseEnter={e => e.target.style.color = '#e2e8f0'}
-             onMouseLeave={e => e.target.style.color = '#3a4455'}
-            >
-            {t.game.menu}
-           </button>
+              style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              {t.gameover.menu}
+            </button>
           </div>
         </div>
+        {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
       </div>
     );
   }
@@ -292,13 +335,8 @@ export default function App() {
     }} />;
   }
 
-  if (screen === 'arena') {
-    return <Arena onBack={() => setScreen('home')} />;
-  }
-
-  if (screen === 'legal') {
-    return <Legal onBack={() => setScreen('home')} />;
-  }
+  if (screen === 'arena') return <Arena onBack={() => setScreen('home')} />;
+  if (screen === 'legal') return <Legal onBack={() => setScreen('home')} />;
 
   // ── Game ──────────────────────────────────────────────────────────
   const cls      = result ? (result.win && !result.neutral ? 'win' : !result.win && !result.neutral ? 'lose' : 'neutral') : '';
@@ -310,7 +348,7 @@ export default function App() {
       <div className="scanlines" />
 
       <button onClick={goHome}
-        style={{ position: 'absolute', top: '14px', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', zIndex: 10, padding: '4px 0', transition: 'color 0.15s' }}
+        style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', zIndex: 10, padding: '4px 0', transition: 'color 0.15s' }}
         onMouseEnter={e => e.target.style.color = '#e2e8f0'}
         onMouseLeave={e => e.target.style.color = '#3a4455'}
       >
@@ -439,6 +477,8 @@ export default function App() {
       <div className="ticker-tape">
         BTC +3.2% · ETH -1.8% · SPX +0.4% · GOLD +0.9% · EUR/USD -0.2% · OIL -2.1% · TSLA +5.7%
       </div>
+
+      {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
     </div>
   );
 }
