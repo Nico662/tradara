@@ -329,12 +329,13 @@ export default function App() {
 
   // ── Home ──────────────────────────────────────────────────────────
   if (screen === 'home') {
-    return <Home onSelect={(mode) => {
-      if (mode === 'arena') setScreen('arena');
-      else if (mode === 'legal') setScreen('legal');
-      else setScreen('game');
-    }} />;
-  }
+  return <Home onSelect={(mode) => {
+    if (mode === 'arena') setScreen('arena');
+    else if (mode === 'legal') setScreen('legal');
+    else if (mode === 'badges') setScreen('badges');
+    else setScreen('game');
+  }} />;
+}
 
   if (screen === 'arena') return <Arena onBack={() => setScreen('home')} />;
   if (screen === 'legal') return <Legal onBack={() => setScreen('home')} />;
