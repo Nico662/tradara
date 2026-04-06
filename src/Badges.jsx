@@ -13,14 +13,14 @@ export default function Badges({ onBack }) {
           onMouseEnter={e => e.target.style.color = '#e2e8f0'}
           onMouseLeave={e => e.target.style.color = '#3a4455'}
         >
-          ← back
+          ← {t.badges.back}
         </button>
 
         <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: '#f0f0f0', marginBottom: '4px' }}>
-          Badges
+          {t.badges.title}
         </div>
         <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '28px' }}>
-          {unlocked.length} / {BADGES.length} unlocked
+          {unlocked.length} / {BADGES.length} {t.badges.unlocked}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
