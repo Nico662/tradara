@@ -46,7 +46,61 @@ app.get('/stats', (req, res) => {
     gamesPlayed: totalGamesPlayed,
   });
 });
+const DAILY_ASSETS = [
+  { source: 'kraken', symbol: 'BTCUSD',  name: 'BTC/USD', interval: '15m' },
+  { source: 'kraken', symbol: 'ETHUSD',  name: 'ETH/USD', interval: '15m' },
+  { source: 'kraken', symbol: 'SOLUSD',  name: 'SOL/USD', interval: '15m' },
+  { source: 'kraken', symbol: 'XRPUSD',  name: 'XRP/USD', interval: '15m' },
+  { source: 'yahoo',  symbol: 'EURUSD=X', name: 'EUR/USD', interval: '1h'  },
+  { source: 'yahoo',  symbol: 'GBPUSD=X', name: 'GBP/USD', interval: '1h'  },
+];
 
+let dailyChallenge = null;
+let dailyDate      = null;
+
+async function getDailyChallenge() {
+  const today = new Date().toISOString().split('T')[0];
+  if (dailyDate === today && dailyChallenge) return dailyChallenge;
+
+  // seed determinístico basado en la fecha
+  const seed  = today.replace(/-/g, '');
+  const idx   = parseInt(seed) % DAILY_ASSETS.length;
+  const asset = DAILY_ASSETS[idx];
+
+  const candles = await fetchCandles(asset);
+  const total   = candles.length;
+  const visible = Math.min(80, Math.floor(total * 0.8));
+  const future  = Math.min(20, total - visible);
+
+  // ventana determinística basada en fecha
+  const maxStart = Math.max(0, total - visible - future);
+  const start    = parseInt(seed.slice(-4)) % (maxStart || 1);
+
+  dailyChallenge = {
+    date:    today,
+    asset:   asset.name,
+    interval: asset.interval,
+    visible: candles.slice(start, start + visible),
+    future:  candles.slice(start + visible, start + visible + future),
+  };
+  dailyDate = today;
+  return dailyChallenge;
+}
+
+app.get('/daily', async (req, res) => {
+  try {
+    const challenge = await getDailyChallenge();
+    res.json({
+      date:     challenge.date,
+      asset:    challenge.asset,
+      interval: challenge.interval,
+      visible:  challenge.visible,
+      future:   challenge.future,
+    });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 const ASSETS = [
   { name: 'BTC/USD',  source: 'kraken', symbol: 'XBTUSD',  interval: '15m' },
   { name: 'ETH/USD',  source: 'kraken', symbol: 'ETHUSD',  interval: '15m' },

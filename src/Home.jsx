@@ -78,6 +78,17 @@ export default function Home({ onSelect }) {
       </span>
     </div>
   )}
+     {/* Daily Challenge */}
+ <button className="mode-card active" onClick={() => onSelect('daily')} style={{ marginBottom: '12px', borderColor: '#f5c842', background: 'rgba(245,200,66,0.04)' }}>
+   <div className="mode-card-left">
+     <span className="mode-icon">⚡</span>
+     <div>
+       <div className="mode-title" style={{ color: '#f5c842' }}>Daily Challenge</div>
+       <div className="mode-sub">one chart · one shot · come back tomorrow</div>
+     </div>
+   </div>
+   <span className="mode-arrow" style={{ color: '#f5c842' }}>→</span>
+ </button>
 
         {/* Mode cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
