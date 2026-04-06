@@ -9,6 +9,7 @@ import { playWin, playLose, playClick, playStreak } from './sounds.js';
 import Legal from './Legal.jsx';
 import { BADGES, unlockBadge } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
+import Badges from './Badges.jsx';
 
 function randomTF() {
   const tfs = ['1m', '5m', '15m'];
@@ -337,6 +338,7 @@ export default function App() {
 
   if (screen === 'arena') return <Arena onBack={() => setScreen('home')} />;
   if (screen === 'legal') return <Legal onBack={() => setScreen('home')} />;
+  if (screen === 'badges') return <Badges onBack={() => setScreen('home')} />;
 
   // ── Game ──────────────────────────────────────────────────────────
   const cls      = result ? (result.win && !result.neutral ? 'win' : !result.win && !result.neutral ? 'lose' : 'neutral') : '';

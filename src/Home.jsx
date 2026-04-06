@@ -1,7 +1,7 @@
 import { useLang } from './LangContext';
 import { LANGS } from './i18n';
 import { useState, useEffect } from 'react';
-
+import { getUnlocked } from './badges.js';
 export default function Home({ onSelect }) {
   const [online, setOnline] = useState(0);
   const [gamesPlayed, setGamesPlayed] = useState(0);
@@ -9,6 +9,7 @@ export default function Home({ onSelect }) {
   const [dailyStreak, setDailyStreak] = useState(() => {
   return parseInt(localStorage.getItem('tradara_daily_streak') || '0');
  }); 
+ const unlockedCount = getUnlocked().length;
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -116,7 +117,13 @@ export default function Home({ onSelect }) {
 
         {/* Footer */}
         <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
-
+          <button onClick={() => onSelect('badges')}
+          style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '8px 16px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '8px' }}
+          onMouseEnter={e => e.target.style.borderColor = '#22d3a5'}
+          onMouseLeave={e => e.target.style.borderColor = '#1e2530'}
+        >
+          🏅 badges {unlockedCount > 0 && `· ${unlockedCount} unlocked`}
+        </button>
           {/* Product Hunt badge */}
           <a href="https://www.producthunt.com/posts/tradara?utm_source=badge-featured&utm_medium=badge" target="_blank" rel="noopener noreferrer">
             <img
