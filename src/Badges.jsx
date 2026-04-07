@@ -42,10 +42,10 @@ export default function Badges({ onBack }) {
                   {badge.icon}
                 </div>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '10px', color: isUnlocked ? '#f0f0f0' : '#4a5568', marginBottom: '4px' }}>
-                  {badge.name}
+                  {t.badges.items?.[badge.id]?.name ?? badge.name}
                 </div>
                 <div style={{ fontSize: '8px', color: '#3a4455', letterSpacing: '0.02em', lineHeight: 1.4 }}>
-                  {badge.desc}
+                  {t.badges.items?.[badge.id]?.desc ?? badge.desc}
                 </div>
               </div>
             );
