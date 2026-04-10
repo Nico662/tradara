@@ -1,16 +1,28 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLang } from './LangContext.jsx';
 import Chart from './Chart.jsx';
+import { unlockBadge, BADGES } from './badges.js';
+import BadgeNotification from './BadgeNotification.jsx';
 
 export default function Daily({ onBack }) {
   const { t } = useLang();
-  const [phase, setPhase]         = useState('loading');
+  const [phase, setPhase]           = useState('loading');
   const [dailyAsset, setDailyAsset] = useState(null);
-  const [future, setFuture]       = useState(null);
-  const [result, setResult]       = useState(null);
-  const [revealing, setRevealing] = useState(false);
-  const [timeLeft, setTimeLeft]   = useState('');
+  const [future, setFuture]         = useState(null);
+  const [result, setResult]         = useState(null);
+  const [revealing, setRevealing]   = useState(false);
+  const [timeLeft, setTimeLeft]     = useState('');
+  const [newBadge, setNewBadge]     = useState(null);
+  const [copied, setCopied]         = useState(false);
   const chartRef = useRef(null);
+
+  function tryUnlockDailyBadge(id) {
+    const unlocked = unlockBadge(id);
+    if (unlocked) {
+      const badge = BADGES.find(b => b.id === id);
+      if (badge) setNewBadge(badge);
+    }
+  }
 
   useEffect(() => {
     const timer = setInterval(() => {
@@ -40,14 +52,14 @@ export default function Daily({ onBack }) {
       .then(r => r.json())
       .then(data => {
         setDailyAsset({
-          name:         data.asset,
-          tf:           data.interval,
-          vol:          0.02,
-          cat:          'crypto',
-          binance:      null,
-          yahoo:        null,
-          alphavantage: null,
-          base:         () => data.visible[0]?.close || 100,
+          name:          data.asset,
+          tf:            data.interval,
+          vol:           0.02,
+          cat:           'crypto',
+          binance:       null,
+          yahoo:         null,
+          alphavantage:  null,
+          base:          () => data.visible[0]?.close || 100,
           _dailyVisible: data.visible,
           _dailyFuture:  data.future,
         });
@@ -78,9 +90,41 @@ export default function Daily({ onBack }) {
     const today = new Date().toISOString().split('T')[0];
     localStorage.setItem('tradara_daily_played', today);
     localStorage.setItem('tradara_daily_result', JSON.stringify(res));
+
+    // daily streak badges
+    const lastDaily = localStorage.getItem('tradara_daily_last');
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const current   = parseInt(localStorage.getItem('tradara_daily_streak_count') || '0');
+    const newStreak = lastDaily === yesterday ? current + 1 : 1;
+    localStorage.setItem('tradara_daily_streak_count', String(newStreak));
+    localStorage.setItem('tradara_daily_last', today);
+
+    if (newStreak >= 3)  tryUnlockDailyBadge('daily_streak_3');
+    if (newStreak >= 7)  tryUnlockDailyBadge('daily_streak_7');
+    if (newStreak >= 30) tryUnlockDailyBadge('daily_streak_30');
+  };
+
+  const shareResult = (res) => {
+    const asset    = dailyAsset?.name ?? localStorage.getItem('tradara_daily_asset') ?? '?';
+    const interval = dailyAsset?.tf   ?? '?';
+    const today    = new Date().toISOString().split('T')[0];
+    const text     = `⚡ Tradara Daily Challenge\n📅 ${today}\n📈 ${asset} · ${interval}\n\n${res.win ? '✅ CORRECT' : '❌ WRONG'} — price ${res.direction === 'up' ? '▲' : res.direction === 'down' ? '▼' : '—'} ${res.pctMove > 0 ? '+' : ''}${res.pctMove.toFixed(2)}%\n\ntradara.dev`;
+    navigator.clipboard.writeText(text).then(() => {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    });
   };
 
   const resultColor = result?.win ? '#22d3a5' : '#f05454';
+
+  const ShareButton = ({ res }) => (
+    <button
+      onClick={() => shareResult(res)}
+      style={{ marginTop: '12px', width: '100%', padding: '12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
+    >
+      {copied ? '✓ copied!' : '📋 share result'}
+    </button>
+  );
 
   return (
     <div id="gtm-root" style={{ position: 'relative' }}>
@@ -163,6 +207,7 @@ export default function Daily({ onBack }) {
                 <div style={{ marginTop: '16px', fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
                   come back tomorrow for the next challenge
                 </div>
+                <ShareButton res={result} />
               </div>
             )}
           </>
@@ -180,10 +225,12 @@ export default function Daily({ onBack }) {
             <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
               next challenge in {timeLeft}
             </div>
+            <ShareButton res={result} />
           </div>
         )}
 
       </div>
+      {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
     </div>
   );
 }

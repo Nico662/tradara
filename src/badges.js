@@ -19,6 +19,10 @@ export const BADGES = [
   { id: 'first_blood',   icon: '⚔️', name: 'First Blood',   desc: 'First Arena win',               secret: false },
   { id: 'dominator',     icon: '👹', name: 'Dominator',     desc: 'Win 5 Arena matches',           secret: false },
   { id: 'unbeatable',    icon: '🤝', name: 'Unbeatable',    desc: 'Win Arena without missing',     secret: false },
+
+  { id: 'daily_streak_3',  icon: '📅', name: 'Daily Grinder',  desc: 'Complete daily challenge 3 days in a row',  secret: false },
+  { id: 'daily_streak_7',  icon: '🗓️', name: 'Week Warrior',   desc: 'Complete daily challenge 7 days in a row',  secret: false },
+  { id: 'daily_streak_30', icon: '👑', name: 'Market Oracle',  desc: 'Complete daily challenge 30 days in a row', secret: false },
 ];
 
 export function getUnlocked() {
