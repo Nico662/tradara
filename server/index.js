@@ -9,6 +9,15 @@ const app        = express();
 const httpServer = http.createServer(app);
 const io         = new Server(httpServer, { cors: { origin: '*' } });
 const PORT = process.env.PORT || 3001;
+const webpush = require('web-push');
+
+webpush.setVapidDetails(
+  'mailto:nicolasvidalcorrecher@tradara.dev',
+  'BEWPkbh1HeSsw08H0EsELp5TIPD2gcQ8Yfa1RsSW-9jER3uvoeVUTazcIqjlf4UNFKe7QeqQ8ZlVjGI72pinR0I',
+  'PCyRdLvdQswDzk0DlbImRKEgPbVLewsWGHCha07sXw8'
+);
+
+let pushSubscriptions = [];
 const rateLimit = require('express-rate-limit');
 app.use(cors());
 // Rate limiting general — 100 requests por minuto por IP
@@ -71,6 +80,29 @@ app.get('/stats', (req, res) => {
     online:      io.engine.clientsCount,
     gamesPlayed: totalGamesPlayed,
   });
+});
+app.post('/push/subscribe', express.json(), (req, res) => {
+  const sub = req.body;
+  if (!sub || !sub.endpoint) return res.status(400).json({ error: 'Invalid subscription' });
+  const exists = pushSubscriptions.find(s => s.endpoint === sub.endpoint);
+  if (!exists) pushSubscriptions.push(sub);
+  res.json({ ok: true });
+});
+
+app.post('/push/send', express.json(), (req, res) => {
+  const payload = JSON.stringify({
+    title: '⚡ Daily Challenge',
+    body:  "Today's chart is ready. Can you call it?",
+    url:   'https://tradara.dev',
+  });
+  const promises = pushSubscriptions.map(sub =>
+    webpush.sendNotification(sub, payload).catch(err => {
+      if (err.statusCode === 410) {
+        pushSubscriptions = pushSubscriptions.filter(s => s.endpoint !== sub.endpoint);
+      }
+    })
+  );
+  Promise.all(promises).then(() => res.json({ ok: true, sent: pushSubscriptions.length }));
 });
 const DAILY_ASSETS = [
   { source: 'kraken', symbol: 'BTCUSD',  name: 'BTC/USD', interval: '15m' },
