@@ -9,8 +9,34 @@ const app        = express();
 const httpServer = http.createServer(app);
 const io         = new Server(httpServer, { cors: { origin: '*' } });
 const PORT = process.env.PORT || 3001;
+const rateLimit = require('express-rate-limit');
 app.use(cors());
+// Rate limiting general — 100 requests por minuto por IP
+const generalLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 100,
+  message: { error: 'Too many requests, slow down.' },
+  standardHeaders: true,
+  legacyHeaders: false,
+});
 
+// Rate limiting estricto para /daily — 10 requests por minuto por IP
+const dailyLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 10,
+  message: { error: 'Too many requests for daily challenge.' },
+});
+
+// Rate limiting para candles — 30 requests por minuto por IP
+const candlesLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 30,
+  message: { error: 'Too many candle requests.' },
+});
+
+app.use(generalLimiter);
+app.use('/daily', dailyLimiter);
+app.use('/candles', candlesLimiter);
 app.get('/candles', async (req, res) => {
   const { symbol, interval } = req.query;
   try {
