@@ -9,6 +9,7 @@ const app        = express();
 const httpServer = http.createServer(app);
 const io         = new Server(httpServer, { cors: { origin: '*' } });
 const PORT = process.env.PORT || 3001;
+const cron = require('node-cron');
 const webpush = require('web-push');
 
 webpush.setVapidDetails(
@@ -493,5 +494,22 @@ io.on('connection', (socket) => {
   });
 });
 // v2.0
-
+// Enviar notificación push cada día a las 8:00 AM UTC
+cron.schedule('0 8 * * *', async () => {
+  console.log('Sending daily push notifications...');
+  const payload = JSON.stringify({
+    title: '⚡ Daily Challenge',
+    body:  "Today's chart is ready. Can you call it?",
+    url:   'https://tradara.dev',
+  });
+  const promises = pushSubscriptions.map(sub =>
+    webpush.sendNotification(sub, payload).catch(err => {
+      if (err.statusCode === 410) {
+        pushSubscriptions = pushSubscriptions.filter(s => s.endpoint !== sub.endpoint);
+      }
+    })
+  );
+  await Promise.all(promises);
+  console.log(`Sent to ${pushSubscriptions.length} subscribers`);
+});
 httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
