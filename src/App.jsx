@@ -11,6 +11,7 @@ import { BADGES, unlockBadge } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import Badges from './Badges.jsx';
 import Daily from './Daily.jsx';
+import NotificationBanner from './Notificationbanner.jsx'
 
 function randomTF() {
   const tfs = ['1m', '5m', '15m'];
@@ -150,7 +151,6 @@ export default function App() {
       playLose();
     }
 
-    // badges de habilidad
     if (win && streak + 1 >= 5)  tryUnlockBadge('sniper');
     if (win && streak + 1 >= 10) tryUnlockBadge('on_fire');
     if (choice === 'skip' && win) {
@@ -161,14 +161,12 @@ export default function App() {
       localStorage.setItem('tradara_skip_streak', '0');
     }
 
-    // badge BTC
     if (asset.name === 'BTC/USD' && win) {
       const btcWins = parseInt(localStorage.getItem('tradara_btc_wins') || '0') + 1;
       localStorage.setItem('tradara_btc_wins', String(btcWins));
       if (btcWins >= 10) tryUnlockBadge('bitcoin_maxi');
     }
 
-    // badge forex
     if (asset.cat === 'forex' && win) {
       const forexStreak = parseInt(localStorage.getItem('tradara_forex_streak') || '0') + 1;
       localStorage.setItem('tradara_forex_streak', String(forexStreak));
@@ -221,7 +219,6 @@ export default function App() {
   };
 
   const playAgain = () => {
-    // comprobaciones de badges de game over
     const wins     = history.filter(h => h === 'win').length;
     const nonSkips = history.filter(h => h !== 'skip').length;
     const acc      = nonSkips > 0 ? Math.round(wins / nonSkips * 100) : 0;
@@ -330,19 +327,24 @@ export default function App() {
 
   // ── Home ──────────────────────────────────────────────────────────
   if (screen === 'home') {
-  return <Home onSelect={(mode) => {
-    if (mode === 'arena') setScreen('arena');
-    else if (mode === 'legal') setScreen('legal');
-    else if (mode === 'badges') setScreen('badges');
-    else if (mode === 'daily') setScreen('daily');
-    else setScreen('game');
-  }} />;
-}
+    return (
+      <>
+        <Home onSelect={(mode) => {
+          if (mode === 'arena') setScreen('arena');
+          else if (mode === 'legal') setScreen('legal');
+          else if (mode === 'badges') setScreen('badges');
+          else if (mode === 'daily') setScreen('daily');
+          else setScreen('game');
+        }} />
+        <NotificationBanner />
+      </>
+    );
+  }
 
-  if (screen === 'arena') return <Arena onBack={() => setScreen('home')} />;
-  if (screen === 'legal') return <Legal onBack={() => setScreen('home')} />;
+  if (screen === 'arena')  return <Arena onBack={() => setScreen('home')} />;
+  if (screen === 'legal')  return <Legal onBack={() => setScreen('home')} />;
   if (screen === 'badges') return <Badges onBack={() => setScreen('home')} />;
-  if (screen === 'daily') return <Daily onBack={() => setScreen('home')} />;
+  if (screen === 'daily')  return <Daily onBack={() => setScreen('home')} />;
 
   // ── Game ──────────────────────────────────────────────────────────
   const cls      = result ? (result.win && !result.neutral ? 'win' : !result.win && !result.neutral ? 'lose' : 'neutral') : '';
