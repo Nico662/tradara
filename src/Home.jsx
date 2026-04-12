@@ -88,62 +88,64 @@ export default function Home({ onSelect }) {
         </div>
 
         {/* Mode cards */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-          <button className="mode-card active" onClick={() => onSelect('game')}>
-            <div className="mode-card-left">
-              <span className="mode-icon">📈</span>
-              <div>
-                <div className="mode-title">{t.home.mode1}</div>
-                <div className="mode-sub">{t.home.mode1sub}</div>
-              </div>
-            </div>
-            <span className="mode-arrow">→</span>
-          </button>
+<div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
 
-          <button className="mode-card active" onClick={() => onSelect('arena')}>
-            <div className="mode-card-left">
-              <span className="mode-icon">⚔️</span>
-              <div>
-                <div className="mode-title">{t.home.mode2}</div>
-                <div className="mode-sub">{t.arena.sub}</div>
-              </div>
-            </div>
-            <span className="mode-arrow">→</span>
-          </button>
+  <button className="mode-card active" onClick={() => onSelect('daily')} style={{ borderColor: '#f5c842', background: 'rgba(245,200,66,0.04)' }}>
+    <div className="mode-card-left">
+      <span className="mode-icon">⚡</span>
+      <div>
+        <div className="mode-title" style={{ color: '#f5c842' }}>{t.home.mode4}</div>
+        <div className="mode-sub">{t.home.mode4sub}</div>
+      </div>
+    </div>
+    <span className="mode-arrow" style={{ color: '#f5c842' }}>→</span>
+  </button>
 
-          <button className="mode-card active" onClick={() => onSelect('daily')} style={{ borderColor: '#f5c842', background: 'rgba(245,200,66,0.04)' }}>
-            <div className="mode-card-left">
-              <span className="mode-icon">⚡</span>
-              <div>
-                <div className="mode-title" style={{ color: '#f5c842' }}>{t.home.mode4}</div>
-                <div className="mode-sub">{t.home.mode4sub}</div>
-              </div>
-            </div>
-            <span className="mode-arrow" style={{ color: '#f5c842' }}>→</span>
-          </button>
+  <button className="mode-card active" onClick={() => onSelect('historical')} style={{ borderColor: '#8899b0', background: 'rgba(136,153,176,0.04)' }}>
+    <div className="mode-card-left">
+      <span className="mode-icon">📜</span>
+      <div>
+        <div className="mode-title" style={{ color: '#8899b0' }}>{t.home.mode5}</div>
+        <div className="mode-sub">{t.home.mode5sub}</div>
+      </div>
+    </div>
+    <span className="mode-arrow" style={{ color: '#8899b0' }}>→</span>
+  </button>
 
-          <button className="mode-card active" onClick={() => onSelect('historical')} style={{ borderColor: '#8899b0', background: 'rgba(136,153,176,0.04)' }}>
-            <div className="mode-card-left">
-              <span className="mode-icon">📜</span>
-              <div>
-                <div className="mode-title" style={{ color: '#8899b0' }}>{t.home.mode5}</div>
-                <div className="mode-sub">{t.home.mode5sub}</div>
-              </div>
-            </div>
-            <span className="mode-arrow" style={{ color: '#8899b0' }}>→</span>
-          </button>
+  <button className="mode-card active" onClick={() => onSelect('game')}>
+    <div className="mode-card-left">
+      <span className="mode-icon">📈</span>
+      <div>
+        <div className="mode-title">{t.home.mode1}</div>
+        <div className="mode-sub">{t.home.mode1sub}</div>
+      </div>
+    </div>
+    <span className="mode-arrow">→</span>
+  </button>
 
-          <button className="mode-card disabled">
-            <div className="mode-card-left">
-              <span className="mode-icon">🏆</span>
-              <div>
-                <div className="mode-title">{t.home.mode3}</div>
-                <div className="mode-sub coming">{t.home.coming}</div>
-              </div>
-            </div>
-            <span className="mode-badge">{t.home.coming}</span>
-          </button>
-        </div>
+  <button className="mode-card active" onClick={() => onSelect('arena')}>
+    <div className="mode-card-left">
+      <span className="mode-icon">⚔️</span>
+      <div>
+        <div className="mode-title">{t.home.mode2}</div>
+        <div className="mode-sub">{t.arena.sub}</div>
+      </div>
+    </div>
+    <span className="mode-arrow">→</span>
+  </button>
+
+  <button className="mode-card disabled">
+    <div className="mode-card-left">
+      <span className="mode-icon">🏆</span>
+      <div>
+        <div className="mode-title">{t.home.mode3}</div>
+        <div className="mode-sub coming">{t.home.coming}</div>
+      </div>
+    </div>
+    <span className="mode-badge">{t.home.coming}</span>
+  </button>
+
+</div>
 
         {/* Footer */}
         <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
