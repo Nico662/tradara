@@ -112,6 +112,8 @@ const DAILY_ASSETS = [
   { source: 'kraken', symbol: 'XRPUSD',  name: 'XRP/USD', interval: '15m' },
   { source: 'yahoo',  symbol: 'EURUSD=X', name: 'EUR/USD', interval: '1h'  },
   { source: 'yahoo',  symbol: 'GBPUSD=X', name: 'GBP/USD', interval: '1h'  },
+  { source: 'yahoo',  symbol: 'JPY=X',    name: 'USD/JPY', interval: '1h' },
+  { source: 'yahoo',  symbol: 'AUDUSD=X', name: 'AUD/USD', interval: '1h' },
 ];
 
 let dailyChallenge = null;
