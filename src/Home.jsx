@@ -3,16 +3,16 @@ import { LANGS } from './i18n';
 import { useState, useEffect } from 'react';
 import { getUnlocked } from './badges.js';
 import { getXP, getLevel } from './levels.js';
+
 export default function Home({ onSelect }) {
   const [online, setOnline] = useState(0);
   const [gamesPlayed, setGamesPlayed] = useState(0);
   const { lang, setLang, t } = useLang();
-  const [dailyStreak, setDailyStreak] = useState(() => {
-  return parseInt(localStorage.getItem('tradara_daily_streak') || '0');
- }); 
- const unlockedCount = getUnlocked().length;
- const xp    = getXP();
- const level = getLevel(xp);
+  const [dailyStreak] = useState(() => parseInt(localStorage.getItem('tradara_daily_streak') || '0'));
+  const unlockedCount = getUnlocked().length;
+  const xp    = getXP();
+  const level = getLevel(xp);
+
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -37,11 +37,7 @@ export default function Home({ onSelect }) {
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>
           <div className="lang-selector">
             {Object.keys(LANGS).map(l => (
-              <button
-                key={l}
-                className={`lang-btn${lang === l ? ' active' : ''}`}
-                onClick={() => setLang(l)}
-              >
+              <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
                 {LANGS[l].label}
               </button>
             ))}
@@ -49,7 +45,7 @@ export default function Home({ onSelect }) {
         </div>
 
         {/* Logo */}
-        <div style={{ textAlign: 'center', marginBottom: '48px' }}>
+        <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '42px', letterSpacing: '-0.02em', color: '#f0f0f0' }}>
             Tradara
           </div>
@@ -71,42 +67,26 @@ export default function Home({ onSelect }) {
               </span>
             )}
           </div>
+
+          {/* Streak + Level */}
+          <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
+            {dailyStreak > 0 && (
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <span style={{ fontSize: '14px' }}>🔥</span>
+                <span style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                  {dailyStreak} day streak
+                </span>
+              </div>
+            )}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <span style={{ fontSize: '12px' }}>{level.icon}</span>
+              <span style={{ fontSize: '9px', color: '#8899b0', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                {level.name} · {xp} XP
+              </span>
+            </div>
+          </div>
         </div>
-        {dailyStreak > 0 && (
-        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-       <span style={{ fontSize: '14px' }}>🔥</span>
-       <span style={{ fontSize: '9px', color: '#f5c842', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-        {dailyStreak} day streak
-      </span>
-    </div>
-  )}
-  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
-  <span style={{ fontSize: '12px' }}>{level.icon}</span>
-  <span style={{ fontSize: '9px', color: '#8899b0', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-    {level.name} · {xp} XP
-  </span>
-</div>
-     {/* Daily Challenge */}
- <button className="mode-card active" onClick={() => onSelect('daily')} style={{ marginBottom: '12px', borderColor: '#f5c842', background: 'rgba(245,200,66,0.04)' }}>
-   <div className="mode-card-left">
-     <span className="mode-icon">⚡</span>
-     <div>
-       <div className="mode-title" style={{ color: '#f5c842' }}>Daily Challenge</div>
-       <div className="mode-sub">one chart · one shot · come back tomorrow</div>
-     </div>
-   </div>
-   <span className="mode-arrow" style={{ color: '#f5c842' }}>→</span>
- </button>
-<button className="mode-card active" onClick={() => onSelect('historical')} style={{ marginBottom: '12px', borderColor: '#8899b0', background: 'rgba(136,153,176,0.04)' }}>
-  <div className="mode-card-left">
-    <span className="mode-icon">📜</span>
-    <div>
-      <div className="mode-title" style={{ color: '#8899b0' }}>Historical Mode</div>
-      <div className="mode-sub">50 real events · can you call them?</div>
-    </div>
-  </div>
-  <span className="mode-arrow" style={{ color: '#8899b0' }}>→</span>
-</button>
+
         {/* Mode cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <button className="mode-card active" onClick={() => onSelect('game')}>
@@ -131,6 +111,28 @@ export default function Home({ onSelect }) {
             <span className="mode-arrow">→</span>
           </button>
 
+          <button className="mode-card active" onClick={() => onSelect('daily')} style={{ borderColor: '#f5c842', background: 'rgba(245,200,66,0.04)' }}>
+            <div className="mode-card-left">
+              <span className="mode-icon">⚡</span>
+              <div>
+                <div className="mode-title" style={{ color: '#f5c842' }}>{t.home.mode4}</div>
+                <div className="mode-sub">{t.home.mode4sub}</div>
+              </div>
+            </div>
+            <span className="mode-arrow" style={{ color: '#f5c842' }}>→</span>
+          </button>
+
+          <button className="mode-card active" onClick={() => onSelect('historical')} style={{ borderColor: '#8899b0', background: 'rgba(136,153,176,0.04)' }}>
+            <div className="mode-card-left">
+              <span className="mode-icon">📜</span>
+              <div>
+                <div className="mode-title" style={{ color: '#8899b0' }}>{t.home.mode5}</div>
+                <div className="mode-sub">{t.home.mode5sub}</div>
+              </div>
+            </div>
+            <span className="mode-arrow" style={{ color: '#8899b0' }}>→</span>
+          </button>
+
           <button className="mode-card disabled">
             <div className="mode-card-left">
               <span className="mode-icon">🏆</span>
@@ -146,13 +148,13 @@ export default function Home({ onSelect }) {
         {/* Footer */}
         <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
           <button onClick={() => onSelect('badges')}
-          style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '8px 16px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '8px' }}
-          onMouseEnter={e => e.target.style.borderColor = '#22d3a5'}
-          onMouseLeave={e => e.target.style.borderColor = '#1e2530'}
-        >
-          🏅 badges {unlockedCount > 0 && `· ${unlockedCount} unlocked`}
-        </button>
-          {/* Product Hunt badge */}
+            style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '8px 16px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '8px' }}
+            onMouseEnter={e => e.currentTarget.style.borderColor = '#22d3a5'}
+            onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
+          >
+            🏅 {t.home.badges ?? 'Badges'} {unlockedCount > 0 && `· ${unlockedCount} unlocked`}
+          </button>
+
           <a href="https://www.producthunt.com/posts/tradara?utm_source=badge-featured&utm_medium=badge" target="_blank" rel="noopener noreferrer">
             <img
               src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=tradara&theme=dark&t=1"

@@ -11,6 +11,10 @@ export const LANGS = {
       coming: 'Coming soon',
       version: 'v0.1 · early access',
       badges: 'Badges',
+      mode4: 'Daily Challenge',
+mode4sub: 'one chart · one shot · come back tomorrow',
+mode5: 'Historical Mode',
+mode5sub: '50 real events · can you call them?',
     },
     game: {
       round: 'ROUND', score: 'SCORE', streak: 'STREAK',
@@ -99,6 +103,10 @@ daily: {
       mode1: 'Adivina el Mercado', mode1sub: '24 velas. una decisión. ya.',
       mode2: 'Arena 1vs1', mode2sub: 'mismo gráfico · decisión simultánea · gana el mejor',
       mode3: 'Torneos', coming: 'Próximamente', version: 'v0.1 · acceso anticipado', badges: 'Medallas',
+      mode4: 'Desafío Diario',
+mode4sub: 'un gráfico · un intento · vuelve mañana',
+mode5: 'Modo Histórico',
+mode5sub: '50 eventos reales · ¿puedes acertarlos?',
     },
     game: {
       round: 'RONDA', score: 'PUNTOS', streak: 'RACHA',
@@ -186,6 +194,11 @@ daily: {
       mode1: 'Markt raten', mode1sub: '24 Kerzen. eine Entscheidung. los.',
       mode2: 'Arena 1vs1', mode2sub: 'gleicher chart · gleichzeitige entscheidung · bester gewinnt',
       mode3: 'Turniere', coming: 'Demnächst', version: 'v0.1 · früher Zugang', badges: 'Abzeichen',
+      mode4: 'Tägliche Challenge',
+mode4sub: 'ein Chart · ein Versuch · komm morgen wieder',
+mode5: 'Historischer Modus',
+mode5sub: '50 echte Ereignisse · kannst du sie erraten?',
+
     },
     game: {
       round: 'RUNDE', score: 'PUNKTE', streak: 'SERIE',
@@ -273,6 +286,10 @@ daily: {
       mode1: 'Deviner le Marché', mode1sub: '24 bougies. une décision. allez.',
       mode2: 'Arène 1vs1', mode2sub: 'même graphique · décision simultanée · le meilleur gagne',
       mode3: 'Tournois', coming: 'Bientôt disponible', version: 'v0.1 · accès anticipé', badges: 'Badges',
+      mode4: 'Défi Quotidien',
+mode4sub: 'un graphique · un essai · reviens demain',
+mode5: 'Mode Historique',
+mode5sub: '50 événements réels · peux-tu les deviner?',
     },
     game: {
       round: 'MANCHE', score: 'SCORE', streak: 'SÉRIE',
@@ -360,6 +377,10 @@ daily: {
       mode1: 'मार्केट अनुमान', mode1sub: '24 कैंडल. एक फ़ैसला. शुरू.',
       mode2: 'एरेना 1vs1', mode2sub: 'एक चार्ट · एक साथ फ़ैसला · बेहतर जीतता है',
       mode3: 'टूर्नामेंट', coming: 'जल्द आ रहा है', version: 'v0.1 · अर्ली एक्सेस', badges: 'बैज',
+      mode4: 'दैनिक चुनौती',
+mode4sub: 'एक चार्ट · एक मौका · कल वापस आएं',
+mode5: 'ऐतिहासिक मोड',
+mode5sub: '50 असली घटनाएं · क्या आप सही अनुमान लगा सकते हैं?',
     },
     game: {
       round: 'राउंड', score: 'स्कोर', streak: 'स्ट्रीक',
@@ -447,6 +468,10 @@ daily: {
       mode1: '猜测市场', mode1sub: '24根蜡烛. 一个决定. 开始.',
       mode2: '竞技场 1vs1', mode2sub: '相同图表 · 同时决策 · 最佳获胜',
       mode3: '锦标赛', coming: '即将推出', version: 'v0.1 · 早期访问', badges: '徽章',
+      mode4: '每日挑战',
+mode4sub: '一个图表 · 一次机会 · 明天回来',
+mode5: '历史模式',
+mode5sub: '50个真实事件 · 你能预测吗?',  
     },
     game: {
       round: '回合', score: '分数', streak: '连击',
