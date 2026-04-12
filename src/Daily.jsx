@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLang } from './LangContext.jsx';
+import { LANGS } from './i18n.js';
 import Chart from './Chart.jsx';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 
 export default function Daily({ onBack }) {
-  const { t } = useLang();
+  const { t, lang, setLang } = useLang();
   const [phase, setPhase]           = useState('loading');
   const [dailyAsset, setDailyAsset] = useState(null);
   const [future, setFuture]         = useState(null);
@@ -73,7 +74,6 @@ export default function Daily({ onBack }) {
     if (phase !== 'choose' || !future || future.length === 0) return;
     setPhase('reveal');
     setRevealing(true);
-
     chartRef.current?.revealFuture(future, () => setRevealing(false));
 
     const lastClose  = chartRef.current?.getCandles?.()?.slice(-1)[0]?.close ?? future[0].close;
@@ -91,21 +91,19 @@ export default function Daily({ onBack }) {
     localStorage.setItem('tradara_daily_played', today);
     localStorage.setItem('tradara_daily_result', JSON.stringify(res));
 
-    // daily streak badges
-    const lastDaily = localStorage.getItem('tradara_daily_last');
-    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-    const current   = parseInt(localStorage.getItem('tradara_daily_streak_count') || '0');
-    const newStreak = lastDaily === yesterday ? current + 1 : 1;
+    const lastDaily    = localStorage.getItem('tradara_daily_last');
+    const yesterday    = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const current      = parseInt(localStorage.getItem('tradara_daily_streak_count') || '0');
+    const newStreak    = lastDaily === yesterday ? current + 1 : 1;
     localStorage.setItem('tradara_daily_streak_count', String(newStreak));
     localStorage.setItem('tradara_daily_last', today);
-
     if (newStreak >= 3)  tryUnlockDailyBadge('daily_streak_3');
     if (newStreak >= 7)  tryUnlockDailyBadge('daily_streak_7');
     if (newStreak >= 30) tryUnlockDailyBadge('daily_streak_30');
   };
 
   const shareResult = (res) => {
-    const asset    = dailyAsset?.name ?? localStorage.getItem('tradara_daily_asset') ?? '?';
+    const asset    = dailyAsset?.name ?? '?';
     const interval = dailyAsset?.tf   ?? '?';
     const today    = new Date().toISOString().split('T')[0];
     const text     = `⚡ Tradara Daily Challenge\n📅 ${today}\n📈 ${asset} · ${interval}\n\n${res.win ? '✅ CORRECT' : '❌ WRONG'} — price ${res.direction === 'up' ? '▲' : res.direction === 'down' ? '▼' : '—'} ${res.pctMove > 0 ? '+' : ''}${res.pctMove.toFixed(2)}%\n\ntradara.dev`;
@@ -118,11 +116,9 @@ export default function Daily({ onBack }) {
   const resultColor = result?.win ? '#22d3a5' : '#f05454';
 
   const ShareButton = ({ res }) => (
-    <button
-      onClick={() => shareResult(res)}
-      style={{ marginTop: '12px', width: '100%', padding: '12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}
-    >
-      {copied ? '✓ copied!' : '📋 share result'}
+    <button onClick={() => shareResult(res)}
+      style={{ marginTop: '12px', width: '100%', padding: '12px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+      {copied ? t.daily.copied : t.daily.share}
     </button>
   );
 
@@ -131,15 +127,24 @@ export default function Daily({ onBack }) {
       <div className="scanlines" />
       <div style={{ padding: '48px 28px 32px', position: 'relative', zIndex: 2 }}>
 
-        <button onClick={onBack}
-          style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', marginBottom: '24px', display: 'block' }}
-          onMouseEnter={e => e.target.style.color = '#e2e8f0'}
-          onMouseLeave={e => e.target.style.color = '#3a4455'}
-        >← back</button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+          <button onClick={onBack}
+            style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em' }}
+            onMouseEnter={e => e.target.style.color = '#e2e8f0'}
+            onMouseLeave={e => e.target.style.color = '#3a4455'}
+          >{t.daily.back}</button>
+          <div className="lang-selector">
+            {Object.keys(LANGS).map(l => (
+              <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
+                {LANGS[l].label}
+              </button>
+            ))}
+          </div>
+        </div>
 
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '4px' }}>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '22px', color: '#f0f0f0' }}>
-            Daily Challenge
+            {t.daily.title}
           </div>
           <div style={{ fontSize: '9px', color: '#3a4455', fontFamily: "'Space Mono', monospace", letterSpacing: '0.1em' }}>
             {new Date().toISOString().split('T')[0]}
@@ -147,13 +152,12 @@ export default function Daily({ onBack }) {
         </div>
 
         <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '24px' }}>
-          next challenge in {timeLeft}
+          {t.daily.next} {timeLeft}
         </div>
 
         {phase === 'loading' && (
           <div style={{ textAlign: 'center', color: '#3a4455', fontSize: '11px', marginTop: '60px' }}>loading...</div>
         )}
-
         {phase === 'error' && (
           <div style={{ textAlign: 'center', color: '#f05454', fontSize: '11px', marginTop: '60px' }}>error loading challenge. try again later.</div>
         )}
@@ -164,7 +168,6 @@ export default function Daily({ onBack }) {
               <div className="asset-name">{dailyAsset.name}</div>
               <div className="timeframe-badge" style={{ marginLeft: 'auto' }}>{dailyAsset.tf}</div>
             </div>
-
             <div className="chart-area">
               <div className="chart-wrapper">
                 <Chart ref={chartRef} asset={dailyAsset} />
@@ -174,23 +177,20 @@ export default function Daily({ onBack }) {
             {phase === 'choose' && (
               <>
                 <div style={{ fontSize: '10px', color: '#5a6a7d', letterSpacing: '0.06em', textTransform: 'uppercase', margin: '12px 0 10px', textAlign: 'center' }}>
-                  one shot — what happens next?
+                  {t.daily.oneShot}
                 </div>
                 <div className="buttons-row" style={{ padding: '0 20px' }}>
                   <button className="trade-btn long" onClick={() => makeChoice('long')}>
-                    <span className="btn-icon">▲</span>
-                    <span>Long</span>
-                    <span className="btn-sublabel">price goes up</span>
+                    <span className="btn-icon">▲</span><span>Long</span>
+                    <span className="btn-sublabel">{t.game.longSub}</span>
                   </button>
                   <button className="trade-btn notrade" onClick={() => makeChoice('skip')}>
-                    <span className="btn-icon">—</span>
-                    <span>No Trade</span>
-                    <span className="btn-sublabel">stay flat</span>
+                    <span className="btn-icon">—</span><span>{t.game.noTrade}</span>
+                    <span className="btn-sublabel">{t.game.noTradeSub}</span>
                   </button>
                   <button className="trade-btn short" onClick={() => makeChoice('short')}>
-                    <span className="btn-icon">▼</span>
-                    <span>Short</span>
-                    <span className="btn-sublabel">price goes down</span>
+                    <span className="btn-icon">▼</span><span>Short</span>
+                    <span className="btn-sublabel">{t.game.shortSub}</span>
                   </button>
                 </div>
               </>
@@ -199,13 +199,13 @@ export default function Daily({ onBack }) {
             {phase === 'reveal' && result && !revealing && (
               <div style={{ margin: '12px 20px 0', background: result.win ? 'rgba(34,211,165,0.05)' : 'rgba(240,84,84,0.05)', border: `1px solid ${resultColor}`, borderRadius: '8px', padding: '20px', textAlign: 'center' }}>
                 <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: resultColor, marginBottom: '8px' }}>
-                  {result.win ? '✓ CORRECT' : '✗ WRONG'}
+                  {result.win ? t.daily.correct : t.daily.wrong}
                 </div>
                 <div style={{ fontSize: '11px', color: '#6b7a8d' }}>
                   price {result.direction === 'up' ? '▲ went up' : result.direction === 'down' ? '▼ went down' : '— stayed flat'} · {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}%
                 </div>
                 <div style={{ marginTop: '16px', fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                  come back tomorrow for the next challenge
+                  {t.daily.comeback}
                 </div>
                 <ShareButton res={result} />
               </div>
@@ -215,20 +215,19 @@ export default function Daily({ onBack }) {
 
         {phase === 'already' && result && (
           <div style={{ background: result.win ? 'rgba(34,211,165,0.05)' : 'rgba(240,84,84,0.05)', border: `1px solid ${result.win ? '#22d3a5' : '#f05454'}`, borderRadius: '8px', padding: '28px', textAlign: 'center' }}>
-            <div style={{ fontSize: '13px', color: '#4a5568', marginBottom: '12px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>today's result</div>
+            <div style={{ fontSize: '13px', color: '#4a5568', marginBottom: '12px', letterSpacing: '0.06em', textTransform: 'uppercase' }}>{t.daily.result}</div>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px', color: result.win ? '#22d3a5' : '#f05454', marginBottom: '8px' }}>
-              {result.win ? '✓ CORRECT' : '✗ WRONG'}
+              {result.win ? t.daily.correct : t.daily.wrong}
             </div>
             <div style={{ fontSize: '11px', color: '#6b7a8d', marginBottom: '16px' }}>
               you played {result.choice.toUpperCase()} · price {result.direction === 'up' ? '▲ went up' : result.direction === 'down' ? '▼ went down' : '— stayed flat'}
             </div>
             <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-              next challenge in {timeLeft}
+              {t.daily.next} {timeLeft}
             </div>
             <ShareButton res={result} />
           </div>
         )}
-
       </div>
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
     </div>
