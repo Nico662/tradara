@@ -21,7 +21,7 @@ export default function Historical({ onBack }) {
       const res  = await fetch(`https://tradara-production.up.railway.app/candles?symbol=${encodeURIComponent(ev.symbol)}&interval=${ev.interval}&from=${ev.from}&to=${ev.to}`);
       const data = await res.json();
       if (data.error || !data.length) throw new Error('No data');
-      const split  = Math.floor(data.length * 0.8);
+      const split  = Math.floor(data.length * 0.5);
       setCandles(data.slice(0, split));
       setFuture(data.slice(split));
       setPhase('choose');
