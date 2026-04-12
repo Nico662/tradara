@@ -2,6 +2,7 @@ import { useLang } from './LangContext';
 import { LANGS } from './i18n';
 import { useState, useEffect } from 'react';
 import { getUnlocked } from './badges.js';
+import { getXP, getLevel } from './levels.js';
 export default function Home({ onSelect }) {
   const [online, setOnline] = useState(0);
   const [gamesPlayed, setGamesPlayed] = useState(0);
@@ -10,7 +11,8 @@ export default function Home({ onSelect }) {
   return parseInt(localStorage.getItem('tradara_daily_streak') || '0');
  }); 
  const unlockedCount = getUnlocked().length;
-
+ const xp    = getXP();
+ const level = getLevel(xp);
   useEffect(() => {
     const fetchStats = async () => {
       try {
@@ -78,6 +80,12 @@ export default function Home({ onSelect }) {
       </span>
     </div>
   )}
+  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginTop: '4px' }}>
+  <span style={{ fontSize: '12px' }}>{level.icon}</span>
+  <span style={{ fontSize: '9px', color: '#8899b0', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+    {level.name} · {xp} XP
+  </span>
+</div>
      {/* Daily Challenge */}
  <button className="mode-card active" onClick={() => onSelect('daily')} style={{ marginBottom: '12px', borderColor: '#f5c842', background: 'rgba(245,200,66,0.04)' }}>
    <div className="mode-card-left">

@@ -11,7 +11,8 @@ import { BADGES, unlockBadge } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import Badges from './Badges.jsx';
 import Daily from './Daily.jsx';
-import NotificationBanner from './Notificationbanner.jsx'
+import NotificationBanner from './NotificationBanner.jsx';
+import { addXP, getXP, getLevel, getNextLevel, getProgress } from './levels.js';
 
 function randomTF() {
   const tfs = ['1m', '5m', '15m'];
@@ -72,6 +73,7 @@ export default function App() {
   const [highscore,   setHighscore]  = useState(() => parseInt(localStorage.getItem('tradara_highscore') || '0'));
   const [dailyStreak, setDailyStreak]= useState(() => parseInt(localStorage.getItem('tradara_daily_streak') || '0'));
   const [newBadge,    setNewBadge]   = useState(null);
+  const [xp,          setXp]         = useState(() => getXP());
 
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
@@ -82,6 +84,11 @@ export default function App() {
       const badge = BADGES.find(b => b.id === id);
       if (badge) setNewBadge(badge);
     }
+  }
+
+  function earnXP(amount) {
+    const newXP = addXP(amount);
+    setXp(newXP);
   }
 
   function updateDailyStreak() {
@@ -134,6 +141,7 @@ export default function App() {
       }
       setStreak(s => s + 1);
       if (streak >= 2) playStreak(); else playWin();
+      earnXP(10);
     } else if (win && neutral) {
       pts = 50;
       const newScore = score + pts;
@@ -144,6 +152,7 @@ export default function App() {
       }
       setStreak(s => s + 1);
       playWin();
+      earnXP(5);
     } else if (!win && !neutral) {
       pts = -50;
       setScore(s => Math.max(0, s + pts));
@@ -259,10 +268,36 @@ export default function App() {
       return Math.max(acc, s);
     }, 0);
 
+    const level    = getLevel(xp);
+    const next     = getNextLevel(xp);
+    const progress = getProgress(xp);
+
     return (
       <div id="gtm-root" style={{ position: 'relative' }}>
         <div className="scanlines" />
         <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2 }}>
+
+          {/* Nivel del jugador */}
+          <div style={{ marginBottom: '16px', padding: '12px 16px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '20px' }}>{level.icon}</span>
+                <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>{level.name}</span>
+              </div>
+              <span style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em' }}>{xp} XP</span>
+            </div>
+            {next && (
+              <>
+                <div style={{ height: '4px', background: '#1e2530', borderRadius: '2px', overflow: 'hidden' }}>
+                  <div style={{ height: '100%', width: `${progress}%`, background: '#22d3a5', borderRadius: '2px', transition: 'width 0.5s ease' }} />
+                </div>
+                <div style={{ fontSize: '8px', color: '#3a4455', marginTop: '4px', textAlign: 'right' }}>
+                  {next.icon} {next.name} en {next.xp - xp} XP
+                </div>
+              </>
+            )}
+          </div>
+
           <div id="share-card" style={{ background: '#0a0c0f', border: '1px solid #1e2530', borderRadius: '12px', padding: '28px 24px', marginBottom: '16px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '18px', color: '#f0f0f0' }}>
