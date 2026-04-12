@@ -48,18 +48,26 @@ app.use(generalLimiter);
 app.use('/daily', dailyLimiter);
 app.use('/candles', candlesLimiter);
 app.get('/candles', async (req, res) => {
-  const { symbol, interval } = req.query;
+  const { symbol, interval, from, to } = req.query;
   try {
-    const from = new Date();
-    if (interval === '1h') {
-      from.setDate(from.getDate() - 29);
+    let period1, period2;
+    if (from && to) {
+      period1 = from;
+      period2 = to;
+    } else if (interval === '1h') {
+      const d = new Date();
+      d.setDate(d.getDate() - 29);
+      period1 = d.toISOString().split('T')[0];
     } else {
-      from.setFullYear(from.getFullYear() - 2);
+      const d = new Date();
+      d.setFullYear(d.getFullYear() - 2);
+      period1 = d.toISOString().split('T')[0];
     }
-    const period1 = from.toISOString().split('T')[0];
+
     const result  = await yf.chart(symbol, {
       interval: interval === '1h' ? '1h' : '1d',
       period1,
+      ...(period2 ? { period2 } : {}),
     });
     const quotes  = result.quotes.filter(q => q.open && q.high && q.low && q.close);
     const candles = quotes.slice(-500).map(q => ({

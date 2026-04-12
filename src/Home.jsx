@@ -97,7 +97,16 @@ export default function Home({ onSelect }) {
    </div>
    <span className="mode-arrow" style={{ color: '#f5c842' }}>→</span>
  </button>
-
+<button className="mode-card active" onClick={() => onSelect('historical')} style={{ marginBottom: '12px', borderColor: '#8899b0', background: 'rgba(136,153,176,0.04)' }}>
+  <div className="mode-card-left">
+    <span className="mode-icon">📜</span>
+    <div>
+      <div className="mode-title" style={{ color: '#8899b0' }}>Historical Mode</div>
+      <div className="mode-sub">50 real events · can you call them?</div>
+    </div>
+  </div>
+  <span className="mode-arrow" style={{ color: '#8899b0' }}>→</span>
+</button>
         {/* Mode cards */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
           <button className="mode-card active" onClick={() => onSelect('game')}>
