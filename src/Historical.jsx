@@ -134,7 +134,7 @@ export default function Historical({ onBack }) {
           style={{ background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', marginBottom: '16px', display: 'block' }}
           onMouseEnter={e => e.target.style.color = '#e2e8f0'}
           onMouseLeave={e => e.target.style.color = '#3a4455'}
-        >{t.historical.events}</button>
+        >{t.historical.eventsBack}</button>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px' }}>
           <span style={{ fontSize: '24px' }}>{event?.emoji}</span>
