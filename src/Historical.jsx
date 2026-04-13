@@ -197,7 +197,7 @@ export default function Historical({ onBack }) {
                 <span style={{ fontSize: '18px' }}>{event?.emoji}</span>
                 <span style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '13px', color: '#f0f0f0' }}>{event?.title}</span>
               </div>
-              <div style={{ fontSize: '10px', color: '#6b7a8d', lineHeight: 1.6 }}>{event?.desc}</div>
+              <div style={{ fontSize: '10px', color: '#6b7a8d', lineHeight: 1.6 }}>{t.historical?.events?.[event?.id] ?? event?.desc}</div>
               <div style={{ fontSize: '9px', color: '#3a4455', marginTop: '8px' }}>{event?.from} → {event?.to}</div>
             </div>
             <div style={{ display: 'flex', gap: '8px' }}>
