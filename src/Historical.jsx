@@ -21,6 +21,9 @@ export default function Historical({ onBack }) {
     try {
       const res  = await fetch(`https://tradara-production.up.railway.app/candles?symbol=${encodeURIComponent(ev.symbol)}&interval=${ev.interval}&from=${ev.from}&to=${ev.to}`);
       const data = await res.json();
+      console.log('First candle:', data[0]);
+      console.log('Last candle:', data[data.length-1]);
+      console.log('Total candles:', data.length);
       if (data.error || !data.length) throw new Error('No data');
       const total   = data.length;
       const futureN = Math.floor(total * 0.3);
