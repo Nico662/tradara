@@ -26,7 +26,7 @@ export default function Historical({ onBack }) {
       console.log('Total candles:', data.length);
       if (data.error || !data.length) throw new Error('No data');
       const total   = data.length;
-      const futureN = Math.floor(total * 0.3);
+      const futureN = Math.floor(total * 0.4);
       const visibleN = total - futureN;
       setCandles(data.slice(0, visibleN));
       setFuture(data.slice(visibleN));
