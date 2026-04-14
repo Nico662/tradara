@@ -3,6 +3,7 @@ import { useLang } from './LangContext.jsx';
 import { LANGS } from './i18n.js';
 import { HISTORICAL_EVENTS } from './historical.js';
 import Chart from './Chart.jsx';
+import { addXP } from './levels.js';
 
 export default function Historical({ onBack }) {
   const { t, lang, setLang } = useLang();
@@ -49,6 +50,7 @@ export default function Historical({ onBack }) {
                     || (choice === 'short' && direction === 'down')
                     || (choice === 'skip'  && direction === 'flat');
     setResult({ choice, direction, pctMove, win });
+    addXP(win ? 15 : 5);
   };
 
   const shareResult = () => {

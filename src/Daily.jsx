@@ -4,6 +4,7 @@ import { LANGS } from './i18n.js';
 import Chart from './Chart.jsx';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
+import { addXP } from './levels.js';
 
 export default function Daily({ onBack }) {
   const { t, lang, setLang } = useLang();
@@ -90,6 +91,7 @@ export default function Daily({ onBack }) {
     const today = new Date().toISOString().split('T')[0];
     localStorage.setItem('tradara_daily_played', today);
     localStorage.setItem('tradara_daily_result', JSON.stringify(res));
+    addXP(win ? 15 : 5);
 
     const lastDaily    = localStorage.getItem('tradara_daily_last');
     const yesterday    = new Date(Date.now() - 86400000).toISOString().split('T')[0];
