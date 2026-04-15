@@ -17,6 +17,7 @@ export default function Daily({ onBack }) {
   const [newBadge, setNewBadge]     = useState(null);
   const [copied, setCopied]         = useState(false);
   const chartRef = useRef(null);
+  const [floatingXP, setFloatingXP] = useState(null);
 
   function tryUnlockDailyBadge(id) {
     const unlocked = unlockBadge(id);
@@ -91,7 +92,13 @@ export default function Daily({ onBack }) {
     const today = new Date().toISOString().split('T')[0];
     localStorage.setItem('tradara_daily_played', today);
     localStorage.setItem('tradara_daily_result', JSON.stringify(res));
-    addXP(win ? 15 : 5);
+    const xpAmount = win ? 15 : 5;
+     addXP(xpAmount);
+     setFloatingXP(null);
+     setTimeout(() => {
+     setFloatingXP(xpAmount);
+     setTimeout(() => setFloatingXP(null), 2000);
+    }, 50);
 
     const lastDaily    = localStorage.getItem('tradara_daily_last');
     const yesterday    = new Date(Date.now() - 86400000).toISOString().split('T')[0];
@@ -229,7 +236,23 @@ export default function Daily({ onBack }) {
             </div>
             <ShareButton res={result} />
           </div>
-        )}
+        )}{floatingXP && (
+  <div key={Date.now()} style={{
+    position: 'fixed',
+    top: '40%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    fontFamily: "'Syne', sans-serif",
+    fontWeight: 800,
+    fontSize: '28px',
+    color: '#22d3a5',
+    zIndex: 9999,
+    pointerEvents: 'none',
+    animation: 'floatUp 2s ease forwards',
+  }}>
+    +{floatingXP} XP
+  </div>
+ )} 
       </div>
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
     </div>

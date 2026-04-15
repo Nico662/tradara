@@ -15,6 +15,7 @@ export default function Historical({ onBack }) {
   const [revealing, setRevealing] = useState(false);
   const [copied, setCopied]     = useState(false);
   const chartRef = useRef(null);
+  const [floatingXP, setFloatingXP] = useState(null);
 
   async function loadEvent(ev) {
     setEvent(ev);
@@ -50,7 +51,13 @@ export default function Historical({ onBack }) {
                     || (choice === 'short' && direction === 'down')
                     || (choice === 'skip'  && direction === 'flat');
     setResult({ choice, direction, pctMove, win });
-    addXP(win ? 15 : 5);
+    const xpAmount = win ? 15 : 5;
+     addXP(xpAmount);
+     setFloatingXP(null);
+      setTimeout(() => {
+      setFloatingXP(xpAmount);
+      setTimeout(() => setFloatingXP(null), 2000);
+    }, 50);
   };
 
   const shareResult = () => {
@@ -218,6 +225,23 @@ export default function Historical({ onBack }) {
           </div>
         )}
       </div>
+      {floatingXP && (
+  <div key={Date.now()} style={{
+    position: 'fixed',
+    top: '40%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    fontFamily: "'Syne', sans-serif",
+    fontWeight: 800,
+    fontSize: '28px',
+    color: '#22d3a5',
+    zIndex: 9999,
+    pointerEvents: 'none',
+    animation: 'floatUp 2s ease forwards',
+  }}>
+    +{floatingXP} XP
+  </div>
+ )}
     </div>
   );
 }
