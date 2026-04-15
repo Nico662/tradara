@@ -88,12 +88,15 @@ export default function App() {
     }
   }
 
-  function earnXP(amount) {
+ function earnXP(amount) {
    const newXP = addXP(amount);
    setXp(newXP);
-   setFloatingXP(amount);
-   setTimeout(() => setFloatingXP(null), 1500);
- }
+   setFloatingXP(null);
+   setTimeout(() => {
+     setFloatingXP(amount);
+     setTimeout(() => setFloatingXP(null), 2000);
+  }, 50);
+} 
   function updateDailyStreak() {
     const today      = new Date().toDateString();
     const lastPlayed = localStorage.getItem('tradara_last_played');
@@ -526,7 +529,7 @@ export default function App() {
         BTC +3.2% · ETH -1.8% · SPX +0.4% · GOLD +0.9% · EUR/USD -0.2% · OIL -2.1% · TSLA +5.7%
       </div>
       {floatingXP && (
-  <div style={{
+  <div key={Date.now()} style={{
     position: 'fixed',
     top: '40%',
     left: '50%',
@@ -537,11 +540,11 @@ export default function App() {
     color: '#22d3a5',
     zIndex: 9999,
     pointerEvents: 'none',
-    animation: 'floatUp 1.5s ease forwards',
+    animation: 'floatUp 2s ease forwards',
   }}>
     +{floatingXP} XP
   </div>
-)}
+ )}
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
     </div>
   );
