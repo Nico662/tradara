@@ -33,6 +33,9 @@ export default function Arena({ onBack }) {
   const [newBadge,  setNewBadge] = useState(null);
   const socketRef = useRef(null);
   const timerRef  = useRef(null);
+  const [rematchState, setRematchState] = useState(null); // null | 'requested' | 'waiting' | 'countdown'
+  const [rematchCountdown, setRematchCountdown] = useState(10);
+  const rematchTimerRef = useRef(null);
 
   function tryUnlockArenaBadge(id) {
     const unlocked = unlockBadge(id);
@@ -173,7 +176,39 @@ export default function Arena({ onBack }) {
       setChatMsg(data);
       setTimeout(() => setChatMsg(null), 3000);
     });
+    socket.on('rematch:requested', () => {
+  setRematchState('requested');
+ });
 
+ socket.on('rematch:countdown', () => {
+  setRematchState('countdown');
+  setRematchCountdown(10);
+  rematchTimerRef.current = setInterval(() => {
+    setRematchCountdown(prev => {
+      if (prev <= 1) {
+        clearInterval(rematchTimerRef.current);
+        return 0;
+      }
+      return prev - 1;
+    });
+  }, 1000);
+ });
+
+ socket.on('rematch:start', (data) => {
+  clearInterval(rematchTimerRef.current);
+  setRematchState(null);
+  setRematchCountdown(10);
+  setGameData(data);
+  setRound(data.round);
+  setTotal(data.total);
+  setOpponent(data.opponent);
+  setScreen('game');
+  setPhase('choose');
+  setResult(null);
+  setScores({});
+  setFinalData(null);
+  startTimer();
+ });
     return socket;
   }
 
@@ -508,46 +543,93 @@ export default function Arena({ onBack }) {
       );
     }
 
-    const myScore  = finalData.scores?.[myId] ?? 0;
-    const oppId    = Object.keys(finalData.scores ?? {}).find(id => id !== myId);
-    const oppScore = finalData.scores?.[oppId] ?? 0;
-    const iWon     = myScore > oppScore;
-    const isDraw   = myScore === oppScore;
+   const myScore  = finalData.scores?.[myId] ?? 0;
+const oppId    = Object.keys(finalData.scores ?? {}).find(id => id !== myId);
+const oppScore = finalData.scores?.[oppId] ?? 0;
+const iWon     = myScore > oppScore;
+const isDraw   = myScore === oppScore;
 
-    return (
-      <div id="gtm-root" style={{ position: 'relative' }}>
-        <div className="scanlines" />
-        <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: iWon ? '#22d3a5' : isDraw ? '#f5c842' : '#f05454', marginBottom: '4px' }}>
-            {iWon ? t.arena.won : isDraw ? t.arena.draw : t.arena.lost}
+return (
+  <div id="gtm-root" style={{ position: 'relative' }}>
+    <div className="scanlines" />
+    <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
+      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: iWon ? '#22d3a5' : isDraw ? '#f5c842' : '#f05454', marginBottom: '4px' }}>
+        {iWon ? t.arena.won : isDraw ? t.arena.draw : t.arena.lost}
+      </div>
+      <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '32px' }}>
+        {iWon ? t.arena.wonSub : isDraw ? t.arena.drawSub : t.arena.lostSub}
+      </div>
+      <div style={{ display: 'flex', gap: '12px', marginBottom: '32px' }}>
+        <div style={{ flex: 1, background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '10px', padding: '20px' }}>
+          <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{name}</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#22d3a5' }}>{myScore}</div>
+        </div>
+        <div style={{ flex: 1, background: '#0f141b', border: '1px solid #f05454', borderRadius: '10px', padding: '20px' }}>
+          <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{opponent}</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#f05454' }}>{oppScore}</div>
+        </div>
+      </div>
+
+      {/* Revancha automática */}
+      {rematchState === null && (
+        <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+          <button onClick={() => {
+            socketRef.current?.emit('rematch:request');
+            setRematchState('waiting');
+          }}
+            style={{ flex: 1, padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+            ⚡ {t.arena.rematch}
+          </button>
+          <button onClick={goBack}
+            style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+            {t.arena.menu}
+          </button>
+        </div>
+      )}
+
+      {rematchState === 'waiting' && (
+        <div style={{ padding: '16px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '8px', marginBottom: '10px' }}>
+          <div style={{ fontSize: '10px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+            waiting for opponent to accept...
           </div>
-          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '32px' }}>
-            {iWon ? t.arena.wonSub : isDraw ? t.arena.drawSub : t.arena.lostSub}
-          </div>
-          <div style={{ display: 'flex', gap: '12px', marginBottom: '32px' }}>
-            <div style={{ flex: 1, background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '10px', padding: '20px' }}>
-              <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{name}</div>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#22d3a5' }}>{myScore}</div>
-            </div>
-            <div style={{ flex: 1, background: '#0f141b', border: '1px solid #f05454', borderRadius: '10px', padding: '20px' }}>
-              <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{opponent}</div>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#f05454' }}>{oppScore}</div>
-            </div>
+        </div>
+      )}
+
+      {rematchState === 'requested' && (
+        <div style={{ marginBottom: '10px' }}>
+          <div style={{ fontSize: '10px', color: '#f5c842', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>
+            opponent wants a rematch!
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
-            <button onClick={() => { setScreen('lobby'); setResult(null); setScores({}); socketRef.current?.disconnect(); }}
-              style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-              {t.arena.rematch}
+            <button onClick={() => {
+              socketRef.current?.emit('rematch:accept');
+              setRematchState('countdown');
+            }}
+              style={{ flex: 1, padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+              ✓ accept
             </button>
             <button onClick={goBack}
               style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-              {t.arena.menu}
+              decline
             </button>
           </div>
         </div>
-        {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
-      </div>
-    );
+      )}
+
+      {rematchState === 'countdown' && (
+        <div style={{ padding: '20px', background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '8px', marginBottom: '10px' }}>
+          <div style={{ fontSize: '10px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
+            rematch starting in
+          </div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: '#22d3a5' }}>
+            {rematchCountdown}
+          </div>
+        </div>
+      )}
+    </div>
+    {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+  </div>
+ );
   }
 
   return null;

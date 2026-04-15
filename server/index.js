@@ -490,7 +490,25 @@ io.on('connection', (socket) => {
       socket.roomCode = null;
     }
   });
+ socket.on('rematch:request', () => {
+  const roomId = [...socket.rooms].find(r => r !== socket.id);
+  if (!roomId) return;
+  socket.to(roomId).emit('rematch:requested');
+});
 
+socket.on('rematch:accept', () => {
+  const roomId = [...socket.rooms].find(r => r !== socket.id);
+  if (!roomId) return;
+  io.to(roomId).emit('rematch:countdown');
+  setTimeout(() => {
+    // reutilizar la lógica de start del juego
+    const room = rooms.get(roomId);
+    if (!room) return;
+    room.scores = {};
+    room.round = 1;
+    startRound(roomId);
+  }, 10000);
+});
   socket.on('disconnect', () => {
     if (socket.roomCode && privateLobby[socket.roomCode]) {
       delete privateLobby[socket.roomCode];
