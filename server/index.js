@@ -500,13 +500,50 @@ socket.on('rematch:accept', () => {
   const roomId = [...socket.rooms].find(r => r !== socket.id);
   if (!roomId) return;
   io.to(roomId).emit('rematch:countdown');
-  setTimeout(() => {
-    // reutilizar la lógica de start del juego
-    const room = rooms.get(roomId);
+
+  setTimeout(async () => {
+    const room = rooms[roomId];
     if (!room) return;
-    room.scores = {};
-    room.round = 1;
-    startRound(roomId);
+
+    // buscar nuevo asset
+    const shuffled = [...ASSETS].sort(() => Math.random() - 0.5);
+    for (const asset of shuffled) {
+      try {
+        const candles = await fetchCandles(asset);
+        if (!candles || candles.length < 100) continue;
+
+        const win       = randomWindow(candles);
+        room.scores     = { [room.players[0]]: 0, [room.players[1]]: 0 };
+        room.round      = 1;
+        room.choices    = {};
+        room.visible    = win.visible;
+        room.future     = win.future;
+        room.asset      = asset;
+        room.allCandles = candles;
+        room.usedAssets = [asset.name];
+
+        const [id1, id2] = room.players;
+        const name1 = room.names[id1];
+        const name2 = room.names[id2];
+
+        const payload = {
+          roomId,
+          round:    1,
+          total:    TOTAL_ROUNDS,
+          asset:    asset.name,
+          interval: asset.interval,
+          visible:  win.visible,
+          future:   win.future,
+        };
+
+        io.to(id1).emit('game:start', { ...payload, opponent: name2 });
+        io.to(id2).emit('game:start', { ...payload, opponent: name1 });
+        totalGamesPlayed++;
+        return;
+      } catch (err) {
+        console.log('Rematch error:', err.message);
+      }
+    }
   }, 10000);
 });
   socket.on('disconnect', () => {
