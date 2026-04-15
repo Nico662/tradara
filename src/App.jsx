@@ -75,6 +75,7 @@ export default function App() {
   const [dailyStreak, setDailyStreak]= useState(() => parseInt(localStorage.getItem('tradara_daily_streak') || '0'));
   const [newBadge,    setNewBadge]   = useState(null);
   const [xp,          setXp]         = useState(() => getXP());
+  const [floatingXP, setFloatingXP] = useState(null);
 
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
@@ -88,10 +89,11 @@ export default function App() {
   }
 
   function earnXP(amount) {
-    const newXP = addXP(amount);
-    setXp(newXP);
-  }
-
+   const newXP = addXP(amount);
+   setXp(newXP);
+   setFloatingXP(amount);
+   setTimeout(() => setFloatingXP(null), 1500);
+ }
   function updateDailyStreak() {
     const today      = new Date().toDateString();
     const lastPlayed = localStorage.getItem('tradara_last_played');
@@ -523,7 +525,23 @@ export default function App() {
       <div className="ticker-tape">
         BTC +3.2% · ETH -1.8% · SPX +0.4% · GOLD +0.9% · EUR/USD -0.2% · OIL -2.1% · TSLA +5.7%
       </div>
-
+      {floatingXP && (
+  <div style={{
+    position: 'fixed',
+    top: '40%',
+    left: '50%',
+    transform: 'translateX(-50%)',
+    fontFamily: "'Syne', sans-serif",
+    fontWeight: 800,
+    fontSize: '28px',
+    color: '#22d3a5',
+    zIndex: 9999,
+    pointerEvents: 'none',
+    animation: 'floatUp 1.5s ease forwards',
+  }}>
+    +{floatingXP} XP
+  </div>
+)}
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
     </div>
   );
