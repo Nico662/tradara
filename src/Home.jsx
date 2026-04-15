@@ -8,7 +8,7 @@ export default function Home({ onSelect }) {
   const [online, setOnline] = useState(0);
   const [gamesPlayed, setGamesPlayed] = useState(0);
   const { lang, setLang, t } = useLang();
-  const [dailyStreak] = useState(() => parseInt(localStorage.getItem('tradara_daily_streak') || '0'));
+  const [dailyStreak] = useState(() => parseInt(localStorage.getItem('tradara_daily_streak_count') || '0'));
   const unlockedCount = getUnlocked().length;
   const xp    = getXP();
   const level = getLevel(xp);
