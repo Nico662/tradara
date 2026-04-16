@@ -20,7 +20,10 @@ webpush.setVapidDetails(
 
 let pushSubscriptions = [];
 const rateLimit = require('express-rate-limit');
-app.use(cors());
+app.use(cors({
+  origin: ['https://tradara.dev', 'https://www.tradara.dev'],
+  credentials: true,
+}));
 
 const generalLimiter = rateLimit({
   windowMs: 60 * 1000, max: 100,
