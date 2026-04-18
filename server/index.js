@@ -247,17 +247,19 @@ app.get('/tournament', async (req, res) => {
     const weekId = getWeekId();
     let tournament = await Tournament.findOne({ weekId });
     if (!tournament) {
-      // crear torneo de esta semana con 10 assets aleatorios
       const shuffled = [...ASSETS].sort(() => Math.random() - 0.5).slice(0, 10);
-      tournament = await Tournament.create({ weekId, assets: shuffled });
+      const tournamentAssets = shuffled.map(a => ({
+        ...a,
+        interval: '1h',
+      }));
+      tournament = await Tournament.create({ weekId, assets: tournamentAssets });
     }
-    // cargar candles para cada asset
     const rounds = [];
     for (const asset of tournament.assets) {
       try {
-        const candles = await fetchCandles(asset);
+        const candles = await fetchCandles({ ...asset, interval: '1h' });
         const win = randomWindow(candles);
-        rounds.push({ asset: asset.name, interval: asset.interval, visible: win.visible, future: win.future });
+        rounds.push({ asset: asset.name, interval: '1h', visible: win.visible, future: win.future });
       } catch (e) { console.log('Tournament fetch error:', e.message); }
     }
     res.json({ weekId, rounds });
