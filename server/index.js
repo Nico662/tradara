@@ -26,7 +26,6 @@ const redis = new Redis({
 });
 
 let pushSubscriptions = [];
-loadSubscriptions().then(subs => { pushSubscriptions = subs; });
 
 async function loadSubscriptions() {
   try {
@@ -40,6 +39,12 @@ async function saveSubscriptions(subs) {
     await redis.set('push_subscriptions', JSON.stringify(subs));
   } catch (e) {}
 }
+
+loadSubscriptions().then(subs => {
+  pushSubscriptions = subs;
+  console.log('Loaded', subs.length, 'subscriptions from Redis');
+});
+
 const rateLimit = require('express-rate-limit');
 app.use(cors({
   origin: ['https://tradara.dev', 'https://www.tradara.dev'],
@@ -51,14 +56,8 @@ const generalLimiter = rateLimit({
   message: { error: 'Too many requests, slow down.' },
   standardHeaders: true, legacyHeaders: false,
 });
-const dailyLimiter = rateLimit({
-  windowMs: 60 * 1000, max: 10,
-  message: { error: 'Too many requests for daily challenge.' },
-});
-const candlesLimiter = rateLimit({
-  windowMs: 60 * 1000, max: 30,
-  message: { error: 'Too many candle requests.' },
-});
+const dailyLimiter   = rateLimit({ windowMs: 60 * 1000, max: 10,  message: { error: 'Too many requests for daily challenge.' } });
+const candlesLimiter = rateLimit({ windowMs: 60 * 1000, max: 30,  message: { error: 'Too many candle requests.' } });
 
 app.use(generalLimiter);
 app.use('/daily', dailyLimiter);
@@ -69,26 +68,19 @@ app.get('/candles', async (req, res) => {
   try {
     let period1, period2;
     if (from && to) {
-      period1 = from;
-      period2 = to;
+      period1 = from; period2 = to;
     } else if (interval === '1h') {
-      const d = new Date();
-      d.setDate(d.getDate() - 29);
+      const d = new Date(); d.setDate(d.getDate() - 29);
       period1 = d.toISOString().split('T')[0];
     } else {
-      const d = new Date();
-      d.setFullYear(d.getFullYear() - 2);
+      const d = new Date(); d.setFullYear(d.getFullYear() - 2);
       period1 = d.toISOString().split('T')[0];
     }
-    const result  = await yf.chart(symbol, {
-      interval: interval === '1h' ? '1h' : '1d',
-      period1,
-      ...(period2 ? { period2 } : {}),
-    });
+    const result  = await yf.chart(symbol, { interval: interval === '1h' ? '1h' : '1d', period1, ...(period2 ? { period2 } : {}) });
     const quotes  = result.quotes.filter(q => q.open && q.high && q.low && q.close);
     const candles = quotes.slice(-500).map(q => ({
-      time:  Math.floor(new Date(q.date).getTime() / 1000),
-      open:  q.open, high: q.high, low: q.low, close: q.close,
+      time: Math.floor(new Date(q.date).getTime() / 1000),
+      open: q.open, high: q.high, low: q.low, close: q.close,
     }));
     res.json(candles);
   } catch (err) {
@@ -101,32 +93,36 @@ app.get('/stats', (req, res) => {
   res.json({ online: io.engine.clientsCount, gamesPlayed: totalGamesPlayed });
 });
 
-app.post('/push/subscribe', express.json(), (req, res) => {
+app.post('/push/subscribe', express.json(), async (req, res) => {
   const sub = req.body;
   if (!sub || !sub.endpoint) return res.status(400).json({ error: 'Invalid subscription' });
+  pushSubscriptions = await loadSubscriptions();
   const exists = pushSubscriptions.find(s => s.endpoint === sub.endpoint);
   if (!exists) {
-  pushSubscriptions.push(sub);
-  saveSubscriptions(pushSubscriptions);
- }
+    pushSubscriptions.push(sub);
+    await saveSubscriptions(pushSubscriptions);
+  }
   res.json({ ok: true });
 });
 
-app.post('/push/send', express.json(), (req, res) => {
+app.post('/push/send', express.json(), async (req, res) => {
+  pushSubscriptions = await loadSubscriptions();
+  console.log('Sending to', pushSubscriptions.length, 'subscribers');
   const payload = JSON.stringify({
     title: '⚡ Daily Challenge',
     body:  "Today's chart is ready. Can you call it?",
     url:   'https://tradara.dev',
   });
   const promises = pushSubscriptions.map(sub =>
-    webpush.sendNotification(sub, payload).catch(err => {
-      if (err.statusCode === 410){
+    webpush.sendNotification(sub, payload).catch(async err => {
+      if (err.statusCode === 410) {
         pushSubscriptions = pushSubscriptions.filter(s => s.endpoint !== sub.endpoint);
-        saveSubscriptions(pushSubscriptions);
+        await saveSubscriptions(pushSubscriptions);
       }
     })
   );
-  Promise.all(promises).then(() => res.json({ ok: true, sent: pushSubscriptions.length }));
+  await Promise.all(promises);
+  res.json({ ok: true, sent: pushSubscriptions.length });
 });
 
 const DAILY_ASSETS = [
@@ -149,10 +145,10 @@ async function getDailyChallenge() {
   const seed  = today.replace(/-/g, '');
   const idx   = parseInt(seed) % DAILY_ASSETS.length;
   const asset = DAILY_ASSETS[idx];
-  const candles = await fetchCandles(asset);
-  const total   = candles.length;
-  const visible = Math.min(80, Math.floor(total * 0.8));
-  const future  = Math.min(20, total - visible);
+  const candles  = await fetchCandles(asset);
+  const total    = candles.length;
+  const visible  = Math.min(80, Math.floor(total * 0.8));
+  const future   = Math.min(20, total - visible);
   const maxStart = Math.max(0, total - visible - future);
   const start    = parseInt(seed.slice(-4)) % (maxStart || 1);
   dailyChallenge = {
@@ -167,14 +163,8 @@ async function getDailyChallenge() {
 app.get('/daily', async (req, res) => {
   try {
     const challenge = await getDailyChallenge();
-    res.json({
-      date: challenge.date, asset: challenge.asset,
-      interval: challenge.interval,
-      visible: challenge.visible, future: challenge.future,
-    });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
+    res.json({ date: challenge.date, asset: challenge.asset, interval: challenge.interval, visible: challenge.visible, future: challenge.future });
+  } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
 const ASSETS = [
@@ -193,10 +183,10 @@ const ASSETS = [
   { name: 'AUD/USD',  source: 'yahoo',  symbol: 'AUDUSD=X', interval: '1h'  },
 ];
 
-const TOTAL_ROUNDS   = 10;
-const rooms          = {};
-const finishedRooms  = {}; // guardamos salas terminadas para revancha
-let   waiting        = null;
+const TOTAL_ROUNDS  = 10;
+const rooms         = {};
+const finishedRooms = {};
+let   waiting       = null;
 let   totalGamesPlayed = 0;
 
 async function fetchCandles(asset) {
@@ -209,32 +199,21 @@ async function fetchCandles(asset) {
     const data = await res.json();
     if (data.error && data.error.length > 0) throw new Error('Kraken error: ' + data.error[0]);
     const pair = Object.keys(data.result).find(k => k !== 'last');
-    return data.result[pair].map(k => ({
-      time: k[0], open: parseFloat(k[1]), high: parseFloat(k[2]),
-      low: parseFloat(k[3]), close: parseFloat(k[4]),
-    }));
+    return data.result[pair].map(k => ({ time: k[0], open: parseFloat(k[1]), high: parseFloat(k[2]), low: parseFloat(k[3]), close: parseFloat(k[4]) }));
   } else {
-    const from = new Date();
-    from.setDate(from.getDate() - 29);
-    const result = await yf.chart(asset.symbol, {
-      interval: '1h', period1: from.toISOString().split('T')[0],
-    });
-    return result.quotes
-      .filter(q => q.open && q.high && q.low && q.close)
-      .map(q => ({
-        time:  Math.floor(new Date(q.date).getTime() / 1000),
-        open: q.open, high: q.high, low: q.low, close: q.close,
-      }));
+    const from = new Date(); from.setDate(from.getDate() - 29);
+    const result = await yf.chart(asset.symbol, { interval: '1h', period1: from.toISOString().split('T')[0] });
+    return result.quotes.filter(q => q.open && q.high && q.low && q.close).map(q => ({
+      time: Math.floor(new Date(q.date).getTime() / 1000),
+      open: q.open, high: q.high, low: q.low, close: q.close,
+    }));
   }
 }
 
 function randomWindow(candles) {
   const maxStart = Math.max(0, candles.length - 100);
   const start    = Math.floor(Math.random() * maxStart);
-  return {
-    visible: candles.slice(start, start + 80),
-    future:  candles.slice(start + 80, start + 100),
-  };
+  return { visible: candles.slice(start, start + 80), future: candles.slice(start + 80, start + 100) };
 }
 
 async function startRoom(socket1, socket2) {
@@ -246,27 +225,20 @@ async function startRoom(socket1, socket2) {
       const roomId = `room_${Date.now()}`;
       const win    = randomWindow(candles);
       rooms[roomId] = {
-        players:    [socket1.id, socket2.id],
-        scores:     { [socket1.id]: 0, [socket2.id]: 0 },
-        names:      { [socket1.id]: socket1.playerName, [socket2.id]: socket2.playerName },
-        round:      1, choices: {},
-        allCandles: candles, visible: win.visible, future: win.future,
-        asset, usedAssets: [asset.name],
+        players: [socket1.id, socket2.id],
+        scores:  { [socket1.id]: 0, [socket2.id]: 0 },
+        names:   { [socket1.id]: socket1.playerName, [socket2.id]: socket2.playerName },
+        round: 1, choices: {}, allCandles: candles,
+        visible: win.visible, future: win.future, asset, usedAssets: [asset.name],
       };
       socket1.join(roomId); socket2.join(roomId);
       socket1.roomId = roomId; socket2.roomId = roomId;
-      const payload = {
-        roomId, round: 1, total: TOTAL_ROUNDS,
-        asset: asset.name, interval: asset.interval,
-        visible: win.visible, future: win.future,
-      };
+      const payload = { roomId, round: 1, total: TOTAL_ROUNDS, asset: asset.name, interval: asset.interval, visible: win.visible, future: win.future };
       socket1.emit('game:start', { ...payload, opponent: socket2.playerName });
       socket2.emit('game:start', { ...payload, opponent: socket1.playerName });
       totalGamesPlayed++;
       return;
-    } catch (err) {
-      console.log('Error con', asset.name, ':', err.message);
-    }
+    } catch (err) { console.log('Error con', asset.name, ':', err.message); }
   }
   socket1.emit('game:error', { message: 'Error al cargar datos. Intenta de nuevo.' });
   socket2.emit('game:error', { message: 'Error al cargar datos. Intenta de nuevo.' });
@@ -281,22 +253,15 @@ function resolveRound(roomId) {
   const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
   const roundResult = {};
   for (const [pid, choice] of Object.entries(room.choices)) {
-    const win = (choice === 'long' && direction === 'up')
-             || (choice === 'short' && direction === 'down')
-             || (choice === 'skip' && direction === 'flat');
+    const win = (choice === 'long' && direction === 'up') || (choice === 'short' && direction === 'down') || (choice === 'skip' && direction === 'flat');
     const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
     room.scores[pid] += pts;
     roundResult[pid]  = { choice, win, pts };
   }
-  io.to(roomId).emit('game:round_result', {
-    direction, pctMove, future: room.future,
-    results: roundResult, scores: room.scores,
-    names: room.names, round: room.round, total: TOTAL_ROUNDS,
-  });
+  io.to(roomId).emit('game:round_result', { direction, pctMove, future: room.future, results: roundResult, scores: room.scores, names: room.names, round: room.round, total: TOTAL_ROUNDS });
   if (room.round >= TOTAL_ROUNDS) {
     setTimeout(() => {
       io.to(roomId).emit('game:over', { scores: room.scores, names: room.names });
-      // guardar en finishedRooms para revancha, borrar después de 2 min
       finishedRooms[roomId] = { ...room };
       delete rooms[roomId];
       setTimeout(() => delete finishedRooms[roomId], 120000);
@@ -311,15 +276,11 @@ function resolveRound(roomId) {
   const nextAsset = pool[Math.floor(Math.random() * pool.length)];
   room.usedAssets.push(nextAsset.name);
   fetchCandles(nextAsset).then(candles => {
-    const win    = randomWindow(candles);
+    const win = randomWindow(candles);
     room.visible = win.visible; room.future = win.future;
     room.asset = nextAsset; room.allCandles = candles;
     setTimeout(() => {
-      io.to(roomId).emit('game:next_round', {
-        round: room.round, total: TOTAL_ROUNDS,
-        asset: nextAsset.name, interval: nextAsset.interval,
-        visible: room.visible, future: room.future,
-      });
+      io.to(roomId).emit('game:next_round', { round: room.round, total: TOTAL_ROUNDS, asset: nextAsset.name, interval: nextAsset.interval, visible: room.visible, future: room.future });
     }, 3000);
   }).catch(async (err) => {
     console.log('Error next round:', err.message, '— trying fallback');
@@ -333,11 +294,7 @@ function resolveRound(roomId) {
         room.asset = fallback; room.allCandles = candles;
         room.usedAssets.push(fallback.name);
         setTimeout(() => {
-          io.to(roomId).emit('game:next_round', {
-            round: room.round, total: TOTAL_ROUNDS,
-            asset: fallback.name, interval: fallback.interval,
-            visible: room.visible, future: room.future,
-          });
+          io.to(roomId).emit('game:next_round', { round: room.round, total: TOTAL_ROUNDS, asset: fallback.name, interval: fallback.interval, visible: room.visible, future: room.future });
         }, 3000);
         return;
       } catch (e) { console.log('Fallback failed:', e.message); }
@@ -345,11 +302,7 @@ function resolveRound(roomId) {
     const win = randomWindow(room.allCandles);
     room.visible = win.visible; room.future = win.future;
     setTimeout(() => {
-      io.to(roomId).emit('game:next_round', {
-        round: room.round, total: TOTAL_ROUNDS,
-        asset: room.asset.name, interval: room.asset.interval,
-        visible: room.visible, future: room.future,
-      });
+      io.to(roomId).emit('game:next_round', { round: room.round, total: TOTAL_ROUNDS, asset: room.asset.name, interval: room.asset.interval, visible: room.visible, future: room.future });
     }, 3000);
   });
 }
@@ -369,8 +322,7 @@ io.on('connection', (socket) => {
   socket.on('matchmaking:join', ({ name }) => {
     socket.playerName = name || 'Player';
     if (waiting && waiting.id !== socket.id) {
-      const opponent = waiting;
-      waiting = null;
+      const opponent = waiting; waiting = null;
       startRoom(opponent, socket);
     } else {
       waiting = socket;
@@ -412,10 +364,7 @@ io.on('connection', (socket) => {
     socket.playerName = name || 'Player';
     const lobby = privateLobby[code.toUpperCase()];
     if (!lobby) { socket.emit('room:error', { message: 'Sala no encontrada' }); return; }
-    if (!lobby.host.connected) {
-      socket.emit('room:error', { message: 'El host se desconectó' });
-      delete privateLobby[code]; return;
-    }
+    if (!lobby.host.connected) { socket.emit('room:error', { message: 'El host se desconectó' }); delete privateLobby[code]; return; }
     delete privateLobby[code];
     startRoom(lobby.host, socket);
   });
@@ -437,43 +386,29 @@ io.on('connection', (socket) => {
     const roomId = socket.roomId;
     if (!roomId) return;
     io.to(roomId).emit('rematch:countdown');
-
     setTimeout(async () => {
-      // buscar en finishedRooms primero, luego en rooms
       const room = finishedRooms[roomId] || rooms[roomId];
       if (!room) return;
-
       const shuffled = [...ASSETS].sort(() => Math.random() - 0.5);
       for (const asset of shuffled) {
         try {
           const candles = await fetchCandles(asset);
           if (!candles || candles.length < 100) continue;
           const win = randomWindow(candles);
-
-          // restaurar sala activa
           rooms[roomId] = {
-            players:    room.players,
-            scores:     { [room.players[0]]: 0, [room.players[1]]: 0 },
-            names:      room.names,
-            round:      1, choices: {},
+            players: room.players, scores: { [room.players[0]]: 0, [room.players[1]]: 0 },
+            names: room.names, round: 1, choices: {},
             allCandles: candles, visible: win.visible, future: win.future,
             asset, usedAssets: [asset.name],
           };
           delete finishedRooms[roomId];
-
           const [id1, id2] = room.players;
-          const payload = {
-            roomId, round: 1, total: TOTAL_ROUNDS,
-            asset: asset.name, interval: asset.interval,
-            visible: win.visible, future: win.future,
-          };
+          const payload = { roomId, round: 1, total: TOTAL_ROUNDS, asset: asset.name, interval: asset.interval, visible: win.visible, future: win.future };
           io.to(id1).emit('game:start', { ...payload, opponent: room.names[id2] });
           io.to(id2).emit('game:start', { ...payload, opponent: room.names[id1] });
           totalGamesPlayed++;
           return;
-        } catch (err) {
-          console.log('Rematch error:', err.message);
-        }
+        } catch (err) { console.log('Rematch error:', err.message); }
       }
     }, 10000);
   });
@@ -490,17 +425,19 @@ io.on('connection', (socket) => {
 });
 
 cron.schedule('0 8 * * *', async () => {
-  console.log('Sending daily push notifications...');
+  pushSubscriptions = await loadSubscriptions();
+  console.log('Sending to', pushSubscriptions.length, 'subscribers...');
   const payload = JSON.stringify({
     title: '⚡ Daily Challenge',
     body:  "Today's chart is ready. Can you call it?",
     url:   'https://tradara.dev',
   });
   const promises = pushSubscriptions.map(sub =>
-    webpush.sendNotification(sub, payload).catch(err => {
-      if (err.statusCode === 410)
+    webpush.sendNotification(sub, payload).catch(async err => {
+      if (err.statusCode === 410) {
         pushSubscriptions = pushSubscriptions.filter(s => s.endpoint !== sub.endpoint);
-      saveSubscriptions(pushSubscriptions);
+        await saveSubscriptions(pushSubscriptions);
+      }
     })
   );
   await Promise.all(promises);
