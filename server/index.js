@@ -46,10 +46,7 @@ loadSubscriptions().then(subs => {
 });
 
 const rateLimit = require('express-rate-limit');
-app.use(cors({
-  origin: ['https://tradara.dev', 'https://www.tradara.dev'],
-  credentials: true,
-}));
+app.use(cors());
 
 const generalLimiter = rateLimit({
   windowMs: 60 * 1000, max: 100,
