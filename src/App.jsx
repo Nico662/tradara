@@ -503,9 +503,9 @@ export default function App() {
               {result.pts > 0 ? '+' + result.pts : result.pts === 0 ? '±0' : result.pts}
             </div>
             <button className="next-btn" onClick={nextRound} disabled={revealing}
-              style={{ opacity: revealing ? 0.3 : 1, cursor: revealing ? 'not-allowed' : 'pointer' }}>
-              {revealing ? '...' : t.game.next}
-            </button>
+  style={{ opacity: revealing ? 0.3 : 1, cursor: revealing ? 'not-allowed' : 'pointer', flexShrink: 0, minWidth: '80px' }}>
+  {revealing ? '...' : t.game.next}
+</button>
           </div>
         </div>
       )}
