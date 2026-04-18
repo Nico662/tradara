@@ -3,34 +3,32 @@ import { useState, useEffect } from 'react';
 export default function NotificationBanner() {
   const [show, setShow] = useState(false);
 
-  useEffect(() => {
-   console.log('Notification in window:', 'Notification' in window);
-   console.log('serviceWorker in navigator:', 'serviceWorker' in navigator);
-   console.log('Notification.permission:', Notification.permission);
-   console.log('dismissed:', localStorage.getItem('tradara_push_dismissed'));
-  
-   if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
-   if (Notification.permission !== 'default') return;
-   const dismissed = localStorage.getItem('tradara_push_dismissed');
-   if (dismissed) return;
-   const timer = setTimeout(() => setShow(true), 3000);
-   return () => clearTimeout(timer);
- }, []);
-  async function allow() {
-    setShow(false);
+  async function subscribeUser() {
     try {
       const reg = await navigator.serviceWorker.ready;
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') return;
+      const existing = await reg.pushManager.getSubscription();
+      if (existing) return;
       const sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: 'BEWPkbh1HeSsw08H0EsELp5TIPD2gcQ8Yfa1RsSW-9jER3uvoeVUTazcIqjlf4UNFKe7QeqQ8ZlVjGI72pinR0I',
       });
       await fetch('https://tradara-production.up.railway.app/push/subscribe', {
-        method:  'POST',
+        method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body:    JSON.stringify(sub),
+        body: JSON.stringify(sub),
       });
+      console.log('Auto-subscribed to push');
+    } catch (err) {
+      console.log('Push error:', err);
+    }
+  }
+
+  async function allow() {
+    setShow(false);
+    try {
+      const permission = await Notification.requestPermission();
+      if (permission !== 'granted') return;
+      await subscribeUser();
     } catch (err) {
       console.log('Push error:', err);
     }
@@ -40,6 +38,19 @@ export default function NotificationBanner() {
     setShow(false);
     localStorage.setItem('tradara_push_dismissed', '1');
   }
+
+  useEffect(() => {
+    if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+    const dismissed = localStorage.getItem('tradara_push_dismissed');
+    if (dismissed) return;
+    if (Notification.permission === 'granted') {
+      subscribeUser();
+      return;
+    }
+    if (Notification.permission === 'denied') return;
+    const timer = setTimeout(() => setShow(true), 3000);
+    return () => clearTimeout(timer);
+  }, []);
 
   if (!show) return null;
 
