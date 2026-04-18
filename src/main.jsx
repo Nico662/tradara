@@ -2,10 +2,10 @@ import { createRoot } from 'react-dom/client'
 import './index.css'
 import App from './App.jsx'
 import { LangProvider } from './LangContext.jsx';
+import { AuthProvider } from './AuthContext.jsx';
 import { inject } from '@vercel/analytics';
 inject();
 
-// Registrar Service Worker y suscribir a push
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', async () => {
     try {
@@ -37,7 +37,9 @@ if ('serviceWorker' in navigator) {
 }
 
 createRoot(document.getElementById('root')).render(
-  <LangProvider>
-    <App />
-  </LangProvider>
+  <AuthProvider>
+    <LangProvider>
+      <App />
+    </LangProvider>
+  </AuthProvider>
 )

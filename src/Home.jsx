@@ -3,6 +3,7 @@ import { LANGS } from './i18n';
 import { useState, useEffect } from 'react';
 import { getUnlocked } from './badges.js';
 import { getXP, getLevel } from './levels.js';
+import { useAuth } from './AuthContext';
 
 export default function Home({ onSelect }) {
   const [online, setOnline] = useState(0);
@@ -12,6 +13,7 @@ export default function Home({ onSelect }) {
   const unlockedCount = getUnlocked().length;
   const xp    = getXP();
   const level = getLevel(xp);
+  const { user, login, logout } = useAuth();
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -43,7 +45,22 @@ export default function Home({ onSelect }) {
             ))}
           </div>
         </div>
-
+        {/* User */}
+<div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
+  {user ? (
+    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+      {user.avatar && <img src={user.avatar} style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #22d3a5' }} />}
+      <span style={{ fontSize: '10px', color: '#8899b0', fontFamily: "'Space Mono', monospace" }}>{user.name}</span>
+      <button onClick={logout} style={{ background: 'transparent', border: '1px solid #2a3345', borderRadius: '6px', padding: '4px 10px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em' }}>
+        logout
+      </button>
+    </div>
+  ) : (
+    <button onClick={login} style={{ background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', padding: '8px 20px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', cursor: 'pointer', letterSpacing: '0.08em', fontWeight: 700 }}>
+      Sign in with Google
+    </button>
+  )}
+</div>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '42px', letterSpacing: '-0.02em', color: '#f0f0f0' }}>
