@@ -4,16 +4,18 @@ export default function NotificationBanner() {
   const [show, setShow] = useState(false);
 
   useEffect(() => {
-    // solo mostrar si no han decidido antes y el navegador lo soporta
-    if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
-    if (Notification.permission !== 'default') return;
-    const dismissed = localStorage.getItem('tradara_push_dismissed');
-    if (dismissed) return;
-    // mostrar después de 3 segundos
-    const timer = setTimeout(() => setShow(true), 3000);
-    return () => clearTimeout(timer);
-  }, []);
-
+   console.log('Notification in window:', 'Notification' in window);
+   console.log('serviceWorker in navigator:', 'serviceWorker' in navigator);
+   console.log('Notification.permission:', Notification.permission);
+   console.log('dismissed:', localStorage.getItem('tradara_push_dismissed'));
+  
+   if (!('Notification' in window) || !('serviceWorker' in navigator)) return;
+   if (Notification.permission !== 'default') return;
+   const dismissed = localStorage.getItem('tradara_push_dismissed');
+   if (dismissed) return;
+   const timer = setTimeout(() => setShow(true), 3000);
+   return () => clearTimeout(timer);
+ }, []);
   async function allow() {
     setShow(false);
     try {
