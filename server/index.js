@@ -6,6 +6,7 @@ const cors         = require('cors');
 
 const yf         = new YahooFinance();
 const app        = express();
+app.set('trust proxy', 1);
 const httpServer = http.createServer(app);
 const io         = new Server(httpServer, { cors: { origin: '*' } });
 const PORT = process.env.PORT || 3001;
@@ -30,10 +31,14 @@ let pushSubscriptions = [];
 async function loadSubscriptions() {
   try {
     const subs = await redis.get('push_subscriptions');
-    return subs ? JSON.parse(subs) : [];
-  } catch (e) { return []; }
+    if (!subs) return [];
+    if (Array.isArray(subs)) return subs;
+    return JSON.parse(subs);
+  } catch (e) {
+    console.log('loadSubscriptions error:', e.message);
+    return [];
+  }
 }
-
 async function saveSubscriptions(subs) {
   try {
     await redis.set('push_subscriptions', JSON.stringify(subs));
