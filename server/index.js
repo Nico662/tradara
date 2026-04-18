@@ -12,6 +12,34 @@ const io         = new Server(httpServer, { cors: { origin: '*' } });
 const PORT = process.env.PORT || 3001;
 const cron = require('node-cron');
 const webpush = require('web-push');
+const mongoose     = require('mongoose');
+const passport     = require('passport');
+const GoogleStrategy = require('passport-google-oauth20').Strategy;
+const session      = require('express-session');
+const jwt          = require('jsonwebtoken');
+
+const JWT_SECRET           = process.env.JWT_SECRET || 'tradara_secret_2024';
+const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID;
+const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
+const MONGODB_URI          = process.env.MONGODB_URI;
+const CLIENT_URL           = 'https://tradara.dev';
+
+mongoose.connect(MONGODB_URI)
+  .then(() => console.log('MongoDB connected'))
+  .catch(err => console.error('MongoDB error:', err));
+
+const UserSchema = new mongoose.Schema({
+  googleId:   { type: String, required: true, unique: true },
+  email:      { type: String, required: true },
+  name:       { type: String, required: true },
+  avatar:     { type: String },
+  xp:         { type: Number, default: 0 },
+  badges:     { type: [String], default: [] },
+  createdAt:  { type: Date, default: Date.now },
+  lastLogin:  { type: Date, default: Date.now },
+});
+
+const User = mongoose.model('User', UserSchema);
 
 webpush.setVapidDetails(
   'mailto:nicolasvidalcorrecher@tradara.dev',
@@ -53,6 +81,47 @@ loadSubscriptions().then(subs => {
 
 const rateLimit = require('express-rate-limit');
 app.use(cors());
+app.use(session({
+  secret: JWT_SECRET,
+  resave: false,
+  saveUninitialized: false,
+}));
+
+app.use(passport.initialize());
+app.use(passport.session());
+
+passport.use(new GoogleStrategy({
+  clientID:     GOOGLE_CLIENT_ID,
+  clientSecret: GOOGLE_CLIENT_SECRET,
+  callbackURL:  'https://tradara-production.up.railway.app/auth/google/callback',
+}, async (accessToken, refreshToken, profile, done) => {
+  try {
+    let user = await User.findOne({ googleId: profile.id });
+    if (!user) {
+      user = await User.create({
+        googleId: profile.id,
+        email:    profile.emails[0].value,
+        name:     profile.displayName,
+        avatar:   profile.photos[0]?.value,
+      });
+      console.log('New user created:', user.email);
+    } else {
+      user.lastLogin = new Date();
+      await user.save();
+    }
+    return done(null, user);
+  } catch (err) {
+    return done(err, null);
+  }
+}));
+
+passport.serializeUser((user, done) => done(null, user.id));
+passport.deserializeUser(async (id, done) => {
+  try {
+    const user = await User.findById(id);
+    done(null, user);
+  } catch (err) { done(err, null); }
+});
 
 const generalLimiter = rateLimit({
   windowMs: 60 * 1000, max: 100,
@@ -94,6 +163,54 @@ app.get('/candles', async (req, res) => {
 
 app.get('/stats', (req, res) => {
   res.json({ online: io.engine.clientsCount, gamesPlayed: totalGamesPlayed });
+});
+app.get('/auth/google',
+  passport.authenticate('google', { scope: ['profile', 'email'] })
+);
+
+app.get('/auth/google/callback',
+  passport.authenticate('google', { failureRedirect: `${CLIENT_URL}?auth=error` }),
+  (req, res) => {
+    const token = jwt.sign(
+      { id: req.user._id, email: req.user.email, name: req.user.name },
+      JWT_SECRET,
+      { expiresIn: '30d' }
+    );
+    res.redirect(`${CLIENT_URL}?token=${token}`);
+  }
+);
+
+app.get('/auth/me', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const user    = await User.findById(decoded.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    res.json({
+      id:     user._id,
+      name:   user.name,
+      email:  user.email,
+      avatar: user.avatar,
+      xp:     user.xp,
+      badges: user.badges,
+    });
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
+});
+
+app.post('/auth/sync', express.json(), async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { xp, badges } = req.body;
+    await User.findByIdAndUpdate(decoded.id, { xp, badges });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(401).json({ error: 'Invalid token' });
+  }
 });
 app.post('/push/subscribe', express.json(), async (req, res) => {
   const sub = req.body;
