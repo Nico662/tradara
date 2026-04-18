@@ -151,17 +151,16 @@ export default function Home({ onSelect }) {
     <span className="mode-arrow">→</span>
   </button>
 
-  <button className="mode-card disabled">
-    <div className="mode-card-left">
-      <span className="mode-icon">🏆</span>
-      <div>
-        <div className="mode-title">{t.home.mode3}</div>
-        <div className="mode-sub coming">{t.home.coming}</div>
-      </div>
+  <button className="mode-card active" onClick={() => onSelect('tournament')}>
+  <div className="mode-card-left">
+    <span className="mode-icon">🏆</span>
+    <div>
+      <div className="mode-title">{t.home.mode3}</div>
+      <div className="mode-sub">Weekly · Global ranking · 10 rounds</div>
     </div>
-    <span className="mode-badge">{t.home.coming}</span>
-  </button>
-
+   </div>
+   <span className="mode-arrow">→</span>
+ </button> 
 </div>
 
         {/* Footer */}
