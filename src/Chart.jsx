@@ -35,19 +35,16 @@ async function fetchYahooCandles(symbol, interval) {
   const res  = await fetch(`https://tradara-production.up.railway.app/candles?symbol=${encodeURIComponent(symbol)}&interval=${interval}`);
   const data = await res.json();
   if (data.error) throw new Error(data.error);
-  
-  
 }
+
 async function fetchAlphaVantageCandles(symbol, interval) {
   const apiKey = 'ZCWXVK6SON5D524K';
   const url = `https://www.alphavantage.co/query?function=TIME_SERIES_INTRADAY&symbol=${symbol}&interval=${interval}&outputsize=full&apikey=${apiKey}`;
   const res  = await fetch(url);
   const data = await res.json();
-
   const key    = `Time Series (${interval})`;
   const series = data[key];
   if (!series) throw new Error('No data from Alpha Vantage');
-
   return Object.entries(series)
     .map(([time, v]) => ({
       time:  Math.floor(new Date(time).getTime() / 1000),
@@ -58,6 +55,7 @@ async function fetchAlphaVantageCandles(symbol, interval) {
     }))
     .reverse();
 }
+
 function toChartData(candles, startIndex = 0) {
   return candles
     .filter(c => c && c.open != null && c.high != null && c.low != null && c.close != null)
@@ -76,6 +74,7 @@ function toChartData(candles, startIndex = 0) {
       return { time, open: c.open, high: c.high, low: c.low, close: c.close };
     });
 }
+
 function toChartDataForex(candles, startIndex = 0) {
   return candles
     .filter(c => c && c.open != null && c.high != null && c.low != null && c.close != null)
@@ -90,6 +89,7 @@ function toChartDataForex(candles, startIndex = 0) {
       return { time, open: c.open, high: c.high, low: c.low, close: c.close };
     });
 }
+
 function getChartHeight() {
   const vh = window.innerHeight;
   if (vh < 700) return 160;
@@ -97,7 +97,7 @@ function getChartHeight() {
   return 240;
 }
 
-const Chart = forwardRef(function Chart({ asset }, ref) {
+const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
   const containerRef  = useRef(null);
   const chartRef      = useRef(null);
   const seriesRef     = useRef(null);
@@ -132,20 +132,42 @@ const Chart = forwardRef(function Chart({ asset }, ref) {
 
     revealFuture(futureCandles, onDone) {
       if (!seriesRef.current) return;
-      const forex    = isForexRef.current;
-      const fn       = forex ? toChartDataForex : toChartData;
+      const forex = isForexRef.current;
+      const fn = forex ? toChartDataForex : toChartData;
+
+      const cleanFuture = futureCandles.filter(c =>
+        c && c.open != null && c.open > 0 &&
+        c.high != null && c.high > 0 &&
+        c.low != null && c.low > 0 &&
+        c.close != null && c.close > 0
+      );
+
       const existing = fn(candlesRef.current, 0);
+      const lastTime = existing[existing.length - 1]?.time;
+
+      const futureMapped = cleanFuture.map((c, i) => {
+        let time;
+        if (forex) {
+          const baseTime = typeof lastTime === 'number' ? lastTime : Math.floor(Date.now() / 1000);
+          time = baseTime + (i + 1) * 3600;
+        } else {
+          const base = lastTime ? new Date(lastTime) : new Date();
+          base.setDate(base.getDate() + i + 1);
+          time = `${base.getFullYear()}-${String(base.getMonth()+1).padStart(2,'0')}-${String(base.getDate()).padStart(2,'0')}`;
+        }
+        return { time, open: c.open, high: c.high, low: c.low, close: c.close };
+      });
+
       let i = 0;
       const interval = setInterval(() => {
-        if (!seriesRef.current || i >= futureCandles.length) {
+        if (!seriesRef.current || i >= futureMapped.length) {
           clearInterval(interval);
           if (onDone) onDone();
           return;
         }
-        const next = futureCandles.slice(0, i + 1);
         seriesRef.current.setData([
           ...existing,
-          ...fn(next, candlesRef.current.length).map(c => ({
+          ...futureMapped.slice(0, i + 1).map(c => ({
             ...c,
             color:       c.close >= c.open ? 'rgba(34,211,165,0.5)' : 'rgba(240,84,84,0.5)',
             wickColor:   c.close >= c.open ? 'rgba(34,211,165,0.5)' : 'rgba(240,84,84,0.5)',
@@ -213,38 +235,51 @@ const Chart = forwardRef(function Chart({ asset }, ref) {
       chartRef.current  = chart;
       seriesRef.current = series;
 
-      const symbol   = asset.binance ?? null;
-      const yahoo    = asset.yahoo   ?? null;
-     const interval = asset.forex ? '1h'
-  : asset.tf === '1m'  ? '1m'
-  : asset.tf === '5m'  ? '5m'
-  : asset.tf === '15m' ? '15m'
-  : '1d';
-const loadCandles = asset._dailyVisible
-  ? Promise.resolve([...asset._dailyVisible, ...asset._dailyFuture])
-  : asset.binance
-  ? fetchBinanceCandles(asset.binance, interval, 700)
-  : asset.alphavantage
-  ? fetchAlphaVantageCandles(asset.alphavantage, asset.tf === '1m' ? '1min' : asset.tf === '5m' ? '5min' : '15min')
-  : asset.yahoo
-  ? fetchYahooCandles(asset.yahoo, interval)
-
-  : Promise.resolve(generateCandles(700, asset.base(), asset.vol));
       const fn = forex ? toChartDataForex : toChartData;
 
+      // si hay velas externas (torneo), usarlas directamente
+      if (externalCandles && externalCandles.length > 0) {
+        allCandlesRef.current = externalCandles;
+        candlesRef.current    = externalCandles;
+        revealPoolRef.current = [];
+        series.setData(fn(externalCandles, 0));
+        chart.timeScale().fitContent();
+        ro = new ResizeObserver(() => {
+          if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth });
+        });
+        ro.observe(containerRef.current);
+        return;
+      }
+
+      const symbol   = asset.binance ?? null;
+      const yahoo    = asset.yahoo   ?? null;
+      const interval = asset.forex ? '1h'
+        : asset.tf === '1m'  ? '1m'
+        : asset.tf === '5m'  ? '5m'
+        : asset.tf === '15m' ? '15m'
+        : '1d';
+
+      const loadCandles = asset._dailyVisible
+        ? Promise.resolve([...asset._dailyVisible, ...asset._dailyFuture])
+        : asset.binance
+        ? fetchBinanceCandles(asset.binance, interval, 700)
+        : asset.alphavantage
+        ? fetchAlphaVantageCandles(asset.alphavantage, asset.tf === '1m' ? '1min' : asset.tf === '5m' ? '5min' : '15min')
+        : asset.yahoo
+        ? fetchYahooCandles(asset.yahoo, interval)
+        : Promise.resolve(generateCandles(700, asset.base(), asset.vol));
+
       loadCandles.then(candles => {
-  allCandlesRef.current = candles;
-  let start = 0;
-  if (asset._dailyVisible) {
-    // daily: mostrar exactamente las velas del servidor
-    candlesRef.current    = asset._dailyVisible;
-    revealPoolRef.current = asset._dailyFuture;
-  } else {
-    const maxStart = Math.max(0, candles.length - 100);
-    start = Math.floor(Math.random() * maxStart);
-    candlesRef.current    = candles.slice(start, start + 80);
-    revealPoolRef.current = candles.slice(start + 80, start + 100);
-  }
+        allCandlesRef.current = candles;
+        if (asset._dailyVisible) {
+          candlesRef.current    = asset._dailyVisible;
+          revealPoolRef.current = asset._dailyFuture;
+        } else {
+          const maxStart = Math.max(0, candles.length - 100);
+          const start = Math.floor(Math.random() * maxStart);
+          candlesRef.current    = candles.slice(start, start + 80);
+          revealPoolRef.current = candles.slice(start + 80, start + 100);
+        }
         series.setData(fn(candlesRef.current, 0));
         chart.timeScale().fitContent();
       }).catch(() => {
@@ -257,9 +292,7 @@ const loadCandles = asset._dailyVisible
       });
 
       ro = new ResizeObserver(() => {
-        if (containerRef.current) {
-          chart.applyOptions({ width: containerRef.current.clientWidth });
-        }
+        if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth });
       });
       ro.observe(containerRef.current);
     }, 10);
