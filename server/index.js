@@ -30,10 +30,11 @@ let pushSubscriptions = [];
 
 async function loadSubscriptions() {
   try {
-    const subs = await redis.get('push_subscriptions');
-    if (!subs) return [];
-    if (Array.isArray(subs)) return subs;
-    return JSON.parse(subs);
+    const raw = await redis.get('push_subscriptions');
+    console.log('Redis raw value:', typeof raw, JSON.stringify(raw)?.slice(0, 100));
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    return JSON.parse(raw);
   } catch (e) {
     console.log('loadSubscriptions error:', e.message);
     return [];
