@@ -59,21 +59,22 @@ async function fetchAlphaVantageCandles(symbol, interval) {
     .reverse();
 }
 function toChartData(candles, startIndex = 0) {
-  return candles.map((c, i) => {
-    let time;
-    if (c.time && typeof c.time === 'number' && c.time > 100000) {
-      // es Unix timestamp — convertir a fecha string
-      const d = new Date(c.time * 1000);
-      time = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
-    } else if (c.time && typeof c.time === 'string') {
-      time = c.time;
-    } else {
-      const d = new Date();
-      d.setDate(d.getDate() - (candles.length - startIndex - i));
-      time = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    }
-    return { time, open: c.open, high: c.high, low: c.low, close: c.close };
-  });
+  return candles
+    .filter(c => c && c.open != null && c.high != null && c.low != null && c.close != null)
+    .map((c, i) => {
+      let time;
+      if (c.time && typeof c.time === 'number' && c.time > 100000) {
+        const d = new Date(c.time * 1000);
+        time = `${d.getUTCFullYear()}-${String(d.getUTCMonth()+1).padStart(2,'0')}-${String(d.getUTCDate()).padStart(2,'0')}`;
+      } else if (c.time && typeof c.time === 'string') {
+        time = c.time;
+      } else {
+        const d = new Date();
+        d.setDate(d.getDate() - (candles.length - startIndex - i));
+        time = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+      }
+      return { time, open: c.open, high: c.high, low: c.low, close: c.close };
+    });
 }
 function toChartDataForex(candles, startIndex = 0) {
   return candles.map((c, i) => {
