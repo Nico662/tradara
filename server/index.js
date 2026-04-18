@@ -40,6 +40,26 @@ const UserSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model('User', UserSchema);
+const TournamentSchema = new mongoose.Schema({
+  weekId:    { type: String, required: true, unique: true }, // ej: "2026-W16"
+  assets:    { type: Array, default: [] },
+  createdAt: { type: Date, default: Date.now },
+});
+
+const ScoreSchema = new mongoose.Schema({
+  weekId:    { type: String, required: true },
+  userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  name:      { type: String, required: true },
+  avatar:    { type: String },
+  score:     { type: Number, default: 0 },
+  rounds:    { type: Array, default: [] },
+  createdAt: { type: Date, default: Date.now },
+});
+
+ScoreSchema.index({ weekId: 1, userId: 1 }, { unique: true });
+
+const Tournament = mongoose.model('Tournament', TournamentSchema);
+const Score      = mongoose.model('Score', ScoreSchema);
 
 webpush.setVapidDetails(
   'mailto:nicolasvidalcorrecher@tradara.dev',
@@ -210,6 +230,80 @@ app.post('/auth/sync', express.json(), async (req, res) => {
     res.json({ ok: true });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });
+  }
+});
+// ── Tournament ────────────────────────────────────────────────────
+
+function getWeekId() {
+  const now  = new Date();
+  const year = now.getUTCFullYear();
+  const start = new Date(Date.UTC(year, 0, 1));
+  const week  = Math.ceil(((now - start) / 86400000 + start.getUTCDay() + 1) / 7);
+  return `${year}-W${String(week).padStart(2, '0')}`;
+}
+
+app.get('/tournament', async (req, res) => {
+  try {
+    const weekId = getWeekId();
+    let tournament = await Tournament.findOne({ weekId });
+    if (!tournament) {
+      // crear torneo de esta semana con 10 assets aleatorios
+      const shuffled = [...ASSETS].sort(() => Math.random() - 0.5).slice(0, 10);
+      tournament = await Tournament.create({ weekId, assets: shuffled });
+    }
+    // cargar candles para cada asset
+    const rounds = [];
+    for (const asset of tournament.assets) {
+      try {
+        const candles = await fetchCandles(asset);
+        const win = randomWindow(candles);
+        rounds.push({ asset: asset.name, interval: asset.interval, visible: win.visible, future: win.future });
+      } catch (e) { console.log('Tournament fetch error:', e.message); }
+    }
+    res.json({ weekId, rounds });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/tournament/leaderboard', async (req, res) => {
+  try {
+    const weekId = getWeekId();
+    const scores = await Score.find({ weekId }).sort({ score: -1 }).limit(100);
+    res.json({ weekId, scores });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/tournament/score', express.json(), async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const user    = await User.findById(decoded.id);
+    if (!user) return res.status(404).json({ error: 'User not found' });
+    const weekId = getWeekId();
+    const existing = await Score.findOne({ weekId, userId: user._id });
+    if (existing) return res.status(400).json({ error: 'Already played this week' });
+    const { score, rounds } = req.body;
+    await Score.create({ weekId, userId: user._id, name: user.name, avatar: user.avatar, score, rounds });
+    res.json({ ok: true });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.get('/tournament/played', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(200).json({ played: false });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const weekId  = getWeekId();
+    const existing = await Score.findOne({ weekId, userId: decoded.id });
+    res.json({ played: !!existing, score: existing?.score });
+  } catch {
+    res.json({ played: false });
   }
 });
 app.post('/push/subscribe', express.json(), async (req, res) => {
