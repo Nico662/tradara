@@ -18,7 +18,28 @@ webpush.setVapidDetails(
   'PCyRdLvdQswDzk0DlbImRKEgPbVLewsWGHCha07sXw8'
 );
 
+const { Redis } = require('@upstash/redis');
+
+const redis = new Redis({
+  url: 'https://glad-teal-76856.upstash.io',
+  token: 'gQAAAAAAASw4AAIncDJmYmZjYzFlYWVkZTc0MWU5YTBjMmExYWE5NGEwODFjYnAyNzY4NTY',
+});
+
 let pushSubscriptions = [];
+loadSubscriptions().then(subs => { pushSubscriptions = subs; });
+
+async function loadSubscriptions() {
+  try {
+    const subs = await redis.get('push_subscriptions');
+    return subs ? JSON.parse(subs) : [];
+  } catch (e) { return []; }
+}
+
+async function saveSubscriptions(subs) {
+  try {
+    await redis.set('push_subscriptions', JSON.stringify(subs));
+  } catch (e) {}
+}
 const rateLimit = require('express-rate-limit');
 app.use(cors({
   origin: ['https://tradara.dev', 'https://www.tradara.dev'],
@@ -84,7 +105,10 @@ app.post('/push/subscribe', express.json(), (req, res) => {
   const sub = req.body;
   if (!sub || !sub.endpoint) return res.status(400).json({ error: 'Invalid subscription' });
   const exists = pushSubscriptions.find(s => s.endpoint === sub.endpoint);
-  if (!exists) pushSubscriptions.push(sub);
+  if (!exists) {
+  pushSubscriptions.push(sub);
+  saveSubscriptions(pushSubscriptions);
+ }
   res.json({ ok: true });
 });
 
@@ -96,8 +120,10 @@ app.post('/push/send', express.json(), (req, res) => {
   });
   const promises = pushSubscriptions.map(sub =>
     webpush.sendNotification(sub, payload).catch(err => {
-      if (err.statusCode === 410)
+      if (err.statusCode === 410){
         pushSubscriptions = pushSubscriptions.filter(s => s.endpoint !== sub.endpoint);
+        saveSubscriptions(pushSubscriptions);
+      }
     })
   );
   Promise.all(promises).then(() => res.json({ ok: true, sent: pushSubscriptions.length }));
@@ -474,6 +500,7 @@ cron.schedule('0 8 * * *', async () => {
     webpush.sendNotification(sub, payload).catch(err => {
       if (err.statusCode === 410)
         pushSubscriptions = pushSubscriptions.filter(s => s.endpoint !== sub.endpoint);
+      saveSubscriptions(pushSubscriptions);
     })
   );
   await Promise.all(promises);
