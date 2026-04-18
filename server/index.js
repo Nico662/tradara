@@ -89,19 +89,21 @@ app.get('/candles', async (req, res) => {
 app.get('/stats', (req, res) => {
   res.json({ online: io.engine.clientsCount, gamesPlayed: totalGamesPlayed });
 });
-
 app.post('/push/subscribe', express.json(), async (req, res) => {
   const sub = req.body;
+  console.log('Subscribe request received:', sub ? sub.endpoint?.slice(0, 50) : 'empty');
   if (!sub || !sub.endpoint) return res.status(400).json({ error: 'Invalid subscription' });
   pushSubscriptions = await loadSubscriptions();
   const exists = pushSubscriptions.find(s => s.endpoint === sub.endpoint);
   if (!exists) {
     pushSubscriptions.push(sub);
     await saveSubscriptions(pushSubscriptions);
+    console.log('Saved subscription, total:', pushSubscriptions.length);
+  } else {
+    console.log('Subscription already exists');
   }
   res.json({ ok: true });
 });
-
 app.post('/push/send', express.json(), async (req, res) => {
   pushSubscriptions = await loadSubscriptions();
   console.log('Sending to', pushSubscriptions.length, 'subscribers');
