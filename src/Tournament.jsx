@@ -180,7 +180,28 @@ export default function Tournament({ onBack }) {
 
       <div className="chart-area">
         <div className="chart-wrapper">
-          <Chart ref={chartRef} asset={{ name: currentRound.asset, tf: currentRound.interval, vol: 0.02, cat: 'crypto', binance: null, yahoo: null, alphavantage: null, base: () => 100 }} externalCandles={currentRound.visible} />
+          <Chart 
+  ref={chartRef} 
+  asset={{ 
+    name: currentRound.asset, 
+    tf: currentRound.interval, 
+    vol: 0.02, 
+    cat: 'crypto', 
+    binance: null, 
+    yahoo: null, 
+    alphavantage: null, 
+    base: () => 100 
+  }} 
+  externalCandles={currentRound.visible
+    .filter(c => c.open && c.high && c.low && c.close)
+    .map(c => ({
+      time: typeof c.time === 'number' ? c.time : Math.floor(new Date(c.time).getTime() / 1000),
+      open: c.open,
+      high: c.high,
+      low: c.low,
+      close: c.close,
+    }))}
+/>
         </div>
       </div>
 
