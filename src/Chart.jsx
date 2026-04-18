@@ -77,16 +77,19 @@ function toChartData(candles, startIndex = 0) {
     });
 }
 function toChartDataForex(candles, startIndex = 0) {
-  return candles.map((c, i) => {
-    const time = c.time ?? (() => {
-      const d = new Date();
-      d.setHours(d.getHours() - (candles.length - startIndex - i));
-      return Math.floor(d.getTime() / 1000);
-    })();
-    return { time, open: c.open, high: c.high, low: c.low, close: c.close };
-  });
+  return candles
+    .filter(c => c && c.open != null && c.high != null && c.low != null && c.close != null)
+    .map((c, i) => {
+      const time = c.time && typeof c.time === 'number' && c.time > 100000
+        ? c.time
+        : (() => {
+            const d = new Date();
+            d.setHours(d.getHours() - (candles.length - startIndex - i));
+            return Math.floor(d.getTime() / 1000);
+          })();
+      return { time, open: c.open, high: c.high, low: c.low, close: c.close };
+    });
 }
-
 function getChartHeight() {
   const vh = window.innerHeight;
   if (vh < 700) return 160;
