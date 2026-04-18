@@ -28,15 +28,17 @@ export default function NotificationBanner() {
 }
 
   async function allow() {
-    setShow(false);
-    try {
-      const permission = await Notification.requestPermission();
-      if (permission !== 'granted') return;
-      await subscribeUser();
-    } catch (err) {
-      console.log('Push error:', err);
-    }
+   setShow(false);
+   try {
+    console.log('Requesting permission...');
+    const permission = await Notification.requestPermission();
+    console.log('Permission result:', permission);
+    if (permission !== 'granted') return;
+    await subscribeUser();
+  } catch (err) {
+    console.log('Push error:', err);
   }
+}
 
   function dismiss() {
     setShow(false);
@@ -81,9 +83,9 @@ export default function NotificationBanner() {
       </div>
       <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
         <button onClick={() => { console.log('Allow clicked'); allow(); }}
-  style={{ flex: 1, padding: '10px', background: 'rgba(34,211,165,0.1)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
-  Allow
-</button>
+          style={{ flex: 1, padding: '10px', background: 'rgba(34,211,165,0.1)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
+             Allow
+        </button>
         <button onClick={dismiss}
           style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid #2a3345', borderRadius: '6px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
           Not now
