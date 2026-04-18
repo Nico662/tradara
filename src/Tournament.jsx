@@ -1,13 +1,13 @@
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from './AuthContext';
 import Chart from './Chart';
-import { addXP, getXP, getLevel } from './levels.js';
+import { addXP } from './levels.js';
 
 const SERVER = 'https://tradara-production.up.railway.app';
 
 export default function Tournament({ onBack }) {
   const { user, syncProgress } = useAuth();
-  const [phase, setPhase] = useState('loading'); // loading, login, already_played, playing, finished
+  const [phase, setPhase] = useState('loading');
   const [rounds, setRounds] = useState([]);
   const [round, setRound] = useState(0);
   const [score, setScore] = useState(0);
@@ -19,14 +19,11 @@ export default function Tournament({ onBack }) {
   const [alreadyScore, setAlreadyScore] = useState(null);
   const chartRef = useRef(null);
 
-  useEffect(() => {
-    init();
-  }, []);
+  useEffect(() => { init(); }, []);
 
   async function init() {
     if (!user) { setPhase('login'); return; }
     const token = localStorage.getItem('tradara_token');
-    // comprobar si ya jugó esta semana
     const playedRes = await fetch(`${SERVER}/tournament/played`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -37,7 +34,6 @@ export default function Tournament({ onBack }) {
       setPhase('already_played');
       return;
     }
-    // cargar rondas
     const res  = await fetch(`${SERVER}/tournament`);
     const data = await res.json();
     setWeekId(data.weekId);
@@ -50,6 +46,18 @@ export default function Tournament({ onBack }) {
     const data = await res.json();
     setWeekId(data.weekId);
     setLeaderboard(data.scores);
+  }
+
+  function cleanCandles(candles) {
+    return candles
+      .filter(c => c && c.time != null && c.open > 0 && c.high > 0 && c.low > 0 && c.close > 0)
+      .map(c => ({
+        time:  typeof c.time === 'number' ? c.time : Math.floor(new Date(c.time).getTime() / 1000),
+        open:  parseFloat(c.open),
+        high:  parseFloat(c.high),
+        low:   parseFloat(c.low),
+        close: parseFloat(c.close),
+      }));
   }
 
   function makeChoice(choice) {
@@ -68,13 +76,12 @@ export default function Tournament({ onBack }) {
     setHistory(h => [...h, { choice, win, pts }]);
     setResult({ win, pts, pctMove, direction, choice });
     setRevealing(true);
-    chartRef.current?.revealFuture(future, () => setRevealing(false));
+    chartRef.current?.revealFuture(cleanCandles(future), () => setRevealing(false));
   }
 
   async function nextRound() {
     if (round + 1 >= rounds.length) {
-      // fin del torneo
-      const finalScore = score + (result?.pts || 0);
+      const finalScore = score;
       const token = localStorage.getItem('tradara_token');
       await fetch(`${SERVER}/tournament/score`, {
         method: 'POST',
@@ -94,7 +101,6 @@ export default function Tournament({ onBack }) {
     setRevealing(false);
   }
 
-  // ── Login required ────────────────────────────────────────────────
   if (phase === 'login') {
     return (
       <div style={{ padding: '48px 28px', textAlign: 'center' }}>
@@ -109,7 +115,6 @@ export default function Tournament({ onBack }) {
     );
   }
 
-  // ── Loading ───────────────────────────────────────────────────────
   if (phase === 'loading') {
     return (
       <div style={{ padding: '48px 28px', textAlign: 'center' }}>
@@ -119,7 +124,6 @@ export default function Tournament({ onBack }) {
     );
   }
 
-  // ── Already played ────────────────────────────────────────────────
   if (phase === 'already_played' || phase === 'finished') {
     return (
       <div style={{ padding: '48px 28px 32px' }}>
@@ -150,7 +154,6 @@ export default function Tournament({ onBack }) {
     );
   }
 
-  // ── Playing ───────────────────────────────────────────────────────
   const currentRound = rounds[round];
   if (!currentRound) return null;
 
@@ -180,28 +183,20 @@ export default function Tournament({ onBack }) {
 
       <div className="chart-area">
         <div className="chart-wrapper">
-          <Chart 
-  ref={chartRef} 
-  asset={{ 
-    name: currentRound.asset, 
-    tf: currentRound.interval, 
-    vol: 0.02, 
-    cat: 'crypto', 
-    binance: null, 
-    yahoo: null, 
-    alphavantage: null, 
-    base: () => 100 
-  }} 
-  externalCandles={currentRound.visible
-    .filter(c => c.open && c.high && c.low && c.close)
-    .map(c => ({
-      time: typeof c.time === 'number' ? c.time : Math.floor(new Date(c.time).getTime() / 1000),
-      open: c.open,
-      high: c.high,
-      low: c.low,
-      close: c.close,
-    }))}
-/>
+          <Chart
+            ref={chartRef}
+            asset={{
+              name: currentRound.asset,
+              tf: currentRound.interval,
+              vol: 0.02,
+              cat: 'crypto',
+              binance: null,
+              yahoo: null,
+              alphavantage: null,
+              base: () => 100,
+            }}
+            externalCandles={cleanCandles(currentRound.visible)}
+          />
         </div>
       </div>
 
