@@ -4,24 +4,28 @@ export default function NotificationBanner() {
   const [show, setShow] = useState(false);
 
   async function subscribeUser() {
-    try {
-      const reg = await navigator.serviceWorker.ready;
-      const existing = await reg.pushManager.getSubscription();
-      if (existing) return;
-      const sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: 'BEWPkbh1HeSsw08H0EsELp5TIPD2gcQ8Yfa1RsSW-9jER3uvoeVUTazcIqjlf4UNFKe7QeqQ8ZlVjGI72pinR0I',
-      });
-      await fetch('https://tradara-production.up.railway.app/push/subscribe', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(sub),
-      });
-      console.log('Auto-subscribed to push');
-    } catch (err) {
-      console.log('Push error:', err);
-    }
+  console.log('subscribeUser called');
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    console.log('SW ready');
+    const existing = await reg.pushManager.getSubscription();
+    console.log('existing subscription:', existing);
+    if (existing) return;
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: 'BEWPkbh1HeSsw08H0EsELp5TIPD2gcQ8Yfa1RsSW-9jER3uvoeVUTazcIqjlf4UNFKe7QeqQ8ZlVjGI72pinR0I',
+    });
+    console.log('New subscription created:', sub.endpoint?.slice(0, 50));
+    const response = await fetch('https://tradara-production.up.railway.app/push/subscribe', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(sub),
+    });
+    console.log('Server response:', response.status);
+  } catch (err) {
+    console.log('Push error:', err);
   }
+}
 
   async function allow() {
     setShow(false);
