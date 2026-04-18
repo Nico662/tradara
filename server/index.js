@@ -258,8 +258,11 @@ app.get('/tournament', async (req, res) => {
     for (const asset of tournament.assets) {
       try {
         const candles = await fetchCandles({ ...asset, interval: '1h' });
-        const win = randomWindow(candles);
-        rounds.push({ asset: asset.name, interval: '1h', visible: win.visible, future: win.future });
+        const cleanCandles = candles.filter(c => c && c.open > 0 && c.high > 0 && c.low > 0 && c.close > 0);
+        if (cleanCandles.length < 100) continue;
+         const win = randomWindow(cleanCandles);
+         rounds.push({ asset: asset.name, interval: '1h', visible: win.visible, future: win.future });
+
       } catch (e) { console.log('Tournament fetch error:', e.message); }
     }
     res.json({ weekId, rounds });
