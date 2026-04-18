@@ -80,10 +80,10 @@ export default function NotificationBanner() {
         </div>
       </div>
       <div style={{ display: 'flex', gap: '8px', marginTop: '14px' }}>
-        <button onClick={allow}
-          style={{ flex: 1, padding: '10px', background: 'rgba(34,211,165,0.1)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
-          Allow
-        </button>
+        <button onClick={() => { console.log('Allow clicked'); allow(); }}
+  style={{ flex: 1, padding: '10px', background: 'rgba(34,211,165,0.1)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
+  Allow
+</button>
         <button onClick={dismiss}
           style={{ flex: 1, padding: '10px', background: 'transparent', border: '1px solid #2a3345', borderRadius: '6px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '10px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>
           Not now
