@@ -14,6 +14,7 @@ import Daily from './Daily.jsx';
 import NotificationBanner from './NotificationBanner.jsx';
 import { addXP, getXP, getLevel, getNextLevel, getProgress } from './levels.js';
 import Historical from './Historical.jsx';
+import { useAuth } from './AuthContext';
 
 function randomTF() {
   const tfs = ['1m', '5m', '15m'];
@@ -76,27 +77,34 @@ export default function App() {
   const [newBadge,    setNewBadge]   = useState(null);
   const [xp,          setXp]         = useState(() => getXP());
   const [floatingXP, setFloatingXP] = useState(null);
-
+ const { syncProgress } = useAuth();
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
 
   function tryUnlockBadge(id) {
-    const unlocked = unlockBadge(id);
-    if (unlocked) {
-      const badge = BADGES.find(b => b.id === id);
-      if (badge) setNewBadge(badge);
-    }
+  const unlocked = unlockBadge(id);
+  if (unlocked) {
+    const badge = BADGES.find(b => b.id === id);
+    if (badge) setNewBadge(badge);
+    // sincronizar badges con la nube
+    const badges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');
+    const xp = getXP();
+    syncProgress(xp, badges);
   }
+ } 
 
  function earnXP(amount) {
-   const newXP = addXP(amount);
-   setXp(newXP);
-   setFloatingXP(null);
-   setTimeout(() => {
-     setFloatingXP(amount);
-     setTimeout(() => setFloatingXP(null), 2000);
+  const newXP = addXP(amount);
+  setXp(newXP);
+  setFloatingXP(null);
+  setTimeout(() => {
+    setFloatingXP(amount);
+    setTimeout(() => setFloatingXP(null), 2000);
   }, 50);
-} 
+  // sincronizar con la nube
+  const badges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');
+  syncProgress(newXP, badges);
+ } 
   function updateDailyStreak() {
     const today      = new Date().toDateString();
     const lastPlayed = localStorage.getItem('tradara_last_played');

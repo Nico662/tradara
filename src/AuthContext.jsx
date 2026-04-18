@@ -25,20 +25,47 @@ export function AuthProvider({ children }) {
   }, []);
 
   async function fetchUser(token) {
-    try {
-      const res = await fetch(`${SERVER}/auth/me`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (res.ok) {
-        const data = await res.json();
-        setUser(data);
-      } else {
-        localStorage.removeItem('tradara_token');
+  try {
+    const res = await fetch(`${SERVER}/auth/me`, {
+      headers: { Authorization: `Bearer ${token}` },
+    });
+    if (res.ok) {
+      const data = await res.json();
+      setUser(data);
+      // si el usuario tiene más XP en la nube que en local, usar el de la nube
+      const localXP = parseInt(localStorage.getItem('tradara_xp') || '0');
+      if (data.xp > localXP) {
+        localStorage.setItem('tradara_xp', String(data.xp));
       }
-    } catch (e) {}
-    setLoading(false);
-  }
-
+      // merge badges — unir los de la nube con los locales
+      const localBadges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');
+      const merged = [...new Set([...data.badges, ...localBadges])];
+      localStorage.setItem('tradara_badges', JSON.stringify(merged));
+      // sincronizar el merge de vuelta a la nube
+      if (merged.length > data.badges.length) {
+        await fetch(`${SERVER}/auth/sync`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+          body: JSON.stringify({ xp: Math.max(data.xp, localXP), badges: merged }),
+        });
+      }
+    } else {
+      localStorage.removeItem('tradara_token');
+    }
+  } catch (e) {}
+  setLoading(false);
+}
+ async function syncProgress(xp, badges) {
+  const token = localStorage.getItem('tradara_token');
+  if (!token) return;
+  try {
+    await fetch(`${SERVER}/auth/sync`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ xp, badges }),
+    });
+  } catch (e) {}
+ }
   function login() {
     window.location.href = `${SERVER}/auth/google`;
   }
@@ -49,10 +76,10 @@ export function AuthProvider({ children }) {
   }
 
   return (
-    <AuthContext.Provider value={{ user, loading, login, logout }}>
-      {children}
-    </AuthContext.Provider>
-  );
+  <AuthContext.Provider value={{ user, loading, login, logout, syncProgress }}>
+    {children}
+  </AuthContext.Provider>
+ );
 }
 
 export function useAuth() {
