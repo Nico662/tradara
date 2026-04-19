@@ -237,35 +237,29 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
 
       const fn = forex ? toChartDataForex : toChartData;
 
-      // si hay velas externas (torneo), usarlas directamente
-     if (externalCandles && externalCandles.length > 0) {
-  const cleaned = externalCandles
-    .filter(c => c && parseFloat(c.open) > 0 && parseFloat(c.high) > 0 && parseFloat(c.low) > 0 && parseFloat(c.close) > 0)
-    .map((c, i) => {
-      const d = new Date();
-      d.setDate(d.getDate() - (externalCandles.length - i));
-      return {
-        time:  `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`,
-        open:  parseFloat(c.open),
-        high:  parseFloat(c.high),
-        low:   parseFloat(c.low),
-        close: parseFloat(c.close),
-      };
-    });
-  allCandlesRef.current = cleaned;
-  candlesRef.current    = cleaned;
-  revealPoolRef.current = [];
-  series.setData(cleaned);
-  chart.timeScale().fitContent();
-  ro = new ResizeObserver(() => {
-    if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth });
-  });
-  ro.observe(containerRef.current);
-  return;
-}
+      if (externalCandles && externalCandles.length > 0) {
+        const cleaned = externalCandles
+          .filter(c => c && parseFloat(c.open) > 0 && parseFloat(c.high) > 0 && parseFloat(c.low) > 0 && parseFloat(c.close) > 0)
+          .map(c => ({
+            time:  c.time,
+            open:  parseFloat(c.open),
+            high:  parseFloat(c.high),
+            low:   parseFloat(c.low),
+            close: parseFloat(c.close),
+          }));
+        const mapped = fn(cleaned, 0);
+        allCandlesRef.current = cleaned;
+        candlesRef.current    = cleaned;
+        revealPoolRef.current = [];
+        series.setData(mapped);
+        chart.timeScale().fitContent();
+        ro = new ResizeObserver(() => {
+          if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth });
+        });
+        ro.observe(containerRef.current);
+        return;
+      }
 
-      const symbol   = asset.binance ?? null;
-      const yahoo    = asset.yahoo   ?? null;
       const interval = asset.forex ? '1h'
         : asset.tf === '1m'  ? '1m'
         : asset.tf === '5m'  ? '5m'
@@ -315,7 +309,7 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
       if (ro) ro.disconnect();
       if (chart) chart.remove();
     };
-  }, [asset]);
+  }, [asset, externalCandles]);
 
   return <div ref={containerRef} style={{ width: '100%', height: `${getChartHeight()}px` }} />;
 });
