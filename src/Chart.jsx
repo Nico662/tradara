@@ -280,30 +280,32 @@ const futureMapped = cleanFuture.map((c, i) => {
         : Promise.resolve(generateCandles(700, asset.base(), asset.vol));
 
       loadCandles.then(candles => {
-        allCandlesRef.current = candles;
-        if (candles.length > 1 && typeof candles[0].time === 'number') {
+  allCandlesRef.current = candles;
+  // detectar si las velas usan Unix timestamps intraday
+  if (candles.length > 1 && typeof candles[0].time === 'number') {
     const dates = candles.slice(0, 10).map(c => new Date(c.time * 1000).toDateString());
     isUnixRef.current = dates.length !== new Set(dates).size;
   }
-        if (asset._dailyVisible) {
-          candlesRef.current    = asset._dailyVisible;
-          revealPoolRef.current = asset._dailyFuture;
-        } else {
-          const maxStart = Math.max(0, candles.length - 100);
-          const start = Math.floor(Math.random() * maxStart);
-          candlesRef.current    = candles.slice(start, start + 80);
-          revealPoolRef.current = candles.slice(start + 80, start + 100);
-        }
-        series.setData(fn(candlesRef.current, 0));
-        chart.timeScale().fitContent();
-      }).catch(() => {
-        const candles = generateCandles(500, asset.base(), asset.vol);
-        allCandlesRef.current = candles;
-        candlesRef.current    = candles.slice(0, 80);
-        revealPoolRef.current = candles.slice(80, 100);
-        series.setData(toChartData(candlesRef.current, 0));
-        chart.timeScale().fitContent();
-      });
+  const fnFinal = (isForexRef.current || isUnixRef.current) ? toChartDataForex : toChartData;
+  if (asset._dailyVisible) {
+    candlesRef.current    = asset._dailyVisible;
+    revealPoolRef.current = asset._dailyFuture;
+  } else {
+    const maxStart = Math.max(0, candles.length - 100);
+    const start = Math.floor(Math.random() * maxStart);
+    candlesRef.current    = candles.slice(start, start + 80);
+    revealPoolRef.current = candles.slice(start + 80, start + 100);
+  }
+  series.setData(fnFinal(candlesRef.current, 0));
+  chart.timeScale().fitContent();
+}).catch(() => {
+  const candles = generateCandles(500, asset.base(), asset.vol);
+  allCandlesRef.current = candles;
+  candlesRef.current    = candles.slice(0, 80);
+  revealPoolRef.current = candles.slice(80, 100);
+  series.setData(toChartData(candlesRef.current, 0));
+  chart.timeScale().fitContent();
+});
 
       ro = new ResizeObserver(() => {
         if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth });
