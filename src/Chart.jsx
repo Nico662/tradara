@@ -188,7 +188,7 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
     const timer = setTimeout(() => {
       if (!containerRef.current) return;
 
-      const forex = FOREX.includes(asset.name) || (asset.binance != null);
+      const forex = FOREX.includes(asset.name);
       isForexRef.current = forex;
 
       chart = createChart(containerRef.current, {
@@ -238,28 +238,30 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
       const fn = forex ? toChartDataForex : toChartData;
 
       if (externalCandles && externalCandles.length > 0) {
-        const cleaned = externalCandles
-          .filter(c => c && parseFloat(c.open) > 0 && parseFloat(c.high) > 0 && parseFloat(c.low) > 0 && parseFloat(c.close) > 0)
-          .map(c => ({
-            time:  c.time,
-            open:  parseFloat(c.open),
-            high:  parseFloat(c.high),
-            low:   parseFloat(c.low),
-            close: parseFloat(c.close),
-          }));
-        const mapped = fn(cleaned, 0);
-        allCandlesRef.current = cleaned;
-        candlesRef.current    = cleaned;
-        revealPoolRef.current = [];
-        series.setData(mapped);
-        chart.timeScale().fitContent();
-        ro = new ResizeObserver(() => {
-          if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth });
-        });
-        ro.observe(containerRef.current);
-        return;
-      }
-
+  const cleaned = externalCandles
+    .filter(c => c && parseFloat(c.open) > 0 && parseFloat(c.high) > 0 && parseFloat(c.low) > 0 && parseFloat(c.close) > 0)
+    .map(c => ({
+      time:  c.time,
+      open:  parseFloat(c.open),
+      high:  parseFloat(c.high),
+      low:   parseFloat(c.low),
+      close: parseFloat(c.close),
+    }));
+  // detectar si hay velas del mismo día — si sí, usar timestamps Unix directamente
+  const dates = cleaned.map(c => new Date(c.time * 1000).toDateString());
+  const hasDuplicateDates = dates.length !== new Set(dates).size;
+  const mapped = hasDuplicateDates ? toChartDataForex(cleaned, 0) : toChartData(cleaned, 0);
+  allCandlesRef.current = cleaned;
+  candlesRef.current    = cleaned;
+  revealPoolRef.current = [];
+  series.setData(mapped);
+  chart.timeScale().fitContent();
+  ro = new ResizeObserver(() => {
+    if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth });
+  });
+  ro.observe(containerRef.current);
+  return;
+}
       const interval = asset.forex ? '1h'
         : asset.tf === '1m'  ? '1m'
         : asset.tf === '5m'  ? '5m'
