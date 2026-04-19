@@ -188,7 +188,7 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
     const timer = setTimeout(() => {
       if (!containerRef.current) return;
 
-      const forex = FOREX.includes(asset.name);
+      const forex = FOREX.includes(asset.name) || (asset.binance != null);
       isForexRef.current = forex;
 
       chart = createChart(containerRef.current, {
