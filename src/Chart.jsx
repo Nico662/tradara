@@ -143,21 +143,21 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
       );
 
       const existing = fn(candlesRef.current, 0);
-      const lastTime = existing[existing.length - 1]?.time;
+const lastTime = existing[existing.length - 1]?.time;
+const useUnixTime = typeof lastTime === 'number';
 
-      const futureMapped = cleanFuture.map((c, i) => {
-        let time;
-        if (forex) {
-          const baseTime = typeof lastTime === 'number' ? lastTime : Math.floor(Date.now() / 1000);
-          time = baseTime + (i + 1) * 3600;
-        } else {
-          const base = lastTime ? new Date(lastTime) : new Date();
-          base.setDate(base.getDate() + i + 1);
-          time = `${base.getFullYear()}-${String(base.getMonth()+1).padStart(2,'0')}-${String(base.getDate()).padStart(2,'0')}`;
-        }
-        return { time, open: c.open, high: c.high, low: c.low, close: c.close };
-      });
-
+const futureMapped = cleanFuture.map((c, i) => {
+  let time;
+  if (forex || useUnixTime) {
+    const baseTime = typeof lastTime === 'number' ? lastTime : Math.floor(Date.now() / 1000);
+    time = baseTime + (i + 1) * 3600;
+  } else {
+    const base = lastTime ? new Date(lastTime) : new Date();
+    base.setDate(base.getDate() + i + 1);
+    time = `${base.getFullYear()}-${String(base.getMonth()+1).padStart(2,'0')}-${String(base.getDate()).padStart(2,'0')}`;
+  }
+  return { time, open: c.open, high: c.high, low: c.low, close: c.close };
+});
       let i = 0;
       const interval = setInterval(() => {
         if (!seriesRef.current || i >= futureMapped.length) {
