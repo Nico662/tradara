@@ -104,6 +104,7 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
   const candlesRef    = useRef([]);
   const revealPoolRef = useRef([]);
   const isForexRef    = useRef(false);
+  const isUnixRef     = useRef(false); // ← añadir esta ref
   const allCandlesRef = useRef([]);
 
   useImperativeHandle(ref, () => ({
@@ -133,7 +134,7 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
     revealFuture(futureCandles, onDone) {
       if (!seriesRef.current) return;
       const forex = isForexRef.current;
-      const fn = forex ? toChartDataForex : toChartData;
+      const fn = (isForexRef.current || isUnixRef.current) ? toChartDataForex : toChartData;
 
       const cleanFuture = futureCandles.filter(c =>
         c && c.open != null && c.open > 0 &&
@@ -144,7 +145,7 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
 
       const existing = fn(candlesRef.current, 0);
 const lastTime = existing[existing.length - 1]?.time;
-const useUnixTime = typeof lastTime === 'number';
+const useUnixTime = isForexRef.current || isUnixRef.current;
 
 const futureMapped = cleanFuture.map((c, i) => {
   let time;
@@ -237,7 +238,7 @@ const futureMapped = cleanFuture.map((c, i) => {
 
       const fn = forex ? toChartDataForex : toChartData;
 
-      if (externalCandles && externalCandles.length > 0) {
+     if (externalCandles && externalCandles.length > 0) {
   const cleaned = externalCandles
     .filter(c => c && parseFloat(c.open) > 0 && parseFloat(c.high) > 0 && parseFloat(c.low) > 0 && parseFloat(c.close) > 0)
     .map(c => ({
@@ -247,9 +248,9 @@ const futureMapped = cleanFuture.map((c, i) => {
       low:   parseFloat(c.low),
       close: parseFloat(c.close),
     }));
-  // detectar si hay velas del mismo día — si sí, usar timestamps Unix directamente
   const dates = cleaned.map(c => new Date(c.time * 1000).toDateString());
   const hasDuplicateDates = dates.length !== new Set(dates).size;
+  isUnixRef.current = hasDuplicateDates; // ← guardar si usamos Unix
   const mapped = hasDuplicateDates ? toChartDataForex(cleaned, 0) : toChartData(cleaned, 0);
   allCandlesRef.current = cleaned;
   candlesRef.current    = cleaned;
@@ -280,6 +281,10 @@ const futureMapped = cleanFuture.map((c, i) => {
 
       loadCandles.then(candles => {
         allCandlesRef.current = candles;
+        if (candles.length > 1 && typeof candles[0].time === 'number') {
+    const dates = candles.slice(0, 10).map(c => new Date(c.time * 1000).toDateString());
+    isUnixRef.current = dates.length !== new Set(dates).size;
+  }
         if (asset._dailyVisible) {
           candlesRef.current    = asset._dailyVisible;
           revealPoolRef.current = asset._dailyFuture;
