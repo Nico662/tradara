@@ -19,6 +19,25 @@ export default function Tournament({ onBack }) {
   const [alreadyScore, setAlreadyScore] = useState(null);
   const chartRef = useRef(null);
 
+  // hooks SIEMPRE antes de cualquier return condicional
+  const currentRound = rounds[round];
+
+  const stableCandles = useMemo(
+    () => currentRound ? cleanCandles(currentRound.visible) : [],
+    [currentRound]
+  );
+
+  const stableAsset = useMemo(() => currentRound ? {
+    name: currentRound.asset,
+    tf: currentRound.interval,
+    vol: 0.02,
+    cat: 'crypto',
+    binance: null,
+    yahoo: null,
+    alphavantage: null,
+    base: () => 100,
+  } : null, [currentRound]);
+
   useEffect(() => { init(); }, []);
 
   async function init() {
@@ -62,9 +81,9 @@ export default function Tournament({ onBack }) {
 
   function makeChoice(choice) {
     if (result || revealing) return;
-    const currentRound = rounds[round];
-    const future = currentRound.future;
-    const lastClose  = currentRound.visible[currentRound.visible.length - 1].close;
+    const cur = rounds[round];
+    const future = cur.future;
+    const lastClose  = cur.visible[cur.visible.length - 1].close;
     const lastFuture = future[future.length - 1].close;
     const pctMove    = (lastFuture - lastClose) / lastClose * 100;
     const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
@@ -153,23 +172,6 @@ export default function Tournament({ onBack }) {
       </div>
     );
   }
-
-  const currentRound = rounds[round];
-
-  const stableCandles = useMemo(
-    () => currentRound ? cleanCandles(currentRound.visible) : [],
-    [currentRound]
-  );
-  const stableAsset = useMemo(() => currentRound ? {
-    name: currentRound.asset,
-    tf: currentRound.interval,
-    vol: 0.02,
-    cat: 'crypto',
-    binance: null,
-    yahoo: null,
-    alphavantage: null,
-    base: () => 100,
-  } : null, [currentRound]);
 
   if (!currentRound) return null;
 
