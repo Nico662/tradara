@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 import Chart from './Chart';
 import { addXP } from './levels.js';
@@ -138,7 +138,7 @@ export default function Tournament({ onBack }) {
             <div style={{ marginTop: '8px', fontSize: '11px', color: '#4a5568' }}>Your score: <span style={{ color: '#f5c842', fontWeight: 700 }}>{alreadyScore}</span></div>
           )}
         </div>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>Leaderboard</div>
+        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#6b7a8d', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>Leaderboard</div>
         {leaderboard.map((entry, i) => (
           <div key={entry._id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: '#0f141b', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#1e2530'}`, borderRadius: '8px', marginBottom: '8px' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px' }}>
@@ -155,6 +155,22 @@ export default function Tournament({ onBack }) {
   }
 
   const currentRound = rounds[round];
+
+  const stableCandles = useMemo(
+    () => currentRound ? cleanCandles(currentRound.visible) : [],
+    [currentRound]
+  );
+  const stableAsset = useMemo(() => currentRound ? {
+    name: currentRound.asset,
+    tf: currentRound.interval,
+    vol: 0.02,
+    cat: 'crypto',
+    binance: null,
+    yahoo: null,
+    alphavantage: null,
+    base: () => 100,
+  } : null, [currentRound]);
+
   if (!currentRound) return null;
 
   return (
@@ -185,17 +201,8 @@ export default function Tournament({ onBack }) {
         <div className="chart-wrapper">
           <Chart
             ref={chartRef}
-            asset={{
-              name: currentRound.asset,
-              tf: currentRound.interval,
-              vol: 0.02,
-              cat: 'crypto',
-              binance: null,
-              yahoo: null,
-              alphavantage: null,
-              base: () => 100,
-            }}
-            externalCandles={cleanCandles(currentRound.visible)}
+            asset={stableAsset}
+            externalCandles={stableCandles}
           />
         </div>
       </div>
