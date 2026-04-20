@@ -340,7 +340,10 @@ app.post('/push/send', express.json(), async (req, res) => {
     url:   'https://tradara.dev',
   });
   const promises = pushSubscriptions.map(sub =>
-    webpush.sendNotification(sub, payload).catch(async err => {
+    webpush.sendNotification(sub, payload).then(() => {
+      console.log('Sent OK to:', sub.endpoint.slice(0, 50));
+    }).catch(async err => {
+      console.log('Send FAILED to:', sub.endpoint.slice(0, 50), '— status:', err.statusCode, '— body:', err.body);
       if (err.statusCode === 410) {
         pushSubscriptions = pushSubscriptions.filter(s => s.endpoint !== sub.endpoint);
         await saveSubscriptions(pushSubscriptions);
@@ -350,7 +353,6 @@ app.post('/push/send', express.json(), async (req, res) => {
   await Promise.all(promises);
   res.json({ ok: true, sent: pushSubscriptions.length });
 });
-
 const DAILY_ASSETS = [
   { source: 'kraken', symbol: 'BTCUSD',   name: 'BTC/USD', interval: '15m' },
   { source: 'kraken', symbol: 'ETHUSD',   name: 'ETH/USD', interval: '15m' },
