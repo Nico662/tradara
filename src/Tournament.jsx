@@ -19,7 +19,6 @@ export default function Tournament({ onBack }) {
   const [alreadyScore, setAlreadyScore] = useState(null);
   const chartRef = useRef(null);
 
-  // hooks SIEMPRE antes de cualquier return condicional
   const currentRound = rounds[round];
 
   const stableCandles = useMemo(
@@ -120,6 +119,12 @@ export default function Tournament({ onBack }) {
     setRevealing(false);
   }
 
+  const formatWeekId = (id) => {
+    if (!id) return '';
+    const [year, week] = id.split('-W');
+    return `Week ${week} · ${year}`;
+  };
+
   if (phase === 'login') {
     return (
       <div style={{ padding: '48px 28px', textAlign: 'center' }}>
@@ -149,7 +154,9 @@ export default function Tournament({ onBack }) {
         <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← menu</button>
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           <div style={{ fontSize: '32px', marginBottom: '8px' }}>🏆</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: '#f0f0f0' }}>Week {weekId}</div>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: '#f0f0f0' }}>
+            {formatWeekId(weekId)}
+          </div>
           {phase === 'finished' && (
             <div style={{ marginTop: '8px', fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#f5c842' }}>{score}</div>
           )}
@@ -241,7 +248,7 @@ export default function Tournament({ onBack }) {
               </div>
             </div>
             <div className={`result-pnl ${result.pts > 0 ? 'pos' : 'neg'}`}>
-              {result.pts > 0 ? '+' + result.pts : result.pts}
+              {result.pts > 0 ? '+' + result.pts : '✕'}
             </div>
             <button className="next-btn" onClick={nextRound} disabled={revealing}
               style={{ opacity: revealing ? 0.3 : 1, cursor: revealing ? 'not-allowed' : 'pointer', flexShrink: 0, minWidth: '80px' }}>

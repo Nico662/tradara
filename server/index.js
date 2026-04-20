@@ -235,10 +235,15 @@ app.post('/auth/sync', express.json(), async (req, res) => {
 // ── Tournament ────────────────────────────────────────────────────
 
 function getWeekId() {
-  const now  = new Date();
-  const year = now.getUTCFullYear();
+  const now = new Date();
+  // ajustar al lunes de esta semana
+  const day = now.getUTCDay(); // 0=domingo, 1=lunes...
+  const diff = (day === 0) ? -6 : 1 - day; // días hasta el lunes
+  const monday = new Date(now);
+  monday.setUTCDate(now.getUTCDate() + diff);
+  const year = monday.getUTCFullYear();
   const start = new Date(Date.UTC(year, 0, 1));
-  const week  = Math.ceil(((now - start) / 86400000 + start.getUTCDay() + 1) / 7);
+  const week = Math.ceil(((monday - start) / 86400000 + start.getUTCDay() + 1) / 7);
   return `${year}-W${String(week).padStart(2, '0')}`;
 }
 
