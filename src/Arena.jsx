@@ -9,6 +9,56 @@ import BadgeNotification from './BadgeNotification.jsx';
 const SOCKET_URL = 'https://tradara-production.up.railway.app';
 const FOREX_PAIRS = ['EUR/USD','GBP/USD','AUD/USD','USD/JPY','USD/CHF','USD/CAD'];
 
+const BOT_NAMES = ['AlgoBot', 'TradeAI', 'MarketBot', 'CryptoBot', 'NeuralBot'];
+
+function generateBotCandles(count = 60) {
+  const candles = [];
+  let price = 100 + Math.random() * 900;
+  let time = Math.floor(Date.now() / 1000) - count * 3600;
+  for (let i = 0; i < count; i++) {
+    const open = price;
+    const change = (Math.random() - 0.48) * price * 0.02;
+    const close = open + change;
+    const high = Math.max(open, close) + Math.random() * price * 0.005;
+    const low  = Math.min(open, close) - Math.random() * price * 0.005;
+    candles.push({ time, open: +open.toFixed(2), high: +high.toFixed(2), low: +low.toFixed(2), close: +close.toFixed(2) });
+    price = close;
+    time += 3600;
+  }
+  return candles;
+}
+
+function generateBotRound() {
+  const allCandles = generateBotCandles(70);
+  const visible = allCandles.slice(0, 60);
+  const future  = allCandles.slice(60);
+  const lastVisible = visible[visible.length - 1].close;
+  const lastFuture  = future[future.length - 1]?.close ?? lastVisible;
+  const pctMove = ((lastFuture - lastVisible) / lastVisible) * 100;
+  const direction = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+  const assets = ['BTC/USD', 'ETH/USD', 'EUR/USD', 'GBP/USD', 'XAU/USD'];
+  return {
+    asset: assets[Math.floor(Math.random() * assets.length)],
+    visible,
+    future,
+    pctMove: +pctMove.toFixed(2),
+    direction,
+    round: 1,
+    total: 10,
+  };
+}
+
+function botMakeChoice(direction) {
+  const accuracy = 0.55;
+  if (Math.random() < accuracy) {
+    if (direction === 'up')   return 'long';
+    if (direction === 'down') return 'short';
+    return 'skip';
+  }
+  const choices = ['long', 'short', 'skip'];
+  return choices[Math.floor(Math.random() * choices.length)];
+}
+
 export default function Arena({ onBack }) {
   const { t, lang, setLang } = useLang();
   const [screen,    setScreen]   = useState('lobby');
@@ -33,9 +83,18 @@ export default function Arena({ onBack }) {
   const [newBadge,  setNewBadge] = useState(null);
   const socketRef = useRef(null);
   const timerRef  = useRef(null);
-  const [rematchState, setRematchState] = useState(null); // null | 'requested' | 'waiting' | 'countdown'
+  const [rematchState, setRematchState] = useState(null);
   const [rematchCountdown, setRematchCountdown] = useState(10);
   const rematchTimerRef = useRef(null);
+
+  // Bot state
+  const [isBotGame,   setIsBotGame]   = useState(false);
+  const [botName,     setBotName]     = useState('');
+  const [myBotScore,  setMyBotScore]  = useState(0);
+  const [botScore,    setBotScore]    = useState(0);
+  const [botRounds,   setBotRounds]   = useState([]);
+  const [currentBotRound, setCurrentBotRound] = useState(null);
+  const BOT_TOTAL = 10;
 
   function tryUnlockArenaBadge(id) {
     const unlocked = unlockBadge(id);
@@ -59,7 +118,8 @@ export default function Arena({ onBack }) {
       setTimeLeft(prev => {
         if (prev <= 1) {
           clearInterval(timerRef.current);
-          makeChoice('skip');
+          if (isBotGame) makeBotChoice('skip');
+          else makeChoice('skip');
           return 0;
         }
         return prev - 1;
@@ -67,6 +127,106 @@ export default function Arena({ onBack }) {
     }, 1000);
   }
 
+  // ── Bot game logic ────────────────────────────────────────────────
+  function startBotGame() {
+    if (!name.trim()) return;
+    socketRef.current?.disconnect();
+    const bot = BOT_NAMES[Math.floor(Math.random() * BOT_NAMES.length)];
+    setBotName(bot);
+    setOpponent(bot);
+    setMyBotScore(0);
+    setBotScore(0);
+    setIsBotGame(true);
+    setMyId('player');
+    const rounds = Array.from({ length: BOT_TOTAL }, () => generateBotRound())
+      .map((r, i) => ({ ...r, round: i + 1, total: BOT_TOTAL }));
+    setBotRounds(rounds);
+    const first = { ...rounds[0] };
+    setCurrentBotRound(first);
+    setGameData(first);
+    setRound(1);
+    setTotal(BOT_TOTAL);
+    setScores({ player: 0, bot: 0 });
+    setNames({ player: name, bot });
+    setPhase('choose');
+    setResult(null);
+    setScreen('game');
+    startTimer();
+  }
+
+  function makeBotChoice(choice) {
+    if (phase !== 'choose') return;
+    clearInterval(timerRef.current);
+    setPhase('waiting_opponent');
+
+    const roundData = currentBotRound || gameData;
+    const botChoice = botMakeChoice(roundData.direction);
+
+    setTimeout(() => {
+      const correctChoice = roundData.direction === 'up' ? 'long' : roundData.direction === 'down' ? 'short' : 'skip';
+      const playerWins = choice === correctChoice;
+      const botWins    = botChoice === correctChoice;
+
+      const newMyScore  = myBotScore  + (playerWins ? 100 : 0);
+      const newBotScore = botScore + (botWins    ? 100 : 0);
+      setMyBotScore(newMyScore);
+      setBotScore(newBotScore);
+      setScores({ player: newMyScore, bot: newBotScore });
+
+      setResult({
+        direction: roundData.direction,
+        pctMove:   roundData.pctMove,
+        results: {
+          player: { choice, win: playerWins },
+          bot:    { choice: botChoice, win: botWins },
+        },
+        scores: { player: newMyScore, bot: newBotScore },
+      });
+      setPhase('result');
+
+      // avanzar ronda
+      setTimeout(() => {
+        const nextRoundIndex = round; // round es 1-based, índice = round (siguiente)
+        if (nextRoundIndex >= BOT_TOTAL) {
+          // fin
+          const iWon  = newMyScore > newBotScore;
+          const isDraw = newMyScore === newBotScore;
+          setFinalData({
+            scores: { player: newMyScore, bot: newBotScore },
+            winner: iWon ? 'player' : isDraw ? 'draw' : 'bot',
+          });
+          if (iWon) {
+            const wins = parseInt(localStorage.getItem('tradara_arena_wins') || '0') + 1;
+            localStorage.setItem('tradara_arena_wins', String(wins));
+            if (wins === 1) tryUnlockArenaBadge('first_blood');
+            if (wins >= 5)  tryUnlockArenaBadge('dominator');
+            if (newMyScore >= 1000) tryUnlockArenaBadge('unbeatable');
+          }
+          setScreen('gameover');
+        } else {
+          const next = { ...botRounds[nextRoundIndex] };
+          setCurrentBotRound(next);
+          setGameData(next);
+          setRound(next.round);
+          setResult(null);
+          setPhase('choose');
+          setStatus('');
+          startTimer();
+        }
+      }, 2000);
+    }, 600);
+  }
+
+  function resetBotState() {
+    setIsBotGame(false);
+    setBotName('');
+    setMyBotScore(0);
+    setBotScore(0);
+    setBotRounds([]);
+    setCurrentBotRound(null);
+  }
+
+  // ── Socket ────────────────────────────────────────────────────────
   function initSocket(name) {
     if (socketRef.current) {
       if (socketRef.current.connected) return socketRef.current;
@@ -161,7 +321,6 @@ export default function Arena({ onBack }) {
       clearInterval(timerRef.current);
       setFinalData({ forfeited: true, winner: data.winner });
       setScreen('gameover');
-      // si gano por forfeit también cuenta
       const wins = parseInt(localStorage.getItem('tradara_arena_wins') || '0') + 1;
       localStorage.setItem('tradara_arena_wins', String(wins));
       if (wins === 1) tryUnlockArenaBadge('first_blood');
@@ -176,39 +335,38 @@ export default function Arena({ onBack }) {
       setChatMsg(data);
       setTimeout(() => setChatMsg(null), 3000);
     });
+
     socket.on('rematch:requested', () => {
-  setRematchState('requested');
- });
-
- socket.on('rematch:countdown', () => {
-  setRematchState('countdown');
-  setRematchCountdown(10);
-  rematchTimerRef.current = setInterval(() => {
-    setRematchCountdown(prev => {
-      if (prev <= 1) {
-        clearInterval(rematchTimerRef.current);
-        return 0;
-      }
-      return prev - 1;
+      setRematchState('requested');
     });
-  }, 1000);
- });
 
- socket.on('rematch:start', (data) => {
-  clearInterval(rematchTimerRef.current);
-  setRematchState(null);
-  setRematchCountdown(10);
-  setGameData(data);
-  setRound(data.round);
-  setTotal(data.total);
-  setOpponent(data.opponent);
-  setScreen('game');
-  setPhase('choose');
-  setResult(null);
-  setScores({});
-  setFinalData(null);
-  startTimer();
- });
+    socket.on('rematch:countdown', () => {
+      setRematchState('countdown');
+      setRematchCountdown(10);
+      rematchTimerRef.current = setInterval(() => {
+        setRematchCountdown(prev => {
+          if (prev <= 1) { clearInterval(rematchTimerRef.current); return 0; }
+          return prev - 1;
+        });
+      }, 1000);
+    });
+
+    socket.on('rematch:start', (data) => {
+      clearInterval(rematchTimerRef.current);
+      setRematchState(null);
+      setRematchCountdown(10);
+      setGameData(data);
+      setRound(data.round);
+      setTotal(data.total);
+      setOpponent(data.opponent);
+      setScreen('game');
+      setPhase('choose');
+      setResult(null);
+      setScores({});
+      setFinalData(null);
+      startTimer();
+    });
+
     return socket;
   }
 
@@ -254,6 +412,7 @@ export default function Arena({ onBack }) {
 
   function makeChoice(choice) {
     if (phase !== 'choose') return;
+    if (isBotGame) { makeBotChoice(choice); return; }
     clearInterval(timerRef.current);
     setPhase('waiting_opponent');
     setStatus('Esperando al oponente...');
@@ -261,11 +420,12 @@ export default function Arena({ onBack }) {
   }
 
   function goBack() {
-    if (screen === 'game') {
+    if (screen === 'game' && !isBotGame) {
       socketRef.current?.emit('game:forfeit');
     }
     socketRef.current?.disconnect();
     clearInterval(timerRef.current);
+    resetBotState();
     onBack();
   }
 
@@ -371,9 +531,28 @@ export default function Arena({ onBack }) {
             </div>
           </div>
         ) : (
-          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '32px' }}>
-            {t.arena.playingAs} <span style={{ color: '#22d3a5' }}>{name}</span>
-          </div>
+          <>
+            <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '32px' }}>
+              {t.arena.playingAs} <span style={{ color: '#22d3a5' }}>{name}</span>
+            </div>
+
+            {/* ── Botón jugar vs bot ── */}
+            <div style={{ marginBottom: '24px', padding: '20px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '10px' }}>
+              <div style={{ fontSize: '10px', color: '#4a5568', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '12px' }}>
+                no hay oponentes disponibles ahora
+              </div>
+              <button onClick={startBotGame}
+                style={{ width: '100%', padding: '14px', background: 'rgba(245,200,66,0.08)', border: '1px solid #f5c842', borderRadius: '6px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}
+                onMouseEnter={e => e.currentTarget.style.background = 'rgba(245,200,66,0.15)'}
+                onMouseLeave={e => e.currentTarget.style.background = 'rgba(245,200,66,0.08)'}
+              >
+                🤖 jugar vs bot
+              </button>
+              <div style={{ marginTop: '10px', fontSize: '10px', color: '#3a4455', lineHeight: 1.6 }}>
+                practica mientras esperas un rival real
+              </div>
+            </div>
+          </>
         )}
 
         <button onClick={goBack}
@@ -386,11 +565,10 @@ export default function Arena({ onBack }) {
 
   // ── Game ──────────────────────────────────────────────────────────
   if (screen === 'game' && gameData) {
-    const myScore   = scores[myId] ?? 0;
-    const oppId     = Object.keys(scores).find(id => id !== myId);
-    const oppScore  = scores[oppId] ?? 0;
-    const myResult  = result?.results?.[myId];
-    const oppResult = result?.results?.[oppId];
+    const myScore  = isBotGame ? myBotScore : (scores[myId] ?? 0);
+    const oppScore = isBotGame ? botScore   : (scores[Object.keys(scores).find(id => id !== myId)] ?? 0);
+    const myResult  = result?.results?.[isBotGame ? 'player' : myId];
+    const oppResult = result?.results?.[isBotGame ? 'bot'    : Object.keys(scores).find(id => id !== myId)];
 
     return (
       <div id="gtm-root" style={{ position: 'relative' }}>
@@ -417,13 +595,16 @@ export default function Arena({ onBack }) {
           </div>
           <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '2px' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#f05454' }}>{oppScore}</div>
-            <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.06em' }}>{opponent.toUpperCase()}</div>
+            <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.06em' }}>
+              {opponent.toUpperCase()}
+              {isBotGame && <span style={{ color: '#f5c842', marginLeft: '4px' }}>🤖</span>}
+            </div>
           </div>
         </div>
 
         <div className="asset-bar">
           <div className="asset-name">{gameData.asset}</div>
-          <div className="timeframe-badge">{gameData.interval || gameData.asset?.interval || '1H'}</div>
+          <div className="timeframe-badge">{gameData.interval || '1H'}</div>
         </div>
 
         <div className="chart-area">
@@ -452,7 +633,7 @@ export default function Arena({ onBack }) {
 
         {phase === 'waiting_opponent' && (
           <div style={{ padding: '16px 20px', textAlign: 'center', fontSize: '10px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            {status}
+            {isBotGame ? 'el bot está pensando...' : status}
           </div>
         )}
 
@@ -475,21 +656,23 @@ export default function Arena({ onBack }) {
               <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.06em' }}>
                 precio {result.direction === 'up' ? t.arena.priceUp : result.direction === 'down' ? t.arena.priceDown : t.arena.priceFlat} {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}%
               </div>
-              <div style={{ marginTop: '8px', fontSize: '9px', color: '#3a4455', textAlign: 'center', letterSpacing: '0.06em' }}>
-                {t.arena.nextRound}
-              </div>
+              {!isBotGame && (
+                <div style={{ marginTop: '8px', fontSize: '9px', color: '#3a4455', textAlign: 'center', letterSpacing: '0.06em' }}>
+                  {t.arena.nextRound}
+                </div>
+              )}
             </div>
           </div>
         )}
 
-        {chatMsg && (
-          <div style={{ position: 'absolute', top: '60px', right: '16px', zIndex: 20, background: '#1a2030', border: '1px solid #2a3345', borderRadius: '8px', padding: '8px 12px', fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#e2e8f0', maxWidth: '160px', animation: 'slideUp 0.2s ease' }}>
+        {!isBotGame && chatMsg && (
+          <div style={{ position: 'absolute', top: '60px', right: '16px', zIndex: 20, background: '#1a2030', border: '1px solid #2a3345', borderRadius: '8px', padding: '8px 12px', fontFamily: "'Space Mono', monospace", fontSize: '11px', color: '#e2e8f0', maxWidth: '160px' }}>
             <span style={{ color: '#22d3a5', fontSize: '9px' }}>{chatMsg.from}</span>
             <div>{chatMsg.msg}</div>
           </div>
         )}
 
-        {showChat && (
+        {!isBotGame && showChat && (
           <div style={{ position: 'absolute', bottom: '60px', right: '16px', zIndex: 20, background: '#0f141b', border: '1px solid #2a3345', borderRadius: '10px', padding: '10px', display: 'flex', flexWrap: 'wrap', gap: '6px', maxWidth: '200px' }}>
             {['👍', '😂', '🔥', 'gg', 'wp', '😤'].map(msg => (
               <button key={msg} onClick={() => sendChat(msg)}
@@ -500,9 +683,11 @@ export default function Arena({ onBack }) {
           </div>
         )}
 
-        <button onClick={() => setShowChat(s => !s)}
-          style={{ position: 'absolute', bottom: '36px', right: '16px', zIndex: 20, background: '#1a2030', border: '1px solid #2a3345', borderRadius: '50%', width: '36px', height: '36px', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        >💬</button>
+        {!isBotGame && (
+          <button onClick={() => setShowChat(s => !s)}
+            style={{ position: 'absolute', bottom: '36px', right: '16px', zIndex: 20, background: '#1a2030', border: '1px solid #2a3345', borderRadius: '50%', width: '36px', height: '36px', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >💬</button>
+        )}
 
         <div className="ticker-tape">
           BTC +3.2% · ETH -1.8% · SPX +0.4% · GOLD +0.9% · EUR/USD -0.2%
@@ -528,7 +713,7 @@ export default function Arena({ onBack }) {
               {iWon ? t.arena.forfeitWon : t.arena.forfeitLost}
             </div>
             <div style={{ display: 'flex', gap: '10px' }}>
-              <button onClick={() => { setScreen('lobby'); setResult(null); setScores({}); setFinalData(null); }}
+              <button onClick={() => { setScreen('lobby'); setResult(null); setScores({}); setFinalData(null); resetBotState(); }}
                 style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
                 {t.arena.rematch}
               </button>
@@ -543,93 +728,99 @@ export default function Arena({ onBack }) {
       );
     }
 
-   const myScore  = finalData.scores?.[myId] ?? 0;
-const oppId    = Object.keys(finalData.scores ?? {}).find(id => id !== myId);
-const oppScore = finalData.scores?.[oppId] ?? 0;
-const iWon     = myScore > oppScore;
-const isDraw   = myScore === oppScore;
+    const myScore  = isBotGame ? myBotScore : (finalData.scores?.[myId] ?? 0);
+    const oppScore = isBotGame ? botScore   : (finalData.scores?.[Object.keys(finalData.scores ?? {}).find(id => id !== myId)] ?? 0);
+    const iWon     = myScore > oppScore;
+    const isDraw   = myScore === oppScore;
 
-return (
-  <div id="gtm-root" style={{ position: 'relative' }}>
-    <div className="scanlines" />
-    <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
-      <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: iWon ? '#22d3a5' : isDraw ? '#f5c842' : '#f05454', marginBottom: '4px' }}>
-        {iWon ? t.arena.won : isDraw ? t.arena.draw : t.arena.lost}
-      </div>
-      <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '32px' }}>
-        {iWon ? t.arena.wonSub : isDraw ? t.arena.drawSub : t.arena.lostSub}
-      </div>
-      <div style={{ display: 'flex', gap: '12px', marginBottom: '32px' }}>
-        <div style={{ flex: 1, background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '10px', padding: '20px' }}>
-          <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{name}</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#22d3a5' }}>{myScore}</div>
-        </div>
-        <div style={{ flex: 1, background: '#0f141b', border: '1px solid #f05454', borderRadius: '10px', padding: '20px' }}>
-          <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{opponent}</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#f05454' }}>{oppScore}</div>
-        </div>
-      </div>
-
-      {/* Revancha automática */}
-      {rematchState === null && (
-        <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
-          <button onClick={() => {
-            socketRef.current?.emit('rematch:request');
-            setRematchState('waiting');
-          }}
-            style={{ flex: 1, padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-            ⚡ {t.arena.rematch}
-          </button>
-          <button onClick={goBack}
-            style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-            {t.arena.menu}
-          </button>
-        </div>
-      )}
-
-      {rematchState === 'waiting' && (
-        <div style={{ padding: '16px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '8px', marginBottom: '10px' }}>
-          <div style={{ fontSize: '10px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-            waiting for opponent to accept...
+    return (
+      <div id="gtm-root" style={{ position: 'relative' }}>
+        <div className="scanlines" />
+        <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
+          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: iWon ? '#22d3a5' : isDraw ? '#f5c842' : '#f05454', marginBottom: '4px' }}>
+            {iWon ? t.arena.won : isDraw ? t.arena.draw : t.arena.lost}
           </div>
-        </div>
-      )}
-
-      {rematchState === 'requested' && (
-        <div style={{ marginBottom: '10px' }}>
-          <div style={{ fontSize: '10px', color: '#f5c842', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>
-            opponent wants a rematch!
+          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '32px' }}>
+            {iWon ? t.arena.wonSub : isDraw ? t.arena.drawSub : t.arena.lostSub}
           </div>
-          <div style={{ display: 'flex', gap: '10px' }}>
-            <button onClick={() => {
-              socketRef.current?.emit('rematch:accept');
-              setRematchState('countdown');
-            }}
-              style={{ flex: 1, padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-              ✓ accept
-            </button>
-            <button onClick={goBack}
+
+          {isBotGame && (
+            <div style={{ fontSize: '10px', color: '#f5c842', letterSpacing: '0.08em', marginBottom: '16px' }}>
+              🤖 partida vs bot — no cuenta para el ranking
+            </div>
+          )}
+
+          <div style={{ display: 'flex', gap: '12px', marginBottom: '32px' }}>
+            <div style={{ flex: 1, background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '10px', padding: '20px' }}>
+              <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{name}</div>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#22d3a5' }}>{myScore}</div>
+            </div>
+            <div style={{ flex: 1, background: '#0f141b', border: '1px solid #f05454', borderRadius: '10px', padding: '20px' }}>
+              <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
+                {opponent} {isBotGame && '🤖'}
+              </div>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#f05454' }}>{oppScore}</div>
+            </div>
+          </div>
+
+          <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
+            {isBotGame ? (
+              <button onClick={startBotGame}
+                style={{ flex: 1, padding: '14px', background: 'rgba(245,200,66,0.08)', border: '1px solid #f5c842', borderRadius: '6px', color: '#f5c842', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                🤖 otra vs bot
+              </button>
+            ) : (
+              <button onClick={() => { socketRef.current?.emit('rematch:request'); setRematchState('waiting'); }}
+                style={{ flex: 1, padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                ⚡ {t.arena.rematch}
+              </button>
+            )}
+            <button onClick={() => { setScreen('lobby'); setResult(null); setScores({}); setFinalData(null); resetBotState(); }}
               style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-              decline
+              {t.arena.menu}
             </button>
           </div>
-        </div>
-      )}
 
-      {rematchState === 'countdown' && (
-        <div style={{ padding: '20px', background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '8px', marginBottom: '10px' }}>
-          <div style={{ fontSize: '10px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
-            rematch starting in
-          </div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: '#22d3a5' }}>
-            {rematchCountdown}
-          </div>
+          {!isBotGame && rematchState === 'waiting' && (
+            <div style={{ padding: '16px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '8px', marginBottom: '10px' }}>
+              <div style={{ fontSize: '10px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
+                waiting for opponent to accept...
+              </div>
+            </div>
+          )}
+
+          {!isBotGame && rematchState === 'requested' && (
+            <div style={{ marginBottom: '10px' }}>
+              <div style={{ fontSize: '10px', color: '#f5c842', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '12px' }}>
+                opponent wants a rematch!
+              </div>
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button onClick={() => { socketRef.current?.emit('rematch:accept'); setRematchState('countdown'); }}
+                  style={{ flex: 1, padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                  ✓ accept
+                </button>
+                <button onClick={goBack}
+                  style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
+                  decline
+                </button>
+              </div>
+            </div>
+          )}
+
+          {!isBotGame && rematchState === 'countdown' && (
+            <div style={{ padding: '20px', background: '#0f141b', border: '1px solid #22d3a5', borderRadius: '8px', marginBottom: '10px' }}>
+              <div style={{ fontSize: '10px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '8px' }}>
+                rematch starting in
+              </div>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '48px', color: '#22d3a5' }}>
+                {rematchCountdown}
+              </div>
+            </div>
+          )}
         </div>
-      )}
-    </div>
-    {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
-  </div>
- );
+        {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+      </div>
+    );
   }
 
   return null;
