@@ -219,7 +219,26 @@ app.get('/auth/me', async (req, res) => {
     res.status(401).json({ error: 'Invalid token' });
   }
 });
-
+app.get('/stats/share', async (req, res) => {
+  try {
+    const doc = await db.collection('stats').findOne({ _id: 'shares' });
+    res.json(doc || { daily: 0 });
+  } catch {
+    res.json({ daily: 0 });
+  }
+});
+app.post('/stats/share', async (req, res) => {
+  try {
+    await db.collection('stats').updateOne(
+      { _id: 'shares' },
+      { $inc: { daily: 1 } },
+      { upsert: true }
+    );
+    res.json({ ok: true });
+  } catch {
+    res.json({ ok: false });
+  }
+});
 app.post('/auth/sync', express.json(), async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
