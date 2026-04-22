@@ -150,36 +150,62 @@ export default function Tournament({ onBack }) {
 
   if (phase === 'already_played' || phase === 'finished') {
     return (
-      <div style={{ padding: '48px 28px 32px' }}>
-        <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← menu</button>
-        <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-          <div style={{ fontSize: '32px', marginBottom: '8px' }}>🏆</div>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: '#f0f0f0' }}>
-            {formatWeekId(weekId)}
-          </div>
-          {phase === 'finished' && (
-            <div style={{ marginTop: '8px', fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#f5c842' }}>{score}</div>
-          )}
-          {phase === 'already_played' && (
-            <div style={{ marginTop: '8px', fontSize: '11px', color: '#4a5568' }}>Your score: <span style={{ color: '#f5c842', fontWeight: 700 }}>{alreadyScore}</span></div>
-          )}
-        </div>
-        <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#6b7a8d', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>Leaderboard</div>
-        {leaderboard.map((entry, i) => (
-          <div key={entry._id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: '#0f141b', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#1e2530'}`, borderRadius: '8px', marginBottom: '8px' }}>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px' }}>
-              {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+      <div style={{ position: 'relative', paddingTop: 'calc(52px + env(safe-area-inset-top))', padding: '0 0 32px' }}>
+        <button
+          onClick={onBack}
+          style={{
+            position: 'absolute',
+            top: 'calc(16px + env(safe-area-inset-top))',
+            left: '16px',
+            background: 'transparent',
+            border: 'none',
+            color: '#3a4455',
+            fontFamily: "'Space Mono', monospace",
+            fontSize: '11px',
+            cursor: 'pointer',
+            zIndex: 10,
+            padding: '8px 8px 8px 0',
+            minHeight: '44px',
+            minWidth: '44px',
+            display: 'flex',
+            alignItems: 'center',
+          }}
+          onMouseEnter={e => e.currentTarget.style.color = '#e2e8f0'}
+          onMouseLeave={e => e.currentTarget.style.color = '#3a4455'}
+        >← menu</button>
+
+        <div style={{ paddingTop: 'calc(52px + env(safe-area-inset-top))', paddingLeft: '28px', paddingRight: '28px' }}>
+          <div style={{ textAlign: 'center', marginBottom: '24px' }}>
+            <div style={{ fontSize: '32px', marginBottom: '8px' }}>🏆</div>
+            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: '#f0f0f0' }}>
+              {formatWeekId(weekId)}
             </div>
-            {entry.avatar && <img src={entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%' }} />}
-            <div style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>{entry.name}</div>
-            <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{entry.score}</div>
+            {phase === 'finished' && (
+              <div style={{ marginTop: '8px', fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#f5c842' }}>{score}</div>
+            )}
+            {phase === 'already_played' && (
+              <div style={{ marginTop: '8px', fontSize: '11px', color: '#4a5568' }}>Your score: <span style={{ color: '#f5c842', fontWeight: 700 }}>{alreadyScore}</span></div>
+            )}
           </div>
-        ))}
-        <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '9px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>New tournament every Monday</div>
+
+          <div style={{ fontFamily: "'Space Mono', monospace", fontSize: '9px', color: '#6b7a8d', letterSpacing: '0.12em', textTransform: 'uppercase', marginBottom: '12px' }}>Leaderboard</div>
+
+          {leaderboard.map((entry, i) => (
+            <div key={entry._id} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: '#0f141b', border: `1px solid ${i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#1e2530'}`, borderRadius: '8px', marginBottom: '8px' }}>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px' }}>
+                {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+              </div>
+              {entry.avatar && <img src={entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%' }} />}
+              <div style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>{entry.name}</div>
+              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{entry.score}</div>
+            </div>
+          ))}
+
+          <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '9px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>New tournament every Monday</div>
+        </div>
       </div>
     );
   }
-
   if (!currentRound) return null;
 
   return (
