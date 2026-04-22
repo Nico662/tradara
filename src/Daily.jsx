@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { useLang } from './LangContext.jsx';
 import { LANGS } from './i18n.js';
 import Chart from './Chart.jsx';
 import { unlockBadge, BADGES } from './badges.js';
@@ -144,9 +143,9 @@ export default function Daily({ onBack }) {
             onMouseLeave={e => e.target.style.color = '#3a4455'}
           >{t.daily.back}</button>
           <div className="lang-selector">
-            {Object.keys(LANGS).map(l => (
+            {['en', 'es'].map(l => (
               <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
-                {LANGS[l].label}
+                {l.toUpperCase()}
               </button>
             ))}
           </div>
