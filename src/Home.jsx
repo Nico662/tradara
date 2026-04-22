@@ -6,8 +6,6 @@ import { getXP, getLevel } from './levels.js';
 import { useAuth } from './AuthContext';
 
 export default function Home({ onSelect }) {
-  const [online, setOnline] = useState(0);
-  const [gamesPlayed, setGamesPlayed] = useState(0);
   const { lang, setLang, t } = useLang();
   const [dailyStreak] = useState(() => parseInt(localStorage.getItem('tradara_daily_streak_count') || '0'));
   const unlockedCount = getUnlocked().length;
@@ -28,7 +26,6 @@ export default function Home({ onSelect }) {
     const interval = setInterval(fetchStats, 10000);
     return () => clearInterval(interval);
   }, []);
-
   return (
     <div id="gtm-root">
       <div className="scanlines" />
@@ -70,20 +67,7 @@ export default function Home({ onSelect }) {
             {t.home.tagline}
           </div>
 
-          {/* Online + games played */}
-          <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-              <div style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#22d3a5', animation: 'pulse 1.5s infinite' }} />
-              <span style={{ fontSize: '9px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                {Math.max(online, 1)} online
-              </span>
-            </div>
-            {gamesPlayed > 0 && (
-              <span style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
-                {gamesPlayed} games played
-              </span>
-            )}
-          </div>
+          
 
           {/* Streak + Level */}
           <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '16px' }}>
