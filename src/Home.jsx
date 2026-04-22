@@ -35,16 +35,7 @@ export default function Home({ onSelect }) {
 
       <div style={{ padding: '48px 28px 32px', position: 'relative', zIndex: 2 }}>
 
-        {/* Language selector */}
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>
-          <div className="lang-selector">
-            {Object.keys(LANGS).map(l => (
-              <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
-                {LANGS[l].label}
-              </button>
-            ))}
-          </div>
-        </div>
+        
         {/* User */}
 <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
   {user ? (
