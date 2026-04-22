@@ -119,6 +119,7 @@ export default function Daily({ onBack }) {
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
+      window.va?.('event', { name: 'share_result', props: { mode: 'daily' } });
     });
   };
 
