@@ -156,7 +156,13 @@ export default function Home({ onSelect }) {
           >
             🏅 {t.home.badges ?? 'Badges'} {unlockedCount > 0 && `· ${unlockedCount} unlocked`}
           </button>
-
+          <a href="https://ko-fi.com/tradaranicolasvidal" target="_blank" rel="noopener noreferrer"
+  style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '8px 16px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+  onMouseEnter={e => e.currentTarget.style.borderColor = '#f5c842'}
+  onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
+>
+  ☕ Support tradara
+</a>
           <a href="https://www.producthunt.com/posts/tradara?utm_source=badge-featured&utm_medium=badge" target="_blank" rel="noopener noreferrer">
             <img
               src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=tradara&theme=dark&t=1"
