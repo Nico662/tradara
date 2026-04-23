@@ -2,6 +2,8 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from './AuthContext';
 import Chart from './Chart';
 import { addXP } from './levels.js';
+import { unlockBadge, BADGES } from './badges.js';
+import BadgeNotification from './BadgeNotification.jsx';
 
 const SERVER = 'https://tradara-production.up.railway.app';
 
@@ -17,6 +19,7 @@ export default function Tournament({ onBack }) {
   const [leaderboard, setLeaderboard] = useState([]);
   const [weekId, setWeekId] = useState('');
   const [alreadyScore, setAlreadyScore] = useState(null);
+  const [newBadge, setNewBadge] = useState(null);
   const chartRef = useRef(null);
 
   const currentRound = rounds[round];
@@ -64,6 +67,17 @@ export default function Tournament({ onBack }) {
     const data = await res.json();
     setWeekId(data.weekId);
     setLeaderboard(data.scores);
+
+    if (user) {
+      const position = data.scores.findIndex(e => e.name === user.name);
+      if (position !== -1 && position < 10) {
+        const unlocked = unlockBadge('top_10');
+        if (unlocked) {
+          const badge = BADGES.find(b => b.id === 'top_10');
+          if (badge) setNewBadge(badge);
+        }
+      }
+    }
   }
 
   function cleanCandles(candles) {
@@ -203,9 +217,12 @@ export default function Tournament({ onBack }) {
 
           <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '9px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>New tournament every Monday</div>
         </div>
+
+        {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
       </div>
     );
   }
+
   if (!currentRound) return null;
 
   return (
@@ -283,6 +300,8 @@ export default function Tournament({ onBack }) {
           </div>
         </div>
       )}
+
+      {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
     </div>
   );
 }

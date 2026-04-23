@@ -382,15 +382,16 @@ export default function Arena({ onBack }) {
   }
 
   function createRoom() {
-    if (!name.trim()) return;
-    const socket = initSocket(name.trim());
-    socket.on('connect', () => {
-      socket.emit('room:create', { name: name.trim() });
-    });
-    if (socket.connected) {
-      socket.emit('room:create', { name: name.trim() });
-    }
+  if (!name.trim()) return;
+  const socket = initSocket(name.trim());
+  socket.on('connect', () => {
+    socket.emit('room:create', { name: name.trim() });
+  });
+  if (socket.connected) {
+    socket.emit('room:create', { name: name.trim() });
   }
+  tryUnlockArenaBadge('recruiter');
+ }
 
   function joinRoom() {
     if (!name.trim() || !joinCode.trim()) return;

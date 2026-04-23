@@ -2,7 +2,6 @@ import { useState, useRef, useCallback } from "react";
 import Chart, { generateCandles } from "./Chart";
 import Home from "./Home";
 import { useLang } from './LangContext.jsx';
-import { LANGS } from './i18n';
 import Arena from './Arena.jsx';
 import html2canvas from 'html2canvas';
 import { playWin, playLose, playClick, playStreak } from './sounds.js';
@@ -77,35 +76,34 @@ export default function App() {
   const [dailyStreak, setDailyStreak]= useState(() => parseInt(localStorage.getItem('tradara_daily_streak') || '0'));
   const [newBadge,    setNewBadge]   = useState(null);
   const [xp,          setXp]         = useState(() => getXP());
-  const [floatingXP, setFloatingXP] = useState(null);
- const { syncProgress } = useAuth();
+  const [floatingXP,  setFloatingXP] = useState(null);
+  const { syncProgress } = useAuth();
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
 
   function tryUnlockBadge(id) {
-  const unlocked = unlockBadge(id);
-  if (unlocked) {
-    const badge = BADGES.find(b => b.id === id);
-    if (badge) setNewBadge(badge);
-    // sincronizar badges con la nube
-    const badges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');
-    const xp = getXP();
-    syncProgress(xp, badges);
+    const unlocked = unlockBadge(id);
+    if (unlocked) {
+      const badge = BADGES.find(b => b.id === id);
+      if (badge) setNewBadge(badge);
+      const badges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');
+      const xp = getXP();
+      syncProgress(xp, badges);
+    }
   }
- } 
 
- function earnXP(amount) {
-  const newXP = addXP(amount);
-  setXp(newXP);
-  setFloatingXP(null);
-  setTimeout(() => {
-    setFloatingXP(amount);
-    setTimeout(() => setFloatingXP(null), 2000);
-  }, 50);
-  // sincronizar con la nube
-  const badges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');
-  syncProgress(newXP, badges);
- } 
+  function earnXP(amount) {
+    const newXP = addXP(amount);
+    setXp(newXP);
+    setFloatingXP(null);
+    setTimeout(() => {
+      setFloatingXP(amount);
+      setTimeout(() => setFloatingXP(null), 2000);
+    }, 50);
+    const badges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');
+    syncProgress(newXP, badges);
+  }
+
   function updateDailyStreak() {
     const today      = new Date().toDateString();
     const lastPlayed = localStorage.getItem('tradara_last_played');
@@ -157,6 +155,7 @@ export default function App() {
       setStreak(s => s + 1);
       if (streak >= 2) playStreak(); else playWin();
       earnXP(10);
+      localStorage.setItem('tradara_lose_streak', '0');
     } else if (win && neutral) {
       pts = 50;
       const newScore = score + pts;
@@ -168,15 +167,20 @@ export default function App() {
       setStreak(s => s + 1);
       playWin();
       earnXP(5);
+      localStorage.setItem('tradara_lose_streak', '0');
     } else if (!win && !neutral) {
       pts = -50;
       setScore(s => Math.max(0, s + pts));
       setStreak(0);
       playLose();
+      const loseStreak = parseInt(localStorage.getItem('tradara_lose_streak') || '0') + 1;
+      localStorage.setItem('tradara_lose_streak', String(loseStreak));
+      if (loseStreak >= 10) tryUnlockBadge('rekt');
     }
 
     if (win && streak + 1 >= 5)  tryUnlockBadge('sniper');
     if (win && streak + 1 >= 10) tryUnlockBadge('on_fire');
+
     if (choice === 'skip' && win) {
       const skipStreak = parseInt(localStorage.getItem('tradara_skip_streak') || '0') + 1;
       localStorage.setItem('tradara_skip_streak', String(skipStreak));
@@ -197,6 +201,14 @@ export default function App() {
       if (forexStreak >= 5) tryUnlockBadge('forex_king');
     } else if (asset.cat === 'forex' && !win) {
       localStorage.setItem('tradara_forex_streak', '0');
+    }
+
+    if (win && asset.base() >= 10000) {
+      const whaleWins = parseInt(localStorage.getItem('tradara_whale_wins') || '0') + 1;
+      localStorage.setItem('tradara_whale_wins', String(whaleWins));
+      if (whaleWins >= 3) tryUnlockBadge('whale');
+    } else if (!win) {
+      localStorage.setItem('tradara_whale_wins', '0');
     }
 
     const outcome = win && !neutral ? 'win' : !win && !neutral ? 'lose' : 'skip';
@@ -247,6 +259,7 @@ export default function App() {
     const nonSkips = history.filter(h => h !== 'skip').length;
     const acc      = nonSkips > 0 ? Math.round(wins / nonSkips * 100) : 0;
     if (acc >= 90) tryUnlockBadge('big_brain');
+    if (acc === 100 && nonSkips === 25) tryUnlockBadge('perfectionist');
     const catsWon = new Set(history.map((h, i) => h === 'win' ? ASSETS[i % ASSETS.length].cat : null).filter(Boolean));
     if (catsWon.size >= 4) tryUnlockBadge('all_rounder');
 
@@ -292,7 +305,6 @@ export default function App() {
         <div className="scanlines" />
         <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2 }}>
 
-          {/* Nivel del jugador */}
           <div style={{ marginBottom: '16px', padding: '12px 16px', background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -393,10 +405,10 @@ export default function App() {
     );
   }
 
-  if (screen === 'arena')  return <Arena onBack={() => setScreen('home')} />;
-  if (screen === 'legal')  return <Legal onBack={() => setScreen('home')} />;
-  if (screen === 'badges') return <Badges onBack={() => setScreen('home')} />;
-  if (screen === 'daily')  return <Daily onBack={() => setScreen('home')} />;
+  if (screen === 'arena')      return <Arena onBack={() => setScreen('home')} />;
+  if (screen === 'legal')      return <Legal onBack={() => setScreen('home')} />;
+  if (screen === 'badges')     return <Badges onBack={() => setScreen('home')} />;
+  if (screen === 'daily')      return <Daily onBack={() => setScreen('home')} />;
   if (screen === 'historical') return <Historical onBack={() => setScreen('home')} />;
   if (screen === 'tournament') return <Tournament onBack={() => setScreen('home')} />;
 
@@ -421,9 +433,9 @@ export default function App() {
         <div className="logo">GUESS <span>THE</span> MARKET</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div className="lang-selector">
-            {Object.keys(LANGS).map(l => (
+            {['en', 'es'].map(l => (
               <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
-                {LANGS[l].label}
+                {l.toUpperCase()}
               </button>
             ))}
           </div>
@@ -514,9 +526,9 @@ export default function App() {
               {result.pts > 0 ? '+' + result.pts : result.pts === 0 ? '±0' : result.pts}
             </div>
             <button className="next-btn" onClick={nextRound} disabled={revealing}
-  style={{ opacity: revealing ? 0.3 : 1, cursor: revealing ? 'not-allowed' : 'pointer', flexShrink: 0, minWidth: '80px' }}>
-  {revealing ? '...' : t.game.next}
-</button>
+              style={{ opacity: revealing ? 0.3 : 1, cursor: revealing ? 'not-allowed' : 'pointer', flexShrink: 0, minWidth: '80px' }}>
+              {revealing ? '...' : t.game.next}
+            </button>
           </div>
         </div>
       )}
@@ -539,23 +551,18 @@ export default function App() {
       <div className="ticker-tape">
         BTC +3.2% · ETH -1.8% · SPX +0.4% · GOLD +0.9% · EUR/USD -0.2% · OIL -2.1% · TSLA +5.7%
       </div>
+
       {floatingXP && (
-  <div key={Date.now()} style={{
-    position: 'fixed',
-    top: '40%',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    fontFamily: "'Syne', sans-serif",
-    fontWeight: 800,
-    fontSize: '28px',
-    color: '#22d3a5',
-    zIndex: 9999,
-    pointerEvents: 'none',
-    animation: 'floatUp 2s ease forwards',
-  }}>
-    +{floatingXP} XP
-  </div>
- )}
+        <div key={Date.now()} style={{
+          position: 'fixed', top: '40%', left: '50%', transform: 'translateX(-50%)',
+          fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px',
+          color: '#22d3a5', zIndex: 9999, pointerEvents: 'none',
+          animation: 'floatUp 2s ease forwards',
+        }}>
+          +{floatingXP} XP
+        </div>
+      )}
+
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
     </div>
   );

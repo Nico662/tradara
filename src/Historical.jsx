@@ -1,21 +1,31 @@
 import { useState, useRef } from 'react';
 import { useLang } from './LangContext.jsx';
-import { LANGS } from './i18n.js';
 import { HISTORICAL_EVENTS } from './historical.js';
 import Chart from './Chart.jsx';
 import { addXP } from './levels.js';
+import { unlockBadge, BADGES } from './badges.js';
+import BadgeNotification from './BadgeNotification.jsx';
 
 export default function Historical({ onBack }) {
   const { t, lang, setLang } = useLang();
-  const [phase, setPhase]       = useState('select');
-  const [event, setEvent]       = useState(null);
-  const [candles, setCandles]   = useState(null);
-  const [future, setFuture]     = useState(null);
-  const [result, setResult]     = useState(null);
+  const [phase, setPhase]         = useState('select');
+  const [event, setEvent]         = useState(null);
+  const [candles, setCandles]     = useState(null);
+  const [future, setFuture]       = useState(null);
+  const [result, setResult]       = useState(null);
   const [revealing, setRevealing] = useState(false);
-  const [copied, setCopied]     = useState(false);
-  const chartRef = useRef(null);
+  const [copied, setCopied]       = useState(false);
   const [floatingXP, setFloatingXP] = useState(null);
+  const [newBadge, setNewBadge]   = useState(null);
+  const chartRef = useRef(null);
+
+  function tryUnlockHistoricalBadge(id) {
+    const unlocked = unlockBadge(id);
+    if (unlocked) {
+      const badge = BADGES.find(b => b.id === id);
+      if (badge) setNewBadge(badge);
+    }
+  }
 
   async function loadEvent(ev) {
     setEvent(ev);
@@ -23,12 +33,9 @@ export default function Historical({ onBack }) {
     try {
       const res  = await fetch(`https://tradara-production.up.railway.app/candles?symbol=${encodeURIComponent(ev.symbol)}&interval=${ev.interval}&from=${ev.from}&to=${ev.to}`);
       const data = await res.json();
-      console.log('First candle:', data[0]);
-      console.log('Last candle:', data[data.length-1]);
-      console.log('Total candles:', data.length);
       if (data.error || !data.length) throw new Error('No data');
-      const total   = data.length;
-      const futureN = Math.floor(total * 0.4);
+      const total    = data.length;
+      const futureN  = Math.floor(total * 0.4);
       const visibleN = total - futureN;
       setCandles(data.slice(0, visibleN));
       setFuture(data.slice(visibleN));
@@ -43,6 +50,7 @@ export default function Historical({ onBack }) {
     setPhase('reveal');
     setRevealing(true);
     chartRef.current?.revealFuture(future, () => setRevealing(false));
+
     const lastClose  = candles[candles.length - 1].close;
     const lastFuture = future[future.length - 1].close;
     const pctMove    = (lastFuture - lastClose) / lastClose * 100;
@@ -51,13 +59,22 @@ export default function Historical({ onBack }) {
                     || (choice === 'short' && direction === 'down')
                     || (choice === 'skip'  && direction === 'flat');
     setResult({ choice, direction, pctMove, win });
+
     const xpAmount = win ? 15 : 5;
-     addXP(xpAmount);
-     setFloatingXP(null);
-      setTimeout(() => {
+    addXP(xpAmount);
+    setFloatingXP(null);
+    setTimeout(() => {
       setFloatingXP(xpAmount);
       setTimeout(() => setFloatingXP(null), 2000);
     }, 50);
+
+    const completed = JSON.parse(localStorage.getItem('tradara_historical_completed') || '[]');
+    if (!completed.includes(event.id)) {
+      completed.push(event.id);
+      localStorage.setItem('tradara_historical_completed', JSON.stringify(completed));
+    }
+    if (completed.length >= 10) tryUnlockHistoricalBadge('historian');
+    if (completed.length >= 50) tryUnlockHistoricalBadge('time_traveler');
   };
 
   const shareResult = () => {
@@ -84,9 +101,9 @@ export default function Historical({ onBack }) {
             onMouseLeave={e => e.target.style.color = '#3a4455'}
           >{t.historical.back}</button>
           <div className="lang-selector">
-            {Object.keys(LANGS).map(l => (
+            {['en', 'es'].map(l => (
               <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
-                {LANGS[l].label}
+                {l.toUpperCase()}
               </button>
             ))}
           </div>
@@ -225,23 +242,19 @@ export default function Historical({ onBack }) {
           </div>
         )}
       </div>
+
       {floatingXP && (
-  <div key={Date.now()} style={{
-    position: 'fixed',
-    top: '40%',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    fontFamily: "'Syne', sans-serif",
-    fontWeight: 800,
-    fontSize: '28px',
-    color: '#22d3a5',
-    zIndex: 9999,
-    pointerEvents: 'none',
-    animation: 'floatUp 2s ease forwards',
-  }}>
-    +{floatingXP} XP
-  </div>
- )}
+        <div key={Date.now()} style={{
+          position: 'fixed', top: '40%', left: '50%', transform: 'translateX(-50%)',
+          fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '28px',
+          color: '#22d3a5', zIndex: 9999, pointerEvents: 'none',
+          animation: 'floatUp 2s ease forwards',
+        }}>
+          +{floatingXP} XP
+        </div>
+      )}
+
+      {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
     </div>
   );
 }

@@ -108,6 +108,17 @@ export default function Daily({ onBack }) {
     if (newStreak >= 3)  tryUnlockDailyBadge('daily_streak_3');
     if (newStreak >= 7)  tryUnlockDailyBadge('daily_streak_7');
     if (newStreak >= 30) tryUnlockDailyBadge('daily_streak_30');
+    const weekKey = `tradara_daily_week_${new Date().toISOString().slice(0, 10).slice(0, 7)}`;
+    const weekDays = JSON.parse(localStorage.getItem(weekKey) || '[]');
+   const todayDay = new Date().getDay();
+    if (!weekDays.includes(todayDay)) {
+     weekDays.push(todayDay);
+      localStorage.setItem(weekKey, JSON.stringify(weekDays));
+    }
+     if (weekDays.length >= 7) tryUnlockDailyBadge('perfect_week');
+     const hour = new Date().getHours();
+    if (hour < 9) tryUnlockDailyBadge('early_bird');
+    if (hour === 3) tryUnlockDailyBadge('ghost');
   };
 
   const shareResult = (res) => {
@@ -119,8 +130,11 @@ export default function Daily({ onBack }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       fetch('https://tradara-production.up.railway.app/stats/share', { method: 'POST' }).catch(() => {});
-    });
-  };
+     });
+     const shares = parseInt(localStorage.getItem('tradara_share_count') || '0') + 1;
+     localStorage.setItem('tradara_share_count', String(shares));
+     if (shares >= 3) tryUnlockDailyBadge('screenshot_ready');
+     };
 
   const resultColor = result?.win ? '#22d3a5' : '#f05454';
 
