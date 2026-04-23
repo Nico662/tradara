@@ -1,5 +1,4 @@
 import { useState, useEffect, useRef } from 'react';
-import { LANGS } from './i18n.js';
 import Chart from './Chart.jsx';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
@@ -16,8 +15,8 @@ export default function Daily({ onBack }) {
   const [timeLeft, setTimeLeft]     = useState('');
   const [newBadge, setNewBadge]     = useState(null);
   const [copied, setCopied]         = useState(false);
-  const chartRef = useRef(null);
   const [floatingXP, setFloatingXP] = useState(null);
+  const chartRef = useRef(null);
 
   function tryUnlockDailyBadge(id) {
     const unlocked = unlockBadge(id);
@@ -92,29 +91,33 @@ export default function Daily({ onBack }) {
     const today = new Date().toISOString().split('T')[0];
     localStorage.setItem('tradara_daily_played', today);
     localStorage.setItem('tradara_daily_result', JSON.stringify(res));
-    const xpAmount = win ? 15 : 5;
-     addXP(xpAmount);
-     setFloatingXP(xpAmount);
-     setTimeout(() => setFloatingXP(null), 2000);
 
-    const lastDaily    = localStorage.getItem('tradara_daily_last');
-    const yesterday    = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-    const current      = parseInt(localStorage.getItem('tradara_daily_streak_count') || '0');
-    const newStreak    = lastDaily === yesterday ? current + 1 : 1;
+    if (win) {
+      addXP(15);
+      setFloatingXP(15);
+      setTimeout(() => setFloatingXP(null), 2000);
+    }
+
+    const lastDaily = localStorage.getItem('tradara_daily_last');
+    const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+    const current   = parseInt(localStorage.getItem('tradara_daily_streak_count') || '0');
+    const newStreak = lastDaily === yesterday ? current + 1 : 1;
     localStorage.setItem('tradara_daily_streak_count', String(newStreak));
     localStorage.setItem('tradara_daily_last', today);
     if (newStreak >= 3)  tryUnlockDailyBadge('daily_streak_3');
     if (newStreak >= 7)  tryUnlockDailyBadge('daily_streak_7');
     if (newStreak >= 30) tryUnlockDailyBadge('daily_streak_30');
-    const weekKey = `tradara_daily_week_${new Date().toISOString().slice(0, 10).slice(0, 7)}`;
+
+    const weekKey  = `tradara_daily_week_${new Date().toISOString().slice(0, 7)}`;
     const weekDays = JSON.parse(localStorage.getItem(weekKey) || '[]');
-   const todayDay = new Date().getDay();
+    const todayDay = new Date().getDay();
     if (!weekDays.includes(todayDay)) {
-     weekDays.push(todayDay);
+      weekDays.push(todayDay);
       localStorage.setItem(weekKey, JSON.stringify(weekDays));
     }
-     if (weekDays.length >= 7) tryUnlockDailyBadge('perfect_week');
-     const hour = new Date().getHours();
+    if (weekDays.length >= 7) tryUnlockDailyBadge('perfect_week');
+
+    const hour = new Date().getHours();
     if (hour < 9) tryUnlockDailyBadge('early_bird');
     if (hour === 3) tryUnlockDailyBadge('ghost');
   };
@@ -128,11 +131,11 @@ export default function Daily({ onBack }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
       fetch('https://tradara-production.up.railway.app/stats/share', { method: 'POST' }).catch(() => {});
-     });
-     const shares = parseInt(localStorage.getItem('tradara_share_count') || '0') + 1;
-     localStorage.setItem('tradara_share_count', String(shares));
-     if (shares >= 3) tryUnlockDailyBadge('screenshot_ready');
-     };
+      const shares = parseInt(localStorage.getItem('tradara_share_count') || '0') + 1;
+      localStorage.setItem('tradara_share_count', String(shares));
+      if (shares >= 3) tryUnlockDailyBadge('screenshot_ready');
+    });
+  };
 
   const resultColor = result?.win ? '#22d3a5' : '#f05454';
 
@@ -248,23 +251,25 @@ export default function Daily({ onBack }) {
             </div>
             <ShareButton res={result} />
           </div>
-        )}{floatingXP && (
-  <div key={Date.now()} style={{
-    position: 'fixed',
-    top: '40%',
-    left: '50%',
-    transform: 'translateX(-50%)',
-    fontFamily: "'Syne', sans-serif",
-    fontWeight: 800,
-    fontSize: '28px',
-    color: '#22d3a5',
-    zIndex: 9999,
-    pointerEvents: 'none',
-    animation: 'floatUp 2s ease forwards',
-  }}>
-    +{floatingXP} XP
-  </div>
- )} 
+        )}
+
+        {floatingXP && (
+          <div style={{
+            position: 'fixed',
+            top: '40%',
+            left: '50%',
+            transform: 'translateX(-50%)',
+            fontFamily: "'Syne', sans-serif",
+            fontWeight: 800,
+            fontSize: '28px',
+            color: '#22d3a5',
+            zIndex: 9999,
+            pointerEvents: 'none',
+            animation: 'floatUp 2s ease forwards',
+          }}>
+            +{floatingXP} XP
+          </div>
+        )}
       </div>
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
     </div>
