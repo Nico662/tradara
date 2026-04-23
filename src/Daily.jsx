@@ -94,11 +94,8 @@ export default function Daily({ onBack }) {
     localStorage.setItem('tradara_daily_result', JSON.stringify(res));
     const xpAmount = win ? 15 : 5;
      addXP(xpAmount);
-     setFloatingXP(null);
-     setTimeout(() => {
      setFloatingXP(xpAmount);
      setTimeout(() => setFloatingXP(null), 2000);
-    }, 50);
 
     const lastDaily    = localStorage.getItem('tradara_daily_last');
     const yesterday    = new Date(Date.now() - 86400000).toISOString().split('T')[0];
