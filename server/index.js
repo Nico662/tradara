@@ -40,8 +40,9 @@ const UserSchema = new mongoose.Schema({
 });
 
 const User = mongoose.model('User', UserSchema);
+
 const TournamentSchema = new mongoose.Schema({
-  weekId:    { type: String, required: true, unique: true }, // ej: "2026-W16"
+  weekId:    { type: String, required: true, unique: true },
   assets:    { type: Array, default: [] },
   createdAt: { type: Date, default: Date.now },
 });
@@ -58,8 +59,11 @@ const ScoreSchema = new mongoose.Schema({
 
 ScoreSchema.index({ weekId: 1, userId: 1 }, { unique: true });
 
+const StatsSchema = new mongoose.Schema({ _id: String, daily: { type: Number, default: 0 } });
+
 const Tournament = mongoose.model('Tournament', TournamentSchema);
 const Score      = mongoose.model('Score', ScoreSchema);
+const Stats      = mongoose.model('Stats', StatsSchema);
 
 webpush.setVapidDetails(
   'mailto:nicolasvidalcorrecher@tradara.dev',
@@ -74,12 +78,28 @@ const redis = new Redis({
   token: 'gQAAAAAAASw4AAIncDJmYmZjYzFlYWVkZTc0MWU5YTBjMmExYWE5NGEwODFjYnAyNzY4NTY',
 });
 
+async function cachedFetch(key, ttlSeconds, fetchFn) {
+  try {
+    const cached = await redis.get(key);
+    if (cached) {
+      console.log('Cache HIT:', key);
+      return typeof cached === 'string' ? JSON.parse(cached) : cached;
+    }
+  } catch (e) {}
+
+  const data = await fetchFn();
+  try {
+    await redis.set(key, JSON.stringify(data), { ex: ttlSeconds });
+    console.log('Cache SET:', key);
+  } catch (e) {}
+  return data;
+}
+
 let pushSubscriptions = [];
 
 async function loadSubscriptions() {
   try {
     const raw = await redis.get('push_subscriptions');
-    console.log('Redis raw value:', typeof raw, JSON.stringify(raw)?.slice(0, 100));
     if (!raw) return [];
     if (Array.isArray(raw)) return raw;
     return JSON.parse(raw);
@@ -88,6 +108,7 @@ async function loadSubscriptions() {
     return [];
   }
 }
+
 async function saveSubscriptions(subs) {
   try {
     await redis.set('push_subscriptions', JSON.stringify(subs));
@@ -184,6 +205,7 @@ app.get('/candles', async (req, res) => {
 app.get('/stats', (req, res) => {
   res.json({ online: io.engine.clientsCount, gamesPlayed: totalGamesPlayed });
 });
+
 app.get('/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
@@ -219,26 +241,21 @@ app.get('/auth/me', async (req, res) => {
     res.status(401).json({ error: 'Invalid token' });
   }
 });
+
 app.get('/stats/share', async (req, res) => {
   try {
-    const doc = await db.collection('stats').findOne({ _id: 'shares' });
+    const doc = await Stats.findById('shares');
     res.json(doc || { daily: 0 });
-  } catch {
-    res.json({ daily: 0 });
-  }
+  } catch { res.json({ daily: 0 }); }
 });
-app.post('/stats/share', async (req, res) => {
+
+app.post('/stats/share', express.json(), async (req, res) => {
   try {
-    await db.collection('stats').updateOne(
-      { _id: 'shares' },
-      { $inc: { daily: 1 } },
-      { upsert: true }
-    );
+    await Stats.findByIdAndUpdate('shares', { $inc: { daily: 1 } }, { upsert: true, new: true });
     res.json({ ok: true });
-  } catch {
-    res.json({ ok: false });
-  }
+  } catch { res.json({ ok: false }); }
 });
+
 app.post('/auth/sync', express.json(), async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
@@ -251,13 +268,13 @@ app.post('/auth/sync', express.json(), async (req, res) => {
     res.status(401).json({ error: 'Invalid token' });
   }
 });
+
 // ── Tournament ────────────────────────────────────────────────────
 
 function getWeekId() {
   const now = new Date();
-  // ajustar al lunes de esta semana
-  const day = now.getUTCDay(); // 0=domingo, 1=lunes...
-  const diff = (day === 0) ? -6 : 1 - day; // días hasta el lunes
+  const day = now.getUTCDay();
+  const diff = (day === 0) ? -6 : 1 - day;
   const monday = new Date(now);
   monday.setUTCDate(now.getUTCDate() + diff);
   const year = monday.getUTCFullYear();
@@ -272,10 +289,7 @@ app.get('/tournament', async (req, res) => {
     let tournament = await Tournament.findOne({ weekId });
     if (!tournament) {
       const shuffled = [...ASSETS].sort(() => Math.random() - 0.5).slice(0, 10);
-      const tournamentAssets = shuffled.map(a => ({
-        ...a,
-        interval: '1h',
-      }));
+      const tournamentAssets = shuffled.map(a => ({ ...a, interval: '1h' }));
       tournament = await Tournament.create({ weekId, assets: tournamentAssets });
     }
     const rounds = [];
@@ -284,9 +298,8 @@ app.get('/tournament', async (req, res) => {
         const candles = await fetchCandles({ ...asset, interval: '1h' });
         const cleanCandles = candles.filter(c => c && c.open > 0 && c.high > 0 && c.low > 0 && c.close > 0);
         if (cleanCandles.length < 100) continue;
-         const win = randomWindow(cleanCandles);
-         rounds.push({ asset: asset.name, interval: '1h', visible: win.visible, future: win.future });
-
+        const win = randomWindow(cleanCandles);
+        rounds.push({ asset: asset.name, interval: '1h', visible: win.visible, future: win.future });
       } catch (e) { console.log('Tournament fetch error:', e.message); }
     }
     res.json({ weekId, rounds });
@@ -335,34 +348,28 @@ app.get('/tournament/played', async (req, res) => {
     res.json({ played: false });
   }
 });
+
 app.post('/push/subscribe', express.json(), async (req, res) => {
   const sub = req.body;
-  console.log('Subscribe request received:', sub ? sub.endpoint?.slice(0, 50) : 'empty');
   if (!sub || !sub.endpoint) return res.status(400).json({ error: 'Invalid subscription' });
   pushSubscriptions = await loadSubscriptions();
   const exists = pushSubscriptions.find(s => s.endpoint === sub.endpoint);
   if (!exists) {
     pushSubscriptions.push(sub);
     await saveSubscriptions(pushSubscriptions);
-    console.log('Saved subscription, total:', pushSubscriptions.length);
-  } else {
-    console.log('Subscription already exists');
   }
   res.json({ ok: true });
 });
+
 app.post('/push/send', express.json(), async (req, res) => {
   pushSubscriptions = await loadSubscriptions();
-  console.log('Sending to', pushSubscriptions.length, 'subscribers');
   const payload = JSON.stringify({
     title: '⚡ Daily Challenge',
     body:  "Today's chart is ready. Can you call it?",
     url:   'https://tradara.dev',
   });
   const promises = pushSubscriptions.map(sub =>
-    webpush.sendNotification(sub, payload).then(() => {
-      console.log('Sent OK to:', sub.endpoint.slice(0, 50));
-    }).catch(async err => {
-      console.log('Send FAILED to:', sub.endpoint.slice(0, 50), '— status:', err.statusCode, '— body:', err.body);
+    webpush.sendNotification(sub, payload).catch(async err => {
       if (err.statusCode === 410) {
         pushSubscriptions = pushSubscriptions.filter(s => s.endpoint !== sub.endpoint);
         await saveSubscriptions(pushSubscriptions);
@@ -372,6 +379,7 @@ app.post('/push/send', express.json(), async (req, res) => {
   await Promise.all(promises);
   res.json({ ok: true, sent: pushSubscriptions.length });
 });
+
 const DAILY_ASSETS = [
   { source: 'kraken', symbol: 'BTCUSD',   name: 'BTC/USD', interval: '15m' },
   { source: 'kraken', symbol: 'ETHUSD',   name: 'ETH/USD', interval: '15m' },
@@ -438,23 +446,28 @@ let   totalGamesPlayed = 0;
 
 async function fetchCandles(asset) {
   console.log('Fetching:', asset.name, asset.source);
-  if (asset.source === 'kraken') {
-    const intervalMap = { '15m': 15, '1h': 60, '1d': 1440 };
-    const minutes = intervalMap[asset.interval] || 15;
-    const url  = `https://api.kraken.com/0/public/OHLC?pair=${asset.symbol}&interval=${minutes}`;
-    const res  = await fetch(url);
-    const data = await res.json();
-    if (data.error && data.error.length > 0) throw new Error('Kraken error: ' + data.error[0]);
-    const pair = Object.keys(data.result).find(k => k !== 'last');
-    return data.result[pair].map(k => ({ time: k[0], open: parseFloat(k[1]), high: parseFloat(k[2]), low: parseFloat(k[3]), close: parseFloat(k[4]) }));
-  } else {
-    const from = new Date(); from.setDate(from.getDate() - 29);
-    const result = await yf.chart(asset.symbol, { interval: '1h', period1: from.toISOString().split('T')[0] });
-    return result.quotes.filter(q => q.open && q.high && q.low && q.close).map(q => ({
-      time: Math.floor(new Date(q.date).getTime() / 1000),
-      open: q.open, high: q.high, low: q.low, close: q.close,
-    }));
-  }
+  const cacheKey = `candles:${asset.symbol}:${asset.interval}`;
+  const ttl = asset.interval === '15m' ? 300 : 600;
+
+  return cachedFetch(cacheKey, ttl, async () => {
+    if (asset.source === 'kraken') {
+      const intervalMap = { '15m': 15, '1h': 60, '1d': 1440 };
+      const minutes = intervalMap[asset.interval] || 15;
+      const url  = `https://api.kraken.com/0/public/OHLC?pair=${asset.symbol}&interval=${minutes}`;
+      const res  = await fetch(url);
+      const data = await res.json();
+      if (data.error && data.error.length > 0) throw new Error('Kraken error: ' + data.error[0]);
+      const pair = Object.keys(data.result).find(k => k !== 'last');
+      return data.result[pair].map(k => ({ time: k[0], open: parseFloat(k[1]), high: parseFloat(k[2]), low: parseFloat(k[3]), close: parseFloat(k[4]) }));
+    } else {
+      const from = new Date(); from.setDate(from.getDate() - 29);
+      const result = await yf.chart(asset.symbol, { interval: '1h', period1: from.toISOString().split('T')[0] });
+      return result.quotes.filter(q => q.open && q.high && q.low && q.close).map(q => ({
+        time: Math.floor(new Date(q.date).getTime() / 1000),
+        open: q.open, high: q.high, low: q.low, close: q.close,
+      }));
+    }
+  });
 }
 
 function randomWindow(candles) {
