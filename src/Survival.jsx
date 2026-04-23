@@ -358,13 +358,13 @@ export default function Survival({ onBack }) {
           )}
         </div>
       </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 , marginLeft: 'auto'}}>
         <div className={`result-pnl ${result.pts > 0 ? 'pos' : 'zero'}`}>
           {result.pts > 0 ? '+' + result.pts : '✕'}
         </div>
         {result.livesLeft > 0 && (
           <button className="next-btn" onClick={nextRound} disabled={revealing}
-            style={{ opacity: revealing ? 0.3 : 1, cursor: revealing ? 'not-allowed' : 'pointer', flexShrink: 0, minWidth: '70px', fontSize: '10px' }}>
+            style={{ opacity: revealing ? 0.3 : 1, cursor: revealing ? 'not-allowed' : 'pointer'}}>
             {revealing ? '...' : t.game.next}
           </button>
         )}

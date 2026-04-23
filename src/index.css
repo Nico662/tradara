@@ -209,3 +209,23 @@ html, body {
   0%   { opacity: 1; transform: translateX(-50%) translateY(0px); }
   100% { opacity: 0; transform: translateX(-50%) translateY(-60px); }
 }
+/* ─── Survival result card mobile fix ──────────── */
+@media (max-width: 480px) {
+  .result-card {
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .result-left {
+    flex: 1 1 100%;
+    min-width: 0;
+  }
+  .result-pnl {
+    font-size: 18px;
+  }
+  .next-btn {
+    padding: 8px 10px;
+    font-size: 9px;
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+}
