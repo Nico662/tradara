@@ -4,6 +4,7 @@ import Chart from './Chart.jsx';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { addXP } from './levels.js';
+import { useLang } from './LangContext.jsx';
 
 export default function Daily({ onBack }) {
   const { t, lang, setLang } = useLang();
