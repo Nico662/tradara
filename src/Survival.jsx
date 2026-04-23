@@ -265,7 +265,7 @@ export default function Survival({ onBack }) {
       >← menu</button>
 
       <div className="header">
-        <div className="logo">☠ SURVIVAL</div>
+        <div className="logo">☠️ SURVIVAL</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {/* Vidas */}
           <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
@@ -343,33 +343,35 @@ export default function Survival({ onBack }) {
       )}
 
       {result && (
-        <div className="result-overlay">
-          <div className={`result-card ${cls}`}>
-            <div className="result-left">
-              <div className={`result-verdict ${cls}`}>
-                {result.win && !result.neutral ? t.game.correct : !result.win && !result.neutral ? t.game.wrong : t.game.flat}
-              </div>
-              <div className="result-detail">
-                price {dirLabel} &nbsp;{result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}% · you: {result.choice.toUpperCase()}
-                {!result.win && !result.neutral && (
-                  <span style={{ color: '#f05454', marginLeft: '8px' }}>
-                    {result.livesLeft > 0 ? `❤️ ${result.livesLeft} left` : '💀 game over'}
-                  </span>
-                )}
-              </div>
-            </div>
-            <div className={`result-pnl ${result.pts > 0 ? 'pos' : 'zero'}`}>
-              {result.pts > 0 ? '+' + result.pts : '✕'}
-            </div>
-            {result.livesLeft > 0 && (
-              <button className="next-btn" onClick={nextRound} disabled={revealing}
-                style={{ opacity: revealing ? 0.3 : 1, cursor: revealing ? 'not-allowed' : 'pointer', flexShrink: 0, minWidth: '80px' }}>
-                {revealing ? '...' : t.game.next}
-              </button>
-            )}
-          </div>
+  <div className="result-overlay">
+    <div className={`result-card ${cls}`}>
+      <div className="result-left">
+        <div className={`result-verdict ${cls}`}>
+          {result.win && !result.neutral ? t.game.correct : !result.win && !result.neutral ? t.game.wrong : t.game.flat}
         </div>
-      )}
+        <div className="result-detail">
+          price {dirLabel} &nbsp;{result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}% · you: {result.choice.toUpperCase()}
+          {!result.win && !result.neutral && (
+            <span style={{ color: '#f05454', marginLeft: '8px' }}>
+              {result.livesLeft > 0 ? `❤️ ${result.livesLeft} left` : '💀 game over'}
+            </span>
+          )}
+        </div>
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 }}>
+        <div className={`result-pnl ${result.pts > 0 ? 'pos' : 'zero'}`}>
+          {result.pts > 0 ? '+' + result.pts : '✕'}
+        </div>
+        {result.livesLeft > 0 && (
+          <button className="next-btn" onClick={nextRound} disabled={revealing}
+            style={{ opacity: revealing ? 0.3 : 1, cursor: revealing ? 'not-allowed' : 'pointer', flexShrink: 0, minWidth: '70px', fontSize: '10px' }}>
+            {revealing ? '...' : t.game.next}
+          </button>
+        )}
+      </div>
+    </div>
+  </div>
+ )}
 
       <div style={{ padding: '12px 20px', borderTop: '1px solid #1e2530', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', position: 'relative', zIndex: 2 }}>
         {[
