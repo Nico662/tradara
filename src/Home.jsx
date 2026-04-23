@@ -112,6 +112,16 @@ export default function Home({ onSelect }) {
     </div>
     <span className="mode-arrow" style={{ color: '#8899b0' }}>→</span>
   </button>
+  <button className="mode-card active" onClick={() => onSelect('survival')} style={{ borderColor: '#f05454', background: 'rgba(240,84,84,0.04)' }}>
+  <div className="mode-card-left">
+    <span className="mode-icon">☠️</span>
+    <div>
+      <div className="mode-title" style={{ color: '#f05454' }}>Survival</div>
+      <div className="mode-sub">infinite rounds · 3 lives · how far can you go?</div>
+    </div>
+  </div>
+  <span className="mode-arrow" style={{ color: '#f05454' }}>→</span>
+ </button>
 
   <button className="mode-card active" onClick={() => onSelect('game')}>
     <div className="mode-card-left">

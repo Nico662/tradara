@@ -15,6 +15,7 @@ import { addXP, getXP, getLevel, getNextLevel, getProgress } from './levels.js';
 import Historical from './Historical.jsx';
 import { useAuth } from './AuthContext';
 import Tournament from './Tournament.jsx';
+import Survival from './Survival.jsx';
 
 function randomTF() {
   const tfs = ['1m', '5m', '15m'];
@@ -398,6 +399,7 @@ export default function App() {
           else if (mode === 'daily') setScreen('daily');
           else if (mode === 'historical') setScreen('historical');
           else if (mode === 'tournament') setScreen('tournament');
+          else if (mode === 'survival') setScreen('survival');
           else setScreen('game');
         }} />
         <NotificationBanner />
@@ -411,6 +413,7 @@ export default function App() {
   if (screen === 'daily')      return <Daily onBack={() => setScreen('home')} />;
   if (screen === 'historical') return <Historical onBack={() => setScreen('home')} />;
   if (screen === 'tournament') return <Tournament onBack={() => setScreen('home')} />;
+  if (screen === 'survival') return <Survival onBack={() => setScreen('home')} />;
 
   // ── Game ──────────────────────────────────────────────────────────
   const cls      = result ? (result.win && !result.neutral ? 'win' : !result.win && !result.neutral ? 'lose' : 'neutral') : '';
