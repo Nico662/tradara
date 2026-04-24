@@ -78,6 +78,9 @@ export const LANGS = {
         ghost:            { name: '???',                desc: 'Nobody knows...' },
         rekt:             { name: 'Rekt',               desc: 'Lose 10 rounds in a row' },
         whale:            { name: 'Whale',              desc: 'Correct on 3 high-value assets in a row' },
+        survivor:   { name: 'Survivor',   desc: 'Reach round 20 in Survival' },
+        immortal:   { name: 'Immortal',   desc: 'Reach round 50 without losing a life' },
+        last_stand: { name: 'Last Stand', desc: 'Survive with only 1 life left' },
       },
     },
     historical: {
@@ -156,6 +159,16 @@ export const LANGS = {
       copied: '✓ copied!',
       comeback: 'come back tomorrow for the next challenge',
     },
+    survival: {
+  title: 'Survival',
+  sub: 'infinite rounds · 3 lives · how far can you go?',
+  back: '← menu',
+  gameOver: 'GAME OVER',
+  roundsSurvived: 'rounds survived',
+  finalScore: 'final score',
+  playAgain: '↺ play again',
+  menu: '← menu',
+ }, 
   },
 
   es: {
@@ -237,6 +250,9 @@ export const LANGS = {
         ghost:            { name: '???',                desc: 'Nadie lo sabe...' },
         rekt:             { name: 'Rekt',               desc: 'Pierde 10 rondas seguidas' },
         whale:            { name: 'Ballena',            desc: 'Acierta 3 activos de alto valor seguidos' },
+        survivor:   { name: 'Superviviente', desc: 'Llega a la ronda 20 en Survival' },
+        immortal:   { name: 'Inmortal',      desc: 'Llega a la ronda 50 sin perder una vida' },
+        last_stand: { name: 'Último aliento', desc: 'Sobrevive con solo 1 vida restante' },
       },
     },
     historical: {
@@ -315,5 +331,15 @@ export const LANGS = {
       copied: '✓ copiado!',
       comeback: 'vuelve mañana para el próximo desafío',
     },
+    survival: {
+  title: 'Survival',
+  sub: 'rondas infinitas · 3 vidas · ¿hasta dónde llegas?',
+  back: '← menú',
+  gameOver: 'FIN DEL JUEGO',
+  roundsSurvived: 'rondas sobrevividas',
+  finalScore: 'puntuación final',
+  playAgain: '↺ jugar de nuevo',
+  menu: '← menú',
+ },
   },
 };

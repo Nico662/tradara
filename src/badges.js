@@ -38,6 +38,11 @@ export const BADGES = [
   { id: 'historian',     icon: '📜', name: 'Historian',     desc: 'Complete 10 historical events', secret: false },
   { id: 'time_traveler', icon: '🕰️', name: 'Time Traveler', desc: 'Complete all 50 historical events', secret: false },
 
+  // Survival
+  { id: 'survivor',   icon: '🛡️', name: 'Survivor',   desc: 'Reach round 20 in Survival',           secret: false },
+  { id: 'immortal',   icon: '💫', name: 'Immortal',   desc: 'Reach round 50 without losing a life',  secret: false },
+  { id: 'last_stand', icon: '☠️', name: 'Last Stand',  desc: 'Survive with only 1 life left',         secret: false },
+
   // Secretos
   { id: 'ghost',         icon: '👻', name: '???',           desc: 'Nobody knows...',               secret: true },
   { id: 'rekt',          icon: '💀', name: 'Rekt',          desc: 'Lose 10 rounds in a row',       secret: true },

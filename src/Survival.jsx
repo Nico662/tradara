@@ -149,6 +149,10 @@ export default function Survival({ onBack }) {
 
     if (win && streak + 1 >= 5)  tryUnlockBadge('sniper');
     if (win && streak + 1 >= 10) tryUnlockBadge('on_fire');
+    // Survival badges
+ if (round >= 20) tryUnlockBadge('survivor');
+ if (round >= 50 && lives === MAX_LIVES) tryUnlockBadge('immortal');
+ if (lives === 1 && !win && !neutral) tryUnlockBadge('last_stand');
 
     const outcome = win && !neutral ? 'win' : !win && !neutral ? 'lose' : 'skip';
     setHistory(h => [...h, outcome]);
@@ -197,10 +201,10 @@ export default function Survival({ onBack }) {
         <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
 
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: '#f05454', marginBottom: '4px' }}>
-            GAME OVER
+            {t.survival.gameOver}
           </div>
           <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '32px' }}>
-            survival mode · {round - 1} rounds survived
+           survival mode · {round - 1} {t.survival.roundsSurvived}
           </div>
 
           <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '12px', padding: '28px 24px', marginBottom: '20px' }}>
@@ -208,7 +212,7 @@ export default function Survival({ onBack }) {
               {score}
             </div>
             <div style={{ fontSize: '9px', color: '#4a5568', letterSpacing: '0.1em', textTransform: 'uppercase', marginTop: '4px' }}>
-              final score
+              {t.survival.finalScore}
             </div>
             {isNewHS && (
               <div style={{ marginTop: '8px', fontSize: '10px', color: '#22d3a5', letterSpacing: '0.1em', textTransform: 'uppercase' }}>
@@ -240,11 +244,11 @@ export default function Survival({ onBack }) {
           <div style={{ display: 'flex', gap: '10px' }}>
             <button onClick={playAgain}
               style={{ flex: 1, padding: '14px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '6px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-              ↺ play again
+              {t.survival.playAgain}
             </button>
             <button onClick={onBack}
               style={{ flex: 1, padding: '14px', background: '#0f141b', border: '1px solid #2a3345', borderRadius: '6px', color: '#8899b0', fontFamily: "'Space Mono', monospace", fontSize: '11px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-              ← menu
+              {t.survival.menu}
             </button>
           </div>
         </div>
