@@ -265,7 +265,7 @@ export default function Survival({ onBack }) {
       >← menu</button>
 
       <div className="header">
-        <div className="logo">☠️ SURVIVAL</div>
+        <div className="logo">SURVIVAL</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
           {/* Vidas */}
           <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
