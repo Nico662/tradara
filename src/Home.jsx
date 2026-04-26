@@ -117,7 +117,7 @@ export default function Home({ onSelect }) {
     <span className="mode-icon">☠️</span>
     <div>
       <div className="mode-title" style={{ color: '#f05454' }}>Survival</div>
-      <div className="mode-sub">infinite rounds · 3 lives · how far can you go?</div>
+      <div className="mode-sub">{t.survival.sub}</div>
     </div>
   </div>
   <span className="mode-arrow" style={{ color: '#f05454' }}>→</span>
