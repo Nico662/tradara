@@ -436,7 +436,7 @@ export default function App() {
         <div className="logo">GUESS <span>THE</span> MARKET</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
           <div className="lang-selector">
-            {['en', 'es'].map(l => (
+            {['en', 'es', 'de'].map(l => (
               <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
                 {l.toUpperCase()}
               </button>

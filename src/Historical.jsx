@@ -101,7 +101,7 @@ export default function Historical({ onBack }) {
             onMouseLeave={e => e.target.style.color = '#3a4455'}
           >{t.historical.back}</button>
           <div className="lang-selector">
-            {['en', 'es'].map(l => (
+            {['en', 'es', 'de'].map(l => (
               <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
                 {l.toUpperCase()}
               </button>

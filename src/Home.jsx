@@ -35,7 +35,7 @@ export default function Home({ onSelect }) {
         {/* Language selector */}
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '24px' }}>
           <div className="lang-selector">
-            {['en', 'es'].map(l => (
+            {['en', 'es', 'de'].map(l => (
               <button key={l} className={`lang-btn${lang === l ? ' active' : ''}`} onClick={() => setLang(l)}>
                 {l.toUpperCase()}
               </button>

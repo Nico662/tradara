@@ -8,7 +8,7 @@ export function LangProvider({ children }) {
     const saved = localStorage.getItem('tradara_lang');
     if (saved && LANGS[saved]) return saved;
     const browser = navigator.language?.slice(0, 2).toLowerCase();
-    return browser === 'es' ? 'es' : 'en';
+    return ['en', 'es', 'de'].includes(browser) ? browser : 'en';
   });
 
   const setLang = (l) => {
