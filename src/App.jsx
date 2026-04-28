@@ -16,6 +16,7 @@ import Historical from './Historical.jsx';
 import { useAuth } from './AuthContext';
 import Tournament from './Tournament.jsx';
 import Survival from './Survival.jsx';
+import Shop from './Shop.jsx';
 
 function randomTF() {
   const tfs = ['1m', '5m', '15m'];
@@ -400,6 +401,7 @@ export default function App() {
           else if (mode === 'historical') setScreen('historical');
           else if (mode === 'tournament') setScreen('tournament');
           else if (mode === 'survival') setScreen('survival');
+          else if (mode === 'shop') setScreen('shop');
           else setScreen('game');
         }} />
         <NotificationBanner />
@@ -414,6 +416,7 @@ export default function App() {
   if (screen === 'historical') return <Historical onBack={() => setScreen('home')} />;
   if (screen === 'tournament') return <Tournament onBack={() => setScreen('home')} />;
   if (screen === 'survival') return <Survival onBack={() => setScreen('home')} />;
+  if (screen === 'shop') return <Shop onBack={() => setScreen('home')} />;
 
   // ── Game ──────────────────────────────────────────────────────────
   const cls      = result ? (result.win && !result.neutral ? 'win' : !result.win && !result.neutral ? 'lose' : 'neutral') : '';

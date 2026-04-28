@@ -165,6 +165,13 @@ export default function Home({ onSelect }) {
 </div>
 
         {/* Footer */}
+        <button onClick={() => onSelect('shop')}
+  style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '8px 16px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+  onMouseEnter={e => e.currentTarget.style.borderColor = '#f5c842'}
+  onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
+ >
+  🛍️ Shop
+ </button>
         <div style={{ textAlign: 'center', marginTop: '40px', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px' }}>
           <button onClick={() => onSelect('badges')}
             style={{ background: 'transparent', border: '1px solid #1e2530', borderRadius: '8px', padding: '8px 16px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', display: 'flex', alignItems: 'center', gap: '8px' }}
