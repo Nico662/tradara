@@ -4,31 +4,30 @@ import { useAuth } from './AuthContext.jsx';
 
 const SHOP_ITEMS = {
   frames: [
-    { id: 'frame_gold',     name: 'Gold Frame',     desc: 'Exclusive gold border',      price: 2.99, emoji: '🥇', color: '#f5c842' },
-    { id: 'frame_neon',     name: 'Neon Frame',     desc: 'Glowing neon border',        price: 1.99, emoji: '💚', color: '#22d3a5' },
-    { id: 'frame_fire',     name: 'Fire Frame',     desc: 'Animated fire border',       price: 3.99, emoji: '🔥', color: '#f05454' },
-    { id: 'frame_diamond',  name: 'Diamond Frame',  desc: 'Diamond pattern border',     price: 4.99, emoji: '💎', color: '#8899b0' },
+    { id: 'frame_gold',     name: 'Gold Frame',     desc: { en: 'Exclusive gold border',     es: 'Borde dorado exclusivo',      de: 'Exklusiver Goldrahmen'     }, price: 2.99, emoji: '🥇', color: '#f5c842' },
+    { id: 'frame_neon',     name: 'Neon Frame',     desc: { en: 'Glowing neon border',       es: 'Borde neón brillante',        de: 'Leuchtender Neonrahmen'    }, price: 1.99, emoji: '💚', color: '#22d3a5' },
+    { id: 'frame_fire',     name: 'Fire Frame',     desc: { en: 'Animated fire border',      es: 'Borde de fuego animado',      de: 'Animierter Feuerrahmen'    }, price: 3.99, emoji: '🔥', color: '#f05454' },
+    { id: 'frame_diamond',  name: 'Diamond Frame',  desc: { en: 'Diamond pattern border',    es: 'Borde con patrón de diamante',de: 'Diamantmuster-Rahmen'      }, price: 4.99, emoji: '💎', color: '#8899b0' },
   ],
   themes: [
-    { id: 'theme_matrix',   name: 'Matrix',         desc: 'Green on black',             price: 1.99, emoji: '🟩', color: '#22d3a5' },
-    { id: 'theme_blood',    name: 'Blood Market',   desc: 'Red dark theme',             price: 1.99, emoji: '🩸', color: '#f05454' },
-    { id: 'theme_gold',     name: 'Gold Rush',      desc: 'Gold and black theme',       price: 2.99, emoji: '✨', color: '#f5c842' },
-    { id: 'theme_midnight', name: 'Midnight',       desc: 'Deep blue dark theme',       price: 1.99, emoji: '🌙', color: '#6b7a8d' },
+    { id: 'theme_matrix',   name: 'Matrix',         desc: { en: 'Green on black',            es: 'Verde sobre negro',           de: 'Grün auf Schwarz'          }, price: 1.99, emoji: '🟩', color: '#22d3a5' },
+    { id: 'theme_blood',    name: 'Blood Market',   desc: { en: 'Red dark theme',            es: 'Tema oscuro rojo',            de: 'Rotes dunkles Theme'       }, price: 1.99, emoji: '🩸', color: '#f05454' },
+    { id: 'theme_gold',     name: 'Gold Rush',      desc: { en: 'Gold and black theme',      es: 'Tema dorado y negro',         de: 'Gold und Schwarz Theme'    }, price: 2.99, emoji: '✨', color: '#f5c842' },
+    { id: 'theme_midnight', name: 'Midnight',       desc: { en: 'Deep blue dark theme',      es: 'Tema azul oscuro profundo',   de: 'Tiefblaues dunkles Theme'  }, price: 1.99, emoji: '🌙', color: '#6b7a8d' },
   ],
   avatars: [
-    { id: 'avatar_bull',    name: 'Bull',           desc: 'Bullish trader avatar',      price: 0.99, emoji: '🐂', color: '#22d3a5' },
-    { id: 'avatar_bear',    name: 'Bear',           desc: 'Bearish trader avatar',      price: 0.99, emoji: '🐻', color: '#f05454' },
-    { id: 'avatar_whale',   name: 'Whale',          desc: 'Big money avatar',           price: 1.99, emoji: '🐋', color: '#8899b0' },
-    { id: 'avatar_robot',   name: 'AlgoBot',        desc: 'Algorithm trader avatar',    price: 1.99, emoji: '🤖', color: '#f5c842' },
+    { id: 'avatar_bull',    name: 'Bull',           desc: { en: 'Bullish trader avatar',     es: 'Avatar de trader alcista',    de: 'Bullen-Trader Avatar'      }, price: 0.99, emoji: '🐂', color: '#22d3a5' },
+    { id: 'avatar_bear',    name: 'Bear',           desc: { en: 'Bearish trader avatar',     es: 'Avatar de trader bajista',    de: 'Bären-Trader Avatar'       }, price: 0.99, emoji: '🐻', color: '#f05454' },
+    { id: 'avatar_whale',   name: 'Whale',          desc: { en: 'Big money avatar',          es: 'Avatar de gran inversor',     de: 'Großinvestor Avatar'       }, price: 1.99, emoji: '🐋', color: '#8899b0' },
+    { id: 'avatar_robot',   name: 'AlgoBot',        desc: { en: 'Algorithm trader avatar',   es: 'Avatar de trader algorítmico',de: 'Algorithmus-Trader Avatar' }, price: 1.99, emoji: '🤖', color: '#f5c842' },
   ],
   effects: [
-    { id: 'effect_confetti',  name: 'Confetti',     desc: 'Confetti on correct answer', price: 1.99, emoji: '🎉', color: '#f5c842' },
-    { id: 'effect_lightning', name: 'Lightning',    desc: 'Lightning bolt on streak',   price: 2.99, emoji: '⚡', color: '#22d3a5' },
-    { id: 'effect_explosion', name: 'Explosion',    desc: 'Explosion on big win',       price: 2.99, emoji: '💥', color: '#f05454' },
-    { id: 'effect_stars',     name: 'Stars',        desc: 'Stars rain on win',          price: 1.99, emoji: '⭐', color: '#f5c842' },
+    { id: 'effect_confetti',  name: 'Confetti',     desc: { en: 'Confetti on correct answer',es: 'Confeti al acertar',          de: 'Konfetti bei richtiger Antwort'}, price: 1.99, emoji: '🎉', color: '#f5c842' },
+    { id: 'effect_lightning', name: 'Lightning',    desc: { en: 'Lightning bolt on streak',  es: 'Rayo en racha',               de: 'Blitz bei Serie'           }, price: 2.99, emoji: '⚡', color: '#22d3a5' },
+    { id: 'effect_explosion', name: 'Explosion',    desc: { en: 'Explosion on big win',      es: 'Explosión en gran victoria',  de: 'Explosion bei großem Gewinn'}, price: 2.99, emoji: '💥', color: '#f05454' },
+    { id: 'effect_stars',     name: 'Stars',        desc: { en: 'Stars rain on win',         es: 'Lluvia de estrellas al ganar',de: 'Sternregen beim Gewinn'    }, price: 1.99, emoji: '⭐', color: '#f5c842' },
   ],
 };
-
 const CATEGORY_TYPES = {
   frames: 'frame',
   themes: 'theme',
@@ -98,7 +97,7 @@ export default function Shop({ onBack }) {
             onMouseLeave={e => e.target.style.color = '#3a4455'}
           >← {lang === 'es' ? 'volver' : lang === 'de' ? 'zurück' : 'back'}</button>
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '14px', color: '#f0f0f0', letterSpacing: '0.06em' }}>
-            🛍️ SHOP
+            🛍️ {t.home.shop}
           </div>
         </div>
 
@@ -141,7 +140,7 @@ export default function Shop({ onBack }) {
                   {item.name}
                 </div>
                 <div style={{ fontSize: '9px', color: '#4a5568', textAlign: 'center', letterSpacing: '0.04em' }}>
-                  {item.desc}
+                   {item.desc[lang] || item.desc.en}
                 </div>
 
                 {owned ? (

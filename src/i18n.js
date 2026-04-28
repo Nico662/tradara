@@ -16,6 +16,7 @@ export const LANGS = {
       mode5: 'Historical Mode',
       mode5sub: '50 real events · can you call them?',
     },
+    shop: 'Shop',
     game: {
       round: 'ROUND', score: 'SCORE', streak: 'STREAK',
       reading: 'reading the tape...', revealing: 'revealing...',
@@ -188,6 +189,7 @@ export const LANGS = {
       mode5: 'Modo Histórico',
       mode5sub: '50 eventos reales · ¿puedes acertarlos?',
     },
+    shop: 'Tienda',
     game: {
       round: 'RONDA', score: 'PUNTOS', streak: 'RACHA',
       reading: 'leyendo el gráfico...', revealing: 'revelando...',
@@ -360,6 +362,7 @@ export const LANGS = {
       mode5: 'Historischer Modus',
       mode5sub: '50 echte Ereignisse · kannst du sie erraten?',
     },
+    shop: 'Shop',
     game: {
       round: 'RUNDE', score: 'PUNKTE', streak: 'SERIE',
       reading: 'chart analysieren...', revealing: 'aufdecken...',
