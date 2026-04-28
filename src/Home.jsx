@@ -53,7 +53,7 @@ export default function Home({ onSelect }) {
             onMouseEnter={e => e.currentTarget.style.borderColor = '#f5c842'}
             onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
           >
-            🛍️ 
+            🛍️ {t.home.shop ?? 'Shop'}
           </button>
           <div className="lang-selector">
             {['en', 'es', 'de'].map(l => (
