@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLang } from './LangContext.jsx';
+import { useAuth } from './AuthContext.jsx';
 
 const SHOP_ITEMS = {
   frames: [
@@ -28,6 +29,13 @@ const SHOP_ITEMS = {
   ],
 };
 
+const CATEGORY_TYPES = {
+  frames: 'frame',
+  themes: 'theme',
+  avatars: 'avatar',
+  effects: 'effect',
+};
+
 const CATEGORIES = [
   { id: 'frames',  label: 'Frames',  emoji: '🖼️' },
   { id: 'themes',  label: 'Themes',  emoji: '🎨' },
@@ -37,10 +45,12 @@ const CATEGORIES = [
 
 export default function Shop({ onBack }) {
   const { lang } = useLang();
+  const { purchases, activeCosmetics, equipCosmetic, unequipCosmetic } = useAuth();
   const [activeCategory, setActiveCategory] = useState('frames');
   const [loading, setLoading] = useState(null);
 
   const items = SHOP_ITEMS[activeCategory];
+  const cosmeticType = CATEGORY_TYPES[activeCategory];
 
   async function handleBuy(itemId) {
     const token = localStorage.getItem('tradara_token');
@@ -64,6 +74,14 @@ export default function Shop({ onBack }) {
       console.error(err);
     } finally {
       setLoading(null);
+    }
+  }
+
+  function handleEquip(item) {
+    if (activeCosmetics[cosmeticType] === item.id) {
+      unequipCosmetic(cosmeticType);
+    } else {
+      equipCosmetic(cosmeticType, item.id);
     }
   }
 
@@ -103,39 +121,64 @@ export default function Shop({ onBack }) {
 
         {/* Grid */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px', padding: '0 20px 40px' }}>
-          {items.map(item => (
-            <div key={item.id} style={{
-              background: '#0f141b', border: `1px solid #1e2530`, borderRadius: '10px',
-              padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px',
-              transition: 'border-color 0.15s',
-            }}
-              onMouseEnter={e => e.currentTarget.style.borderColor = item.color}
-              onMouseLeave={e => e.currentTarget.style.borderColor = '#1e2530'}
-            >
-              <div style={{ fontSize: '32px', textAlign: 'center' }}>{item.emoji}</div>
-              <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '12px', color: item.color, textAlign: 'center' }}>
-                {item.name}
+          {items.map(item => {
+            const owned = purchases.includes(item.id);
+            const equipped = activeCosmetics[cosmeticType] === item.id;
+
+            return (
+              <div key={item.id} style={{
+                background: '#0f141b',
+                border: `1px solid ${equipped ? item.color : '#1e2530'}`,
+                borderRadius: '10px',
+                padding: '16px', display: 'flex', flexDirection: 'column', gap: '8px',
+                transition: 'border-color 0.15s',
+              }}
+                onMouseEnter={e => { if (!equipped) e.currentTarget.style.borderColor = item.color; }}
+                onMouseLeave={e => { if (!equipped) e.currentTarget.style.borderColor = '#1e2530'; }}
+              >
+                <div style={{ fontSize: '32px', textAlign: 'center' }}>{item.emoji}</div>
+                <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '12px', color: item.color, textAlign: 'center' }}>
+                  {item.name}
+                </div>
+                <div style={{ fontSize: '9px', color: '#4a5568', textAlign: 'center', letterSpacing: '0.04em' }}>
+                  {item.desc}
+                </div>
+
+                {owned ? (
+                  <button onClick={() => handleEquip(item)} style={{
+                    width: '100%', padding: '8px', marginTop: '4px',
+                    background: equipped ? item.color : 'transparent',
+                    border: `1px solid ${item.color}`,
+                    borderRadius: '6px',
+                    color: equipped ? '#0a0c0f' : item.color,
+                    fontFamily: "'Space Mono', monospace", fontSize: '10px',
+                    fontWeight: 700, letterSpacing: '0.06em', cursor: 'pointer',
+                    transition: 'all 0.15s',
+                  }}>
+                    {equipped
+                      ? (lang === 'es' ? '✓ Equipado' : lang === 'de' ? '✓ Ausgerüstet' : '✓ Equipped')
+                      : (lang === 'es' ? 'Equipar' : lang === 'de' ? 'Ausrüsten' : 'Equip')}
+                  </button>
+                ) : (
+                  <button
+                    onClick={() => handleBuy(item.id)}
+                    disabled={loading === item.id}
+                    style={{
+                      width: '100%', padding: '8px', marginTop: '4px',
+                      background: loading === item.id ? '#1a2030' : 'rgba(34,211,165,0.08)',
+                      border: `1px solid ${loading === item.id ? '#2a3345' : item.color}`,
+                      borderRadius: '6px',
+                      color: loading === item.id ? '#4a5568' : item.color,
+                      fontFamily: "'Space Mono', monospace", fontSize: '10px',
+                      fontWeight: 700, letterSpacing: '0.06em', cursor: loading === item.id ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.15s',
+                    }}>
+                    {loading === item.id ? '...' : `€${item.price}`}
+                  </button>
+                )}
               </div>
-              <div style={{ fontSize: '9px', color: '#4a5568', textAlign: 'center', letterSpacing: '0.04em' }}>
-                {item.desc}
-              </div>
-              <button
-                onClick={() => handleBuy(item.id)}
-                disabled={loading === item.id}
-                style={{
-                  width: '100%', padding: '8px', marginTop: '4px',
-                  background: loading === item.id ? '#1a2030' : 'rgba(34,211,165,0.08)',
-                  border: `1px solid ${loading === item.id ? '#2a3345' : item.color}`,
-                  borderRadius: '6px',
-                  color: loading === item.id ? '#4a5568' : item.color,
-                  fontFamily: "'Space Mono', monospace", fontSize: '10px',
-                  fontWeight: 700, letterSpacing: '0.06em', cursor: loading === item.id ? 'not-allowed' : 'pointer',
-                  transition: 'all 0.15s',
-                }}>
-                {loading === item.id ? '...' : `€${item.price}`}
-              </button>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
       </div>

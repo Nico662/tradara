@@ -4,13 +4,29 @@ import { getUnlocked } from './badges.js';
 import { getXP, getLevel } from './levels.js';
 import { useAuth } from './AuthContext';
 
+const AVATAR_EMOJIS = {
+  avatar_bull:  '🐂',
+  avatar_bear:  '🐻',
+  avatar_whale: '🐋',
+  avatar_robot: '🤖',
+};
+
+const FRAME_STYLES = {
+  frame_gold:    { border: '2px solid #f5c842', boxShadow: '0 0 8px rgba(245,200,66,0.6)' },
+  frame_neon:    { border: '2px solid #22d3a5', boxShadow: '0 0 8px rgba(34,211,165,0.6)' },
+  frame_fire:    { border: '2px solid #f05454', boxShadow: '0 0 8px rgba(240,84,84,0.6)' },
+  frame_diamond: { border: '2px solid #8899b0', boxShadow: '0 0 8px rgba(136,153,176,0.6)' },
+};
+
 export default function Home({ onSelect }) {
   const { lang, setLang, t } = useLang();
   const [dailyStreak] = useState(() => parseInt(localStorage.getItem('tradara_daily_streak_count') || '0'));
   const unlockedCount = getUnlocked().length;
   const xp    = getXP();
   const level = getLevel(xp);
-  const { user, login, logout } = useAuth();
+  const { user, login, logout, activeCosmetics } = useAuth();
+
+  const frameStyle = FRAME_STYLES[activeCosmetics.frame] || { border: '1px solid #22d3a5' };
 
   useEffect(() => {
     const fetchStats = async () => {
@@ -52,7 +68,13 @@ export default function Home({ onSelect }) {
         <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '16px' }}>
           {user ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-              {user.avatar && <img src={user.avatar} style={{ width: '28px', height: '28px', borderRadius: '50%', border: '1px solid #22d3a5' }} />}
+              {activeCosmetics.avatar ? (
+                <div style={{ width: '28px', height: '28px', borderRadius: '50%', ...frameStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', background: '#0f141b' }}>
+                  {AVATAR_EMOJIS[activeCosmetics.avatar] || ''}
+                </div>
+              ) : (
+                user.avatar && <img src={user.avatar} style={{ width: '28px', height: '28px', borderRadius: '50%', ...frameStyle }} />
+              )}
               <span style={{ fontSize: '10px', color: '#8899b0', fontFamily: "'Space Mono', monospace" }}>{user.name}</span>
               <button onClick={logout} style={{ background: 'transparent', border: '1px solid #2a3345', borderRadius: '6px', padding: '4px 10px', color: '#4a5568', fontFamily: "'Space Mono', monospace", fontSize: '9px', cursor: 'pointer', letterSpacing: '0.06em' }}>
                 logout
