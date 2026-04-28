@@ -60,12 +60,19 @@ export default function Home({ onSelect }) {
 </div>
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
-          <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '42px', letterSpacing: '-0.02em', color: '#f0f0f0' }}>
-            Tradara
-          </div>
-          <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '6px' }}>
-            {t.home.tagline}
-          </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px' }}>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200" width="24">
+      <line x1="50" y1="10" x2="50" y2="40" stroke="#22d3a5" strokeWidth="8" strokeLinecap="round"/>
+      <rect x="25" y="40" width="50" height="110" rx="6" fill="#22d3a5"/>
+      <line x1="50" y1="150" x2="50" y2="190" stroke="#22d3a5" strokeWidth="8" strokeLinecap="round"/>
+     </svg>
+     <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '42px', letterSpacing: '-0.02em', color: '#f0f0f0' }}>
+      Tradara
+     </div>
+     </div>
+     <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.2em', textTransform: 'uppercase', marginTop: '6px' }}>
+     {t.home.tagline}
+     </div>
 
           
 
