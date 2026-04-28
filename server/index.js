@@ -215,6 +215,13 @@ loadSubscriptions().then(subs => {
 
 const rateLimit = require('express-rate-limit');
 app.use(cors());
+app.use((req, res, next) => {
+  if (req.originalUrl === '/shop/webhook') {
+    next();
+  } else {
+    express.json()(req, res, next);
+  }
+});
 app.use(session({
   secret: JWT_SECRET,
   resave: false,
