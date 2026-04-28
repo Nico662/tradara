@@ -214,7 +214,10 @@ loadSubscriptions().then(subs => {
 });
 
 const rateLimit = require('express-rate-limit');
-app.use(cors());
+app.use(cors({
+  origin: ['https://tradara.dev', 'https://www.tradara.dev'],
+  credentials: true,
+}));
 app.use((req, res, next) => {
   if (req.originalUrl === '/shop/webhook') {
     next();
