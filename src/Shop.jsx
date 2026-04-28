@@ -43,7 +43,7 @@ const CATEGORIES = [
 ];
 
 export default function Shop({ onBack }) {
-  const { lang } = useLang();
+  const { lang, t } = useLang();
   const { purchases, activeCosmetics, equipCosmetic, unequipCosmetic } = useAuth();
   const [activeCategory, setActiveCategory] = useState('frames');
   const [loading, setLoading] = useState(null);
