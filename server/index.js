@@ -17,6 +17,8 @@ const passport     = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
 const session      = require('express-session');
 const jwt          = require('jsonwebtoken');
+const Stripe = require('stripe');
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
 const JWT_SECRET           = process.env.JWT_SECRET || 'tradara_secret_2024';
 const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID;
@@ -37,6 +39,7 @@ const UserSchema = new mongoose.Schema({
   badges:     { type: [String], default: [] },
   createdAt:  { type: Date, default: Date.now },
   lastLogin:  { type: Date, default: Date.now },
+  purchases: { type: [String], default: [] },
 });
 
 const User = mongoose.model('User', UserSchema);
@@ -70,7 +73,97 @@ webpush.setVapidDetails(
   'BEWPkbh1HeSsw08H0EsELp5TIPD2gcQ8Yfa1RsSW-9jER3uvoeVUTazcIqjlf4UNFKe7QeqQ8ZlVjGI72pinR0I',
   'PCyRdLvdQswDzk0DlbImRKEgPbVLewsWGHCha07sXw8'
 );
+// ── Shop ──────────────────────────────────────────────────────────
 
+const SHOP_ITEMS = {
+  frame_gold:      { name: 'Gold Frame',     price: 299  },
+  frame_neon:      { name: 'Neon Frame',     price: 199  },
+  frame_fire:      { name: 'Fire Frame',     price: 399  },
+  frame_diamond:   { name: 'Diamond Frame',  price: 499  },
+  theme_matrix:    { name: 'Matrix',         price: 199  },
+  theme_blood:     { name: 'Blood Market',   price: 199  },
+  theme_gold:      { name: 'Gold Rush',      price: 299  },
+  theme_midnight:  { name: 'Midnight',       price: 199  },
+  avatar_bull:     { name: 'Bull',           price: 99   },
+  avatar_bear:     { name: 'Bear',           price: 99   },
+  avatar_whale:    { name: 'Whale',          price: 199  },
+  avatar_robot:    { name: 'AlgoBot',        price: 199  },
+  effect_confetti: { name: 'Confetti',       price: 199  },
+  effect_lightning:{ name: 'Lightning',      price: 299  },
+  effect_explosion:{ name: 'Explosion',      price: 299  },
+  effect_stars:    { name: 'Stars',          price: 199  },
+};
+
+// Crear sesión de pago
+app.post('/shop/checkout', express.json(), async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { itemId } = req.body;
+    const item = SHOP_ITEMS[itemId];
+    if (!item) return res.status(400).json({ error: 'Item not found' });
+
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'eur',
+          product_data: { name: `Tradara — ${item.name}` },
+          unit_amount: item.price,
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: `${CLIENT_URL}?purchase=success&item=${itemId}`,
+      cancel_url:  `${CLIENT_URL}?purchase=cancelled`,
+      metadata: { userId: decoded.id, itemId },
+    });
+
+    res.json({ url: session.url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// Webhook de Stripe — confirmar pago
+app.post('/shop/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+
+  if (event.type === 'checkout.session.completed') {
+    const session = event.data.object;
+    const { userId, itemId } = session.metadata;
+    try {
+      await User.findByIdAndUpdate(userId, {
+        $addToSet: { purchases: itemId }
+      });
+      console.log(`User ${userId} purchased ${itemId}`);
+    } catch (err) {
+      console.error('Error saving purchase:', err.message);
+    }
+  }
+
+  res.json({ received: true });
+});
+
+// Obtener items comprados
+app.get('/shop/purchases', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ purchases: [] });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const user = await User.findById(decoded.id);
+    res.json({ purchases: user?.purchases || [] });
+  } catch {
+    res.json({ purchases: [] });
+  }
+});
 const { Redis } = require('@upstash/redis');
 
 const redis = new Redis({
