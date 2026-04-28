@@ -45,7 +45,7 @@ function randomAsset() {
 
 export default function Survival({ onBack }) {
   const { t, lang, setLang } = useLang();
-  const { syncProgress }     = useAuth();
+  const { syncProgress, activeCosmetics } = useAuth();
 
   const [phase,      setPhase]      = useState('choose');
   const [asset,      setAsset]      = useState(() => randomAsset());
@@ -63,6 +63,7 @@ export default function Survival({ onBack }) {
   const [floatingXP, setFloatingXP] = useState(null);
   const [liveLost,   setLiveLost]   = useState(false);
   const chartRef = useRef(null);
+  const [activeEffect, setActiveEffect] = useState(false);
 
   function tryUnlockBadge(id) {
     const unlocked = unlockBadge(id);
@@ -123,6 +124,8 @@ export default function Survival({ onBack }) {
       });
       setStreak(s => s + 1);
       if (streak >= 2) playStreak(); else playWin();
+      setActiveEffect(true);
+      setTimeout(() => setActiveEffect(false), 1500);
       earnXP(10);
     } else if (win && neutral) {
       pts = 50;
@@ -136,6 +139,8 @@ export default function Survival({ onBack }) {
       });
       setStreak(s => s + 1);
       playWin();
+      setActiveEffect(true);
+      setTimeout(() => setActiveEffect(false), 1500);
       earnXP(5);
     } else if (!win && !neutral) {
       pts = 0;
@@ -405,7 +410,21 @@ export default function Survival({ onBack }) {
         </div>
       )}
 
-      {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+     {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+
+      {activeEffect && activeCosmetics.effect && (
+        <div style={{
+          position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9998,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: activeCosmetics.effect === 'effect_explosion' ? '80px' : '60px',
+          animation: 'floatUp 1.5s ease forwards',
+        }}>
+          {activeCosmetics.effect === 'effect_confetti'  ? '🎉' :
+           activeCosmetics.effect === 'effect_lightning' ? '⚡' :
+           activeCosmetics.effect === 'effect_explosion' ? '💥' :
+           activeCosmetics.effect === 'effect_stars'     ? '⭐' : ''}
+        </div>
+      )}
     </div>
   );
 }

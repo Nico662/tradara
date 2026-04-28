@@ -79,9 +79,11 @@ export default function App() {
   const [newBadge,    setNewBadge]   = useState(null);
   const [xp,          setXp]         = useState(() => getXP());
   const [floatingXP,  setFloatingXP] = useState(null);
-  const { syncProgress } = useAuth();
+  const { syncProgress, activeCosmetics } = useAuth();
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
+  const [activeEffect, setActiveEffect] = useState(false);
+
 
   function tryUnlockBadge(id) {
     const unlocked = unlockBadge(id);
@@ -168,6 +170,9 @@ export default function App() {
       }
       setStreak(s => s + 1);
       playWin();
+      // Efecto cosmético
+      setActiveEffect(true);
+      setTimeout(() => setActiveEffect(false), 1500);
       earnXP(5);
       localStorage.setItem('tradara_lose_streak', '0');
     } else if (!win && !neutral) {
@@ -303,7 +308,7 @@ export default function App() {
     const progress = getProgress(xp);
 
     return (
-      <div id="gtm-root" style={{ position: 'relative' }}>
+      <div id="gtm-root" className={activeCosmetics?.theme || ''} style={{ position: 'relative' }}>
         <div className="scanlines" />
         <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2 }}>
 
@@ -424,7 +429,7 @@ export default function App() {
   const dirLabel = result ? (result.direction === 'up' ? t.game.up : result.direction === 'down' ? t.game.down : t.game.flatDir) : '';
 
   return (
-    <div id="gtm-root" style={{ position: 'relative' }}>
+    <div id="gtm-root" className={activeCosmetics?.theme || ''} style={{ position: 'relative' }}>
       <div className="scanlines" />
 
       <button onClick={goHome}
@@ -570,6 +575,20 @@ export default function App() {
       )}
 
       {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+
+      {activeEffect && activeCosmetics.effect && (
+        <div style={{
+          position: 'fixed', inset: 0, pointerEvents: 'none', zIndex: 9998,
+          display: 'flex', alignItems: 'center', justifyContent: 'center',
+          fontSize: activeCosmetics.effect === 'effect_explosion' ? '80px' : '60px',
+          animation: 'floatUp 1.5s ease forwards',
+        }}>
+          {activeCosmetics.effect === 'effect_confetti'  ? '🎉' :
+           activeCosmetics.effect === 'effect_lightning' ? '⚡' :
+           activeCosmetics.effect === 'effect_explosion' ? '💥' :
+           activeCosmetics.effect === 'effect_stars'     ? '⭐' : ''}
+        </div>
+      )}
     </div>
   );
 }
