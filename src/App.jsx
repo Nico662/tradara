@@ -79,7 +79,7 @@ export default function App() {
   const [newBadge,    setNewBadge]   = useState(null);
   const [xp,          setXp]         = useState(() => getXP());
   const [floatingXP,  setFloatingXP] = useState(null);
-  const { syncProgress, activeCosmetics } = useAuth();
+  const { syncProgress, activeCosmetics = {} } = useAuth();
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
   const [activeEffect, setActiveEffect] = useState(false);
