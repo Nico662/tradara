@@ -94,6 +94,61 @@ const SHOP_ITEMS = {
   effect_stars:    { name: 'Stars',          price: 199  },
 };
 
+
+const { Redis } = require('@upstash/redis');
+
+const redis = new Redis({
+  url: 'https://glad-teal-76856.upstash.io',
+  token: 'gQAAAAAAASw4AAIncDJmYmZjYzFlYWVkZTc0MWU5YTBjMmExYWE5NGEwODFjYnAyNzY4NTY',
+});
+
+async function cachedFetch(key, ttlSeconds, fetchFn) {
+  try {
+    const cached = await redis.get(key);
+    if (cached) {
+      console.log('Cache HIT:', key);
+      return typeof cached === 'string' ? JSON.parse(cached) : cached;
+    }
+  } catch (e) {}
+
+  const data = await fetchFn();
+  try {
+    await redis.set(key, JSON.stringify(data), { ex: ttlSeconds });
+    console.log('Cache SET:', key);
+  } catch (e) {}
+  return data;
+}
+
+let pushSubscriptions = [];
+
+async function loadSubscriptions() {
+  try {
+    const raw = await redis.get('push_subscriptions');
+    if (!raw) return [];
+    if (Array.isArray(raw)) return raw;
+    return JSON.parse(raw);
+  } catch (e) {
+    console.log('loadSubscriptions error:', e.message);
+    return [];
+  }
+}
+
+async function saveSubscriptions(subs) {
+  try {
+    await redis.set('push_subscriptions', JSON.stringify(subs));
+  } catch (e) {}
+}
+
+loadSubscriptions().then(subs => {
+  pushSubscriptions = subs;
+  console.log('Loaded', subs.length, 'subscriptions from Redis');
+});
+
+const rateLimit = require('express-rate-limit');
+app.use(cors({
+  origin: ['https://tradara.dev', 'https://www.tradara.dev'],
+  credentials: true,
+}));
 // Crear sesión de pago
 app.post('/shop/checkout', express.json(), async (req, res) => {
   const auth = req.headers.authorization;
@@ -164,60 +219,6 @@ app.get('/shop/purchases', async (req, res) => {
     res.json({ purchases: [] });
   }
 });
-const { Redis } = require('@upstash/redis');
-
-const redis = new Redis({
-  url: 'https://glad-teal-76856.upstash.io',
-  token: 'gQAAAAAAASw4AAIncDJmYmZjYzFlYWVkZTc0MWU5YTBjMmExYWE5NGEwODFjYnAyNzY4NTY',
-});
-
-async function cachedFetch(key, ttlSeconds, fetchFn) {
-  try {
-    const cached = await redis.get(key);
-    if (cached) {
-      console.log('Cache HIT:', key);
-      return typeof cached === 'string' ? JSON.parse(cached) : cached;
-    }
-  } catch (e) {}
-
-  const data = await fetchFn();
-  try {
-    await redis.set(key, JSON.stringify(data), { ex: ttlSeconds });
-    console.log('Cache SET:', key);
-  } catch (e) {}
-  return data;
-}
-
-let pushSubscriptions = [];
-
-async function loadSubscriptions() {
-  try {
-    const raw = await redis.get('push_subscriptions');
-    if (!raw) return [];
-    if (Array.isArray(raw)) return raw;
-    return JSON.parse(raw);
-  } catch (e) {
-    console.log('loadSubscriptions error:', e.message);
-    return [];
-  }
-}
-
-async function saveSubscriptions(subs) {
-  try {
-    await redis.set('push_subscriptions', JSON.stringify(subs));
-  } catch (e) {}
-}
-
-loadSubscriptions().then(subs => {
-  pushSubscriptions = subs;
-  console.log('Loaded', subs.length, 'subscriptions from Redis');
-});
-
-const rateLimit = require('express-rate-limit');
-app.use(cors({
-  origin: ['https://tradara.dev', 'https://www.tradara.dev'],
-  credentials: true,
-}));
 app.use((req, res, next) => {
   if (req.originalUrl === '/shop/webhook') {
     next();
