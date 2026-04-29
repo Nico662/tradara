@@ -1,48 +1,58 @@
-const express      = require('express');
-const http         = require('http');
-const { Server }   = require('socket.io');
-const YahooFinance = require('yahoo-finance2').default;
-const cors         = require('cors');
-
-const yf         = new YahooFinance();
-const app        = express();
-app.set('trust proxy', 1);
-const httpServer = http.createServer(app);
-const io         = new Server(httpServer, { cors: { origin: '*' } });
-const PORT = process.env.PORT || 3001;
-const cron = require('node-cron');
-const webpush = require('web-push');
-const mongoose     = require('mongoose');
-const passport     = require('passport');
+const express        = require('express');
+const http           = require('http');
+const { Server }     = require('socket.io');
+const YahooFinance   = require('yahoo-finance2').default;
+const cors           = require('cors');
+const cron           = require('node-cron');
+const webpush        = require('web-push');
+const mongoose       = require('mongoose');
+const passport       = require('passport');
 const GoogleStrategy = require('passport-google-oauth20').Strategy;
-const session      = require('express-session');
-const jwt          = require('jsonwebtoken');
-const Stripe = require('stripe');
-const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const session        = require('express-session');
+const jwt            = require('jsonwebtoken');
+const Stripe         = require('stripe');
+const rateLimit      = require('express-rate-limit');
+const { Redis }      = require('@upstash/redis');
 
+// ── Config ────────────────────────────────────────────────────────
 const JWT_SECRET           = process.env.JWT_SECRET || 'tradara_secret_2024';
 const GOOGLE_CLIENT_ID     = process.env.GOOGLE_CLIENT_ID;
 const GOOGLE_CLIENT_SECRET = process.env.GOOGLE_CLIENT_SECRET;
 const MONGODB_URI          = process.env.MONGODB_URI;
 const CLIENT_URL           = 'https://tradara.dev';
+const PORT                 = process.env.PORT || 3001;
 
+const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
+const yf     = new YahooFinance();
+
+// ── Express ───────────────────────────────────────────────────────
+const app        = express();
+const httpServer = http.createServer(app);
+const io         = new Server(httpServer, { cors: { origin: '*' } });
+app.set('trust proxy', 1);
+
+// ── Redis ─────────────────────────────────────────────────────────
+const redis = new Redis({
+  url:   'https://glad-teal-76856.upstash.io',
+  token: 'gQAAAAAAASw4AAIncDJmYmZjYzFlYWVkZTc0MWU5YTBjMmExYWE5NGEwODFjYnAyNzY4NTY',
+});
+
+// ── MongoDB ───────────────────────────────────────────────────────
 mongoose.connect(MONGODB_URI)
   .then(() => console.log('MongoDB connected'))
   .catch(err => console.error('MongoDB error:', err));
 
 const UserSchema = new mongoose.Schema({
-  googleId:   { type: String, required: true, unique: true },
-  email:      { type: String, required: true },
-  name:       { type: String, required: true },
-  avatar:     { type: String },
-  xp:         { type: Number, default: 0 },
-  badges:     { type: [String], default: [] },
-  createdAt:  { type: Date, default: Date.now },
-  lastLogin:  { type: Date, default: Date.now },
+  googleId:  { type: String, required: true, unique: true },
+  email:     { type: String, required: true },
+  name:      { type: String, required: true },
+  avatar:    { type: String },
+  xp:        { type: Number, default: 0 },
+  badges:    { type: [String], default: [] },
   purchases: { type: [String], default: [] },
+  createdAt: { type: Date, default: Date.now },
+  lastLogin: { type: Date, default: Date.now },
 });
-
-const User = mongoose.model('User', UserSchema);
 
 const TournamentSchema = new mongoose.Schema({
   weekId:    { type: String, required: true, unique: true },
@@ -51,75 +61,35 @@ const TournamentSchema = new mongoose.Schema({
 });
 
 const ScoreSchema = new mongoose.Schema({
-  weekId:    { type: String, required: true },
-  userId:    { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
-  name:      { type: String, required: true },
-  avatar:    { type: String },
-  score:     { type: Number, default: 0 },
-  rounds:    { type: Array, default: [] },
-  createdAt: { type: Date, default: Date.now },
+  weekId:         { type: String, required: true },
+  userId:         { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+  name:           { type: String, required: true },
+  avatar:         { type: String },
+  score:          { type: Number, default: 0 },
+  rounds:         { type: Array, default: [] },
   cosmeticAvatar: { type: String, default: null },
+  createdAt:      { type: Date, default: Date.now },
 });
-
 ScoreSchema.index({ weekId: 1, userId: 1 }, { unique: true });
 
-const StatsSchema = new mongoose.Schema({ _id: String, daily: { type: Number, default: 0 } });
+const StatsSchema = new mongoose.Schema({
+  _id:   String,
+  daily: { type: Number, default: 0 },
+});
 
+const User       = mongoose.model('User', UserSchema);
 const Tournament = mongoose.model('Tournament', TournamentSchema);
 const Score      = mongoose.model('Score', ScoreSchema);
 const Stats      = mongoose.model('Stats', StatsSchema);
 
+// ── VAPID / Push ──────────────────────────────────────────────────
 webpush.setVapidDetails(
   'mailto:nicolasvidalcorrecher@tradara.dev',
   'BEWPkbh1HeSsw08H0EsELp5TIPD2gcQ8Yfa1RsSW-9jER3uvoeVUTazcIqjlf4UNFKe7QeqQ8ZlVjGI72pinR0I',
   'PCyRdLvdQswDzk0DlbImRKEgPbVLewsWGHCha07sXw8'
 );
-// ── Shop ──────────────────────────────────────────────────────────
 
-const SHOP_ITEMS = {
-  frame_gold:      { name: 'Gold Frame',     price: 299  },
-  frame_neon:      { name: 'Neon Frame',     price: 199  },
-  frame_fire:      { name: 'Fire Frame',     price: 399  },
-  frame_diamond:   { name: 'Diamond Frame',  price: 499  },
-  theme_matrix:    { name: 'Matrix',         price: 199  },
-  theme_blood:     { name: 'Blood Market',   price: 199  },
-  theme_gold:      { name: 'Gold Rush',      price: 299  },
-  theme_midnight:  { name: 'Midnight',       price: 199  },
-  avatar_bull:     { name: 'Bull',           price: 99   },
-  avatar_bear:     { name: 'Bear',           price: 99   },
-  avatar_whale:    { name: 'Whale',          price: 199  },
-  avatar_robot:    { name: 'AlgoBot',        price: 199  },
-  effect_confetti: { name: 'Confetti',       price: 199  },
-  effect_lightning:{ name: 'Lightning',      price: 299  },
-  effect_explosion:{ name: 'Explosion',      price: 299  },
-  effect_stars:    { name: 'Stars',          price: 199  },
-};
-
-
-const { Redis } = require('@upstash/redis');
-
-const redis = new Redis({
-  url: 'https://glad-teal-76856.upstash.io',
-  token: 'gQAAAAAAASw4AAIncDJmYmZjYzFlYWVkZTc0MWU5YTBjMmExYWE5NGEwODFjYnAyNzY4NTY',
-});
-
-async function cachedFetch(key, ttlSeconds, fetchFn) {
-  try {
-    const cached = await redis.get(key);
-    if (cached) {
-      console.log('Cache HIT:', key);
-      return typeof cached === 'string' ? JSON.parse(cached) : cached;
-    }
-  } catch (e) {}
-
-  const data = await fetchFn();
-  try {
-    await redis.set(key, JSON.stringify(data), { ex: ttlSeconds });
-    console.log('Cache SET:', key);
-  } catch (e) {}
-  return data;
-}
-
+// ── Push subscriptions ────────────────────────────────────────────
 let pushSubscriptions = [];
 
 async function loadSubscriptions() {
@@ -145,81 +115,49 @@ loadSubscriptions().then(subs => {
   console.log('Loaded', subs.length, 'subscriptions from Redis');
 });
 
-const rateLimit = require('express-rate-limit');
+// ── Cache ─────────────────────────────────────────────────────────
+async function cachedFetch(key, ttlSeconds, fetchFn) {
+  try {
+    const cached = await redis.get(key);
+    if (cached) {
+      console.log('Cache HIT:', key);
+      return typeof cached === 'string' ? JSON.parse(cached) : cached;
+    }
+  } catch (e) {}
+  const data = await fetchFn();
+  try {
+    await redis.set(key, JSON.stringify(data), { ex: ttlSeconds });
+    console.log('Cache SET:', key);
+  } catch (e) {}
+  return data;
+}
+
+// ── Shop items ────────────────────────────────────────────────────
+const SHOP_ITEMS = {
+  frame_gold:       { name: 'Gold Frame',    price: 299 },
+  frame_neon:       { name: 'Neon Frame',    price: 199 },
+  frame_fire:       { name: 'Fire Frame',    price: 399 },
+  frame_diamond:    { name: 'Diamond Frame', price: 499 },
+  theme_matrix:     { name: 'Matrix',        price: 199 },
+  theme_blood:      { name: 'Blood Market',  price: 199 },
+  theme_gold:       { name: 'Gold Rush',     price: 299 },
+  theme_midnight:   { name: 'Midnight',      price: 199 },
+  avatar_bull:      { name: 'Bull',          price: 99  },
+  avatar_bear:      { name: 'Bear',          price: 99  },
+  avatar_whale:     { name: 'Whale',         price: 199 },
+  avatar_robot:     { name: 'AlgoBot',       price: 199 },
+  effect_confetti:  { name: 'Confetti',      price: 199 },
+  effect_lightning: { name: 'Lightning',     price: 299 },
+  effect_explosion: { name: 'Explosion',     price: 299 },
+  effect_stars:     { name: 'Stars',         price: 199 },
+};
+
+// ── Middlewares ───────────────────────────────────────────────────
 app.use(cors({
   origin: ['https://tradara.dev', 'https://www.tradara.dev'],
   credentials: true,
 }));
-// Crear sesión de pago
-app.post('/shop/checkout', express.json(), async (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ error: 'No token' });
-  try {
-    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const { itemId } = req.body;
-    const item = SHOP_ITEMS[itemId];
-    if (!item) return res.status(400).json({ error: 'Item not found' });
 
-    const session = await stripe.checkout.sessions.create({
-      payment_method_types: ['card'],
-      line_items: [{
-        price_data: {
-          currency: 'eur',
-          product_data: { name: `Tradara — ${item.name}` },
-          unit_amount: item.price,
-        },
-        quantity: 1,
-      }],
-      mode: 'payment',
-      success_url: `${CLIENT_URL}?purchase=success&item=${itemId}`,
-      cancel_url:  `${CLIENT_URL}?purchase=cancelled`,
-      metadata: { userId: decoded.id, itemId },
-    });
-
-    res.json({ url: session.url });
-  } catch (err) {
-    res.status(500).json({ error: err.message });
-  }
-});
-
-// Webhook de Stripe — confirmar pago
-app.post('/shop/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
-  const sig = req.headers['stripe-signature'];
-  let event;
-  try {
-    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
-  } catch (err) {
-    return res.status(400).json({ error: err.message });
-  }
-
-  if (event.type === 'checkout.session.completed') {
-    const session = event.data.object;
-    const { userId, itemId } = session.metadata;
-    try {
-      await User.findByIdAndUpdate(userId, {
-        $addToSet: { purchases: itemId }
-      });
-      console.log(`User ${userId} purchased ${itemId}`);
-    } catch (err) {
-      console.error('Error saving purchase:', err.message);
-    }
-  }
-
-  res.json({ received: true });
-});
-
-// Obtener items comprados
-app.get('/shop/purchases', async (req, res) => {
-  const auth = req.headers.authorization;
-  if (!auth) return res.status(401).json({ purchases: [] });
-  try {
-    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const user = await User.findById(decoded.id);
-    res.json({ purchases: user?.purchases || [] });
-  } catch {
-    res.json({ purchases: [] });
-  }
-});
 app.use((req, res, next) => {
   if (req.originalUrl === '/shop/webhook') {
     next();
@@ -227,6 +165,7 @@ app.use((req, res, next) => {
     express.json()(req, res, next);
   }
 });
+
 app.use(session({
   secret: JWT_SECRET,
   resave: false,
@@ -236,6 +175,20 @@ app.use(session({
 app.use(passport.initialize());
 app.use(passport.session());
 
+// ── Rate limiters ─────────────────────────────────────────────────
+const generalLimiter = rateLimit({
+  windowMs: 60 * 1000, max: 100,
+  message: { error: 'Too many requests, slow down.' },
+  standardHeaders: true, legacyHeaders: false,
+});
+const dailyLimiter   = rateLimit({ windowMs: 60 * 1000, max: 10,  message: { error: 'Too many requests for daily challenge.' } });
+const candlesLimiter = rateLimit({ windowMs: 60 * 1000, max: 30,  message: { error: 'Too many candle requests.' } });
+
+app.use(generalLimiter);
+app.use('/daily',   dailyLimiter);
+app.use('/candles', candlesLimiter);
+
+// ── Passport ──────────────────────────────────────────────────────
 passport.use(new GoogleStrategy({
   clientID:     GOOGLE_CLIENT_ID,
   clientSecret: GOOGLE_CLIENT_SECRET,
@@ -269,48 +222,7 @@ passport.deserializeUser(async (id, done) => {
   } catch (err) { done(err, null); }
 });
 
-const generalLimiter = rateLimit({
-  windowMs: 60 * 1000, max: 100,
-  message: { error: 'Too many requests, slow down.' },
-  standardHeaders: true, legacyHeaders: false,
-});
-const dailyLimiter   = rateLimit({ windowMs: 60 * 1000, max: 10,  message: { error: 'Too many requests for daily challenge.' } });
-const candlesLimiter = rateLimit({ windowMs: 60 * 1000, max: 30,  message: { error: 'Too many candle requests.' } });
-
-app.use(generalLimiter);
-app.use('/daily', dailyLimiter);
-app.use('/candles', candlesLimiter);
-
-app.get('/candles', async (req, res) => {
-  const { symbol, interval, from, to } = req.query;
-  try {
-    let period1, period2;
-    if (from && to) {
-      period1 = from; period2 = to;
-    } else if (interval === '1h') {
-      const d = new Date(); d.setDate(d.getDate() - 29);
-      period1 = d.toISOString().split('T')[0];
-    } else {
-      const d = new Date(); d.setFullYear(d.getFullYear() - 2);
-      period1 = d.toISOString().split('T')[0];
-    }
-    const result  = await yf.chart(symbol, { interval: interval === '1h' ? '1h' : '1d', period1, ...(period2 ? { period2 } : {}) });
-    const quotes  = result.quotes.filter(q => q.open && q.high && q.low && q.close);
-    const candles = quotes.slice(-500).map(q => ({
-      time: Math.floor(new Date(q.date).getTime() / 1000),
-      open: q.open, high: q.high, low: q.low, close: q.close,
-    }));
-    res.json(candles);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).json({ error: err.message });
-  }
-});
-
-app.get('/stats', (req, res) => {
-  res.json({ online: io.engine.clientsCount, gamesPlayed: totalGamesPlayed });
-});
-
+// ── Auth routes ───────────────────────────────────────────────────
 app.get('/auth/google',
   passport.authenticate('google', { scope: ['profile', 'email'] })
 );
@@ -347,21 +259,7 @@ app.get('/auth/me', async (req, res) => {
   }
 });
 
-app.get('/stats/share', async (req, res) => {
-  try {
-    const doc = await Stats.findById('shares');
-    res.json(doc || { daily: 0 });
-  } catch { res.json({ daily: 0 }); }
-});
-
-app.post('/stats/share', express.json(), async (req, res) => {
-  try {
-    await Stats.findByIdAndUpdate('shares', { $inc: { daily: 1 } }, { upsert: true, new: true });
-    res.json({ ok: true });
-  } catch { res.json({ ok: false }); }
-});
-
-app.post('/auth/sync', express.json(), async (req, res) => {
+app.post('/auth/sync', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
@@ -374,18 +272,193 @@ app.post('/auth/sync', express.json(), async (req, res) => {
   }
 });
 
-// ── Tournament ────────────────────────────────────────────────────
+// ── Shop routes ───────────────────────────────────────────────────
+app.post('/shop/checkout', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ error: 'No token' });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const { itemId } = req.body;
+    const item = SHOP_ITEMS[itemId];
+    if (!item) return res.status(400).json({ error: 'Item not found' });
+    const stripeSession = await stripe.checkout.sessions.create({
+      payment_method_types: ['card'],
+      line_items: [{
+        price_data: {
+          currency: 'eur',
+          product_data: { name: `Tradara — ${item.name}` },
+          unit_amount: item.price,
+        },
+        quantity: 1,
+      }],
+      mode: 'payment',
+      success_url: `${CLIENT_URL}?purchase=success&item=${itemId}`,
+      cancel_url:  `${CLIENT_URL}?purchase=cancelled`,
+      metadata: { userId: decoded.id, itemId },
+    });
+    res.json({ url: stripeSession.url });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
+
+app.post('/shop/webhook', express.raw({ type: 'application/json' }), async (req, res) => {
+  const sig = req.headers['stripe-signature'];
+  let event;
+  try {
+    event = stripe.webhooks.constructEvent(req.body, sig, process.env.STRIPE_WEBHOOK_SECRET);
+  } catch (err) {
+    return res.status(400).json({ error: err.message });
+  }
+  if (event.type === 'checkout.session.completed') {
+    const stripeSession = event.data.object;
+    const { userId, itemId } = stripeSession.metadata;
+    try {
+      await User.findByIdAndUpdate(userId, { $addToSet: { purchases: itemId } });
+      console.log(`User ${userId} purchased ${itemId}`);
+    } catch (err) {
+      console.error('Error saving purchase:', err.message);
+    }
+  }
+  res.json({ received: true });
+});
+
+app.get('/shop/purchases', async (req, res) => {
+  const auth = req.headers.authorization;
+  if (!auth) return res.status(401).json({ purchases: [] });
+  try {
+    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const user    = await User.findById(decoded.id);
+    res.json({ purchases: user?.purchases || [] });
+  } catch {
+    res.json({ purchases: [] });
+  }
+});
+
+// ── Stats routes ──────────────────────────────────────────────────
+app.get('/stats', (req, res) => {
+  res.json({ online: io.engine.clientsCount, gamesPlayed: totalGamesPlayed });
+});
+
+app.get('/stats/share', async (req, res) => {
+  try {
+    const doc = await Stats.findById('shares');
+    res.json(doc || { daily: 0 });
+  } catch { res.json({ daily: 0 }); }
+});
+
+app.post('/stats/share', async (req, res) => {
+  try {
+    await Stats.findByIdAndUpdate('shares', { $inc: { daily: 1 } }, { upsert: true, new: true });
+    res.json({ ok: true });
+  } catch { res.json({ ok: false }); }
+});
+
+// ── Candles route ─────────────────────────────────────────────────
+app.get('/candles', async (req, res) => {
+  const { symbol, interval, from, to } = req.query;
+  try {
+    let period1, period2;
+    if (from && to) {
+      period1 = from; period2 = to;
+    } else if (interval === '1h') {
+      const d = new Date(); d.setDate(d.getDate() - 29);
+      period1 = d.toISOString().split('T')[0];
+    } else {
+      const d = new Date(); d.setFullYear(d.getFullYear() - 2);
+      period1 = d.toISOString().split('T')[0];
+    }
+    const result  = await yf.chart(symbol, { interval: interval === '1h' ? '1h' : '1d', period1, ...(period2 ? { period2 } : {}) });
+    const quotes  = result.quotes.filter(q => q.open && q.high && q.low && q.close);
+    const candles = quotes.slice(-500).map(q => ({
+      time:  Math.floor(new Date(q.date).getTime() / 1000),
+      open:  q.open, high: q.high, low: q.low, close: q.close,
+    }));
+    res.json(candles);
+  } catch (err) {
+    console.error(err.message);
+    res.status(500).json({ error: err.message });
+  }
+});
+
+// ── Daily routes ──────────────────────────────────────────────────
+const DAILY_ASSETS = [
+  { source: 'kraken', symbol: 'BTCUSD',   name: 'BTC/USD', interval: '15m' },
+  { source: 'kraken', symbol: 'ETHUSD',   name: 'ETH/USD', interval: '15m' },
+  { source: 'kraken', symbol: 'SOLUSD',   name: 'SOL/USD', interval: '15m' },
+  { source: 'kraken', symbol: 'XRPUSD',   name: 'XRP/USD', interval: '15m' },
+  { source: 'yahoo',  symbol: 'EURUSD=X', name: 'EUR/USD', interval: '1h'  },
+  { source: 'yahoo',  symbol: 'GBPUSD=X', name: 'GBP/USD', interval: '1h'  },
+  { source: 'yahoo',  symbol: 'JPY=X',    name: 'USD/JPY', interval: '1h'  },
+  { source: 'yahoo',  symbol: 'AUDUSD=X', name: 'AUD/USD', interval: '1h'  },
+];
+
+let dailyChallenge = null;
+let dailyDate      = null;
+
+async function getDailyChallenge() {
+  const today = new Date().toISOString().split('T')[0];
+  if (dailyDate === today && dailyChallenge) return dailyChallenge;
+  const seed     = today.replace(/-/g, '');
+  const idx      = parseInt(seed) % DAILY_ASSETS.length;
+  const asset    = DAILY_ASSETS[idx];
+  const candles  = await fetchCandles(asset);
+  const total    = candles.length;
+  const visible  = Math.min(80, Math.floor(total * 0.8));
+  const future   = Math.min(20, total - visible);
+  const maxStart = Math.max(0, total - visible - future);
+  const start    = parseInt(seed.slice(-4)) % (maxStart || 1);
+  dailyChallenge = {
+    date:     today,
+    asset:    asset.name,
+    interval: asset.interval,
+    visible:  candles.slice(start, start + visible),
+    future:   candles.slice(start + visible, start + visible + future),
+  };
+  dailyDate = today;
+  return dailyChallenge;
+}
+
+app.get('/daily', async (req, res) => {
+  try {
+    const challenge = await getDailyChallenge();
+    res.json({
+      date:     challenge.date,
+      asset:    challenge.asset,
+      interval: challenge.interval,
+      visible:  challenge.visible,
+      future:   challenge.future,
+    });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── Tournament routes ─────────────────────────────────────────────
+const ASSETS = [
+  { name: 'BTC/USD',  source: 'kraken', symbol: 'XBTUSD',   interval: '15m' },
+  { name: 'ETH/USD',  source: 'kraken', symbol: 'ETHUSD',   interval: '15m' },
+  { name: 'SOL/USD',  source: 'kraken', symbol: 'SOLUSD',   interval: '15m' },
+  { name: 'XRP/USD',  source: 'kraken', symbol: 'XRPUSD',   interval: '15m' },
+  { name: 'DOGE/USD', source: 'kraken', symbol: 'DOGEUSD',  interval: '15m' },
+  { name: 'LINK/USD', source: 'kraken', symbol: 'LINKUSD',  interval: '15m' },
+  { name: 'AVAX/USD', source: 'kraken', symbol: 'AVAXUSD',  interval: '15m' },
+  { name: 'ADA/USD',  source: 'kraken', symbol: 'ADAUSD',   interval: '15m' },
+  { name: 'DOT/USD',  source: 'kraken', symbol: 'DOTUSD',   interval: '15m' },
+  { name: 'EUR/USD',  source: 'yahoo',  symbol: 'EURUSD=X', interval: '1h'  },
+  { name: 'GBP/USD',  source: 'yahoo',  symbol: 'GBPUSD=X', interval: '1h'  },
+  { name: 'USD/JPY',  source: 'yahoo',  symbol: 'JPY=X',    interval: '1h'  },
+  { name: 'AUD/USD',  source: 'yahoo',  symbol: 'AUDUSD=X', interval: '1h'  },
+];
 
 function getWeekId() {
-  const now = new Date();
-  const day = now.getUTCDay();
-  const diff = (day === 0) ? -6 : 1 - day;
+  const now    = new Date();
+  const day    = now.getUTCDay();
+  const diff   = (day === 0) ? -6 : 1 - day;
   const monday = new Date(now);
   monday.setUTCDate(now.getUTCDate() + diff);
-  const year = monday.getUTCFullYear();
+  const year  = monday.getUTCFullYear();
   const start = new Date(Date.UTC(year, 0, 1));
-  const week = Math.ceil(((monday - start) / 86400000 + start.getUTCDay() + 1) / 7);
-  return `${year}-W${String(week).padStart(2, '0')}`;
+  const week  = Math.ceil(((monday - start) / 86400000 + start.getUTCDay() + 1) / 7);
+  return `${year}-W${String(week).padStart(2, '00')}`;
 }
 
 app.get('/tournament', async (req, res) => {
@@ -393,14 +466,14 @@ app.get('/tournament', async (req, res) => {
     const weekId = getWeekId();
     let tournament = await Tournament.findOne({ weekId });
     if (!tournament) {
-      const shuffled = [...ASSETS].sort(() => Math.random() - 0.5).slice(0, 10);
+      const shuffled        = [...ASSETS].sort(() => Math.random() - 0.5).slice(0, 10);
       const tournamentAssets = shuffled.map(a => ({ ...a, interval: '1h' }));
       tournament = await Tournament.create({ weekId, assets: tournamentAssets });
     }
     const rounds = [];
     for (const asset of tournament.assets) {
       try {
-        const candles = await fetchCandles({ ...asset, interval: '1h' });
+        const candles      = await fetchCandles({ ...asset, interval: '1h' });
         const cleanCandles = candles.filter(c => c && c.open > 0 && c.high > 0 && c.low > 0 && c.close > 0);
         if (cleanCandles.length < 100) continue;
         const win = randomWindow(cleanCandles);
@@ -423,18 +496,18 @@ app.get('/tournament/leaderboard', async (req, res) => {
   }
 });
 
-app.post('/tournament/score', express.json(), async (req, res) => {
+app.post('/tournament/score', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(401).json({ error: 'No token' });
   try {
-    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const user    = await User.findById(decoded.id);
+    const decoded  = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const user     = await User.findById(decoded.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
-    const weekId = getWeekId();
+    const weekId   = getWeekId();
     const existing = await Score.findOne({ weekId, userId: user._id });
     if (existing) return res.status(400).json({ error: 'Already played this week' });
-    const { score, rounds } = req.body;
-    await Score.create({ weekId, userId: user._id, name: user.name, avatar: user.avatar, score, rounds, cosmeticAvatar: req.body.cosmeticAvatar || null });
+    const { score, rounds, cosmeticAvatar } = req.body;
+    await Score.create({ weekId, userId: user._id, name: user.name, avatar: user.avatar, score, rounds, cosmeticAvatar: cosmeticAvatar || null });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });
@@ -445,8 +518,8 @@ app.get('/tournament/played', async (req, res) => {
   const auth = req.headers.authorization;
   if (!auth) return res.status(200).json({ played: false });
   try {
-    const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
-    const weekId  = getWeekId();
+    const decoded  = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
+    const weekId   = getWeekId();
     const existing = await Score.findOne({ weekId, userId: decoded.id });
     res.json({ played: !!existing, score: existing?.score });
   } catch {
@@ -454,7 +527,8 @@ app.get('/tournament/played', async (req, res) => {
   }
 });
 
-app.post('/push/subscribe', express.json(), async (req, res) => {
+// ── Push routes ───────────────────────────────────────────────────
+app.post('/push/subscribe', async (req, res) => {
   const sub = req.body;
   if (!sub || !sub.endpoint) return res.status(400).json({ error: 'Invalid subscription' });
   pushSubscriptions = await loadSubscriptions();
@@ -466,7 +540,7 @@ app.post('/push/subscribe', express.json(), async (req, res) => {
   res.json({ ok: true });
 });
 
-app.post('/push/send', express.json(), async (req, res) => {
+app.post('/push/send', async (req, res) => {
   pushSubscriptions = await loadSubscriptions();
   const payload = JSON.stringify({
     title: '⚡ Daily Challenge',
@@ -485,92 +559,37 @@ app.post('/push/send', express.json(), async (req, res) => {
   res.json({ ok: true, sent: pushSubscriptions.length });
 });
 
-const DAILY_ASSETS = [
-  { source: 'kraken', symbol: 'BTCUSD',   name: 'BTC/USD', interval: '15m' },
-  { source: 'kraken', symbol: 'ETHUSD',   name: 'ETH/USD', interval: '15m' },
-  { source: 'kraken', symbol: 'SOLUSD',   name: 'SOL/USD', interval: '15m' },
-  { source: 'kraken', symbol: 'XRPUSD',   name: 'XRP/USD', interval: '15m' },
-  { source: 'yahoo',  symbol: 'EURUSD=X', name: 'EUR/USD', interval: '1h'  },
-  { source: 'yahoo',  symbol: 'GBPUSD=X', name: 'GBP/USD', interval: '1h'  },
-  { source: 'yahoo',  symbol: 'JPY=X',    name: 'USD/JPY', interval: '1h'  },
-  { source: 'yahoo',  symbol: 'AUDUSD=X', name: 'AUD/USD', interval: '1h'  },
-];
-
-let dailyChallenge = null;
-let dailyDate      = null;
-
-async function getDailyChallenge() {
-  const today = new Date().toISOString().split('T')[0];
-  if (dailyDate === today && dailyChallenge) return dailyChallenge;
-  const seed  = today.replace(/-/g, '');
-  const idx   = parseInt(seed) % DAILY_ASSETS.length;
-  const asset = DAILY_ASSETS[idx];
-  const candles  = await fetchCandles(asset);
-  const total    = candles.length;
-  const visible  = Math.min(80, Math.floor(total * 0.8));
-  const future   = Math.min(20, total - visible);
-  const maxStart = Math.max(0, total - visible - future);
-  const start    = parseInt(seed.slice(-4)) % (maxStart || 1);
-  dailyChallenge = {
-    date: today, asset: asset.name, interval: asset.interval,
-    visible: candles.slice(start, start + visible),
-    future:  candles.slice(start + visible, start + visible + future),
-  };
-  dailyDate = today;
-  return dailyChallenge;
-}
-
-app.get('/daily', async (req, res) => {
-  try {
-    const challenge = await getDailyChallenge();
-    res.json({ date: challenge.date, asset: challenge.asset, interval: challenge.interval, visible: challenge.visible, future: challenge.future });
-  } catch (err) { res.status(500).json({ error: err.message }); }
-});
-
-const ASSETS = [
-  { name: 'BTC/USD',  source: 'kraken', symbol: 'XBTUSD',   interval: '15m' },
-  { name: 'ETH/USD',  source: 'kraken', symbol: 'ETHUSD',   interval: '15m' },
-  { name: 'SOL/USD',  source: 'kraken', symbol: 'SOLUSD',   interval: '15m' },
-  { name: 'XRP/USD',  source: 'kraken', symbol: 'XRPUSD',   interval: '15m' },
-  { name: 'DOGE/USD', source: 'kraken', symbol: 'DOGEUSD',  interval: '15m' },
-  { name: 'LINK/USD', source: 'kraken', symbol: 'LINKUSD',  interval: '15m' },
-  { name: 'AVAX/USD', source: 'kraken', symbol: 'AVAXUSD',  interval: '15m' },
-  { name: 'ADA/USD',  source: 'kraken', symbol: 'ADAUSD',   interval: '15m' },
-  { name: 'DOT/USD',  source: 'kraken', symbol: 'DOTUSD',   interval: '15m' },
-  { name: 'EUR/USD',  source: 'yahoo',  symbol: 'EURUSD=X', interval: '1h'  },
-  { name: 'GBP/USD',  source: 'yahoo',  symbol: 'GBPUSD=X', interval: '1h'  },
-  { name: 'USD/JPY',  source: 'yahoo',  symbol: 'JPY=X',    interval: '1h'  },
-  { name: 'AUD/USD',  source: 'yahoo',  symbol: 'AUDUSD=X', interval: '1h'  },
-];
-
-const TOTAL_ROUNDS  = 10;
-const rooms         = {};
-const finishedRooms = {};
-let   waiting       = null;
-let   totalGamesPlayed = 0;
-
+// ── Candles helpers ───────────────────────────────────────────────
 async function fetchCandles(asset) {
   console.log('Fetching:', asset.name, asset.source);
   const cacheKey = `candles:${asset.symbol}:${asset.interval}`;
-  const ttl = asset.interval === '15m' ? 300 : 600;
+  const ttl      = asset.interval === '15m' ? 300 : 600;
 
   return cachedFetch(cacheKey, ttl, async () => {
     if (asset.source === 'kraken') {
       const intervalMap = { '15m': 15, '1h': 60, '1d': 1440 };
-      const minutes = intervalMap[asset.interval] || 15;
-      const url  = `https://api.kraken.com/0/public/OHLC?pair=${asset.symbol}&interval=${minutes}`;
-      const res  = await fetch(url);
-      const data = await res.json();
+      const minutes     = intervalMap[asset.interval] || 15;
+      const url         = `https://api.kraken.com/0/public/OHLC?pair=${asset.symbol}&interval=${minutes}`;
+      const res         = await fetch(url);
+      const data        = await res.json();
       if (data.error && data.error.length > 0) throw new Error('Kraken error: ' + data.error[0]);
       const pair = Object.keys(data.result).find(k => k !== 'last');
-      return data.result[pair].map(k => ({ time: k[0], open: parseFloat(k[1]), high: parseFloat(k[2]), low: parseFloat(k[3]), close: parseFloat(k[4]) }));
-    } else {
-      const from = new Date(); from.setDate(from.getDate() - 29);
-      const result = await yf.chart(asset.symbol, { interval: '1h', period1: from.toISOString().split('T')[0] });
-      return result.quotes.filter(q => q.open && q.high && q.low && q.close).map(q => ({
-        time: Math.floor(new Date(q.date).getTime() / 1000),
-        open: q.open, high: q.high, low: q.low, close: q.close,
+      return data.result[pair].map(k => ({
+        time:  k[0],
+        open:  parseFloat(k[1]),
+        high:  parseFloat(k[2]),
+        low:   parseFloat(k[3]),
+        close: parseFloat(k[4]),
       }));
+    } else {
+      const from   = new Date(); from.setDate(from.getDate() - 29);
+      const result = await yf.chart(asset.symbol, { interval: '1h', period1: from.toISOString().split('T')[0] });
+      return result.quotes
+        .filter(q => q.open && q.high && q.low && q.close)
+        .map(q => ({
+          time:  Math.floor(new Date(q.date).getTime() / 1000),
+          open:  q.open, high: q.high, low: q.low, close: q.close,
+        }));
     }
   });
 }
@@ -581,6 +600,13 @@ function randomWindow(candles) {
   return { visible: candles.slice(start, start + 80), future: candles.slice(start + 80, start + 100) };
 }
 
+// ── Socket.io ─────────────────────────────────────────────────────
+const TOTAL_ROUNDS  = 10;
+const rooms         = {};
+const finishedRooms = {};
+let   waiting       = null;
+let   totalGamesPlayed = 0;
+
 async function startRoom(socket1, socket2) {
   const shuffled = [...ASSETS].sort(() => Math.random() - 0.5);
   for (const asset of shuffled) {
@@ -590,11 +616,16 @@ async function startRoom(socket1, socket2) {
       const roomId = `room_${Date.now()}`;
       const win    = randomWindow(candles);
       rooms[roomId] = {
-        players: [socket1.id, socket2.id],
-        scores:  { [socket1.id]: 0, [socket2.id]: 0 },
-        names:   { [socket1.id]: socket1.playerName, [socket2.id]: socket2.playerName },
-        round: 1, choices: {}, allCandles: candles,
-        visible: win.visible, future: win.future, asset, usedAssets: [asset.name],
+        players:    [socket1.id, socket2.id],
+        scores:     { [socket1.id]: 0, [socket2.id]: 0 },
+        names:      { [socket1.id]: socket1.playerName, [socket2.id]: socket2.playerName },
+        round:      1,
+        choices:    {},
+        allCandles: candles,
+        visible:    win.visible,
+        future:     win.future,
+        asset,
+        usedAssets: [asset.name],
       };
       socket1.join(roomId); socket2.join(roomId);
       socket1.roomId = roomId; socket2.roomId = roomId;
@@ -612,10 +643,10 @@ async function startRoom(socket1, socket2) {
 function resolveRound(roomId) {
   const room = rooms[roomId];
   if (!room) return;
-  const lastClose  = room.visible[room.visible.length - 1].close;
-  const lastFuture = room.future[room.future.length - 1].close;
-  const pctMove    = (lastFuture - lastClose) / lastClose * 100;
-  const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
+  const lastClose   = room.visible[room.visible.length - 1].close;
+  const lastFuture  = room.future[room.future.length - 1].close;
+  const pctMove     = (lastFuture - lastClose) / lastClose * 100;
+  const direction   = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
   const roundResult = {};
   for (const [pid, choice] of Object.entries(room.choices)) {
     const win = (choice === 'long' && direction === 'up') || (choice === 'short' && direction === 'down') || (choice === 'skip' && direction === 'flat');
@@ -761,10 +792,16 @@ io.on('connection', (socket) => {
           if (!candles || candles.length < 100) continue;
           const win = randomWindow(candles);
           rooms[roomId] = {
-            players: room.players, scores: { [room.players[0]]: 0, [room.players[1]]: 0 },
-            names: room.names, round: 1, choices: {},
-            allCandles: candles, visible: win.visible, future: win.future,
-            asset, usedAssets: [asset.name],
+            players:    room.players,
+            scores:     { [room.players[0]]: 0, [room.players[1]]: 0 },
+            names:      room.names,
+            round:      1,
+            choices:    {},
+            allCandles: candles,
+            visible:    win.visible,
+            future:     win.future,
+            asset,
+            usedAssets: [asset.name],
           };
           delete finishedRooms[roomId];
           const [id1, id2] = room.players;
@@ -789,6 +826,7 @@ io.on('connection', (socket) => {
   });
 });
 
+// ── Cron ──────────────────────────────────────────────────────────
 cron.schedule('0 8 * * *', async () => {
   pushSubscriptions = await loadSubscriptions();
   console.log('Sending to', pushSubscriptions.length, 'subscribers...');
@@ -809,4 +847,5 @@ cron.schedule('0 8 * * *', async () => {
   console.log(`Sent to ${pushSubscriptions.length} subscribers`);
 });
 
+// ── Start ─────────────────────────────────────────────────────────
 httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));

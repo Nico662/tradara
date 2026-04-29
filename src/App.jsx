@@ -62,28 +62,27 @@ function randomAsset(cat = 'all') {
 }
 
 export default function App() {
-  const [screen,      setScreen]     = useState('home');
-  const [category,    setCategory]   = useState('all');
-  const [asset,       setAsset]      = useState(() => randomAsset('all'));
-  const [phase,       setPhase]      = useState('choose');
-  const [result,      setResult]     = useState(null);
-  const [score,       setScore]      = useState(0);
-  const [streak,      setStreak]     = useState(0);
-  const [round,       setRound]      = useState(1);
-  const [history,     setHistory]    = useState([]);
-  const [selected,    setSelected]   = useState(null);
-  const [gameOver,    setGameOver]   = useState(false);
-  const [revealing,   setRevealing]  = useState(false);
-  const [highscore,   setHighscore]  = useState(() => parseInt(localStorage.getItem('tradara_highscore') || '0'));
-  const [dailyStreak, setDailyStreak]= useState(() => parseInt(localStorage.getItem('tradara_daily_streak') || '0'));
-  const [newBadge,    setNewBadge]   = useState(null);
-  const [xp,          setXp]         = useState(() => getXP());
-  const [floatingXP,  setFloatingXP] = useState(null);
+  const [screen,      setScreen]    = useState('home');
+  const [category,    setCategory]  = useState('all');
+  const [asset,       setAsset]     = useState(() => randomAsset('all'));
+  const [phase,       setPhase]     = useState('choose');
+  const [result,      setResult]    = useState(null);
+  const [score,       setScore]     = useState(0);
+  const [streak,      setStreak]    = useState(0);
+  const [round,       setRound]     = useState(1);
+  const [history,     setHistory]   = useState([]);
+  const [selected,    setSelected]  = useState(null);
+  const [gameOver,    setGameOver]  = useState(false);
+  const [revealing,   setRevealing] = useState(false);
+  const [highscore,   setHighscore] = useState(() => parseInt(localStorage.getItem('tradara_highscore') || '0'));
+  const [newBadge,    setNewBadge]  = useState(null);
+  const [xp,          setXp]        = useState(() => getXP());
+  const [floatingXP,  setFloatingXP]= useState(null);
+  const [activeEffect,setActiveEffect] = useState(false);
+
   const { syncProgress, activeCosmetics = {} } = useAuth();
   const { lang, setLang, t } = useLang();
   const chartRef = useRef(null);
-  const [activeEffect, setActiveEffect] = useState(false);
-
 
   function tryUnlockBadge(id) {
     const unlocked = unlockBadge(id);
@@ -108,6 +107,11 @@ export default function App() {
     syncProgress(newXP, badges);
   }
 
+  function triggerEffect() {
+    setActiveEffect(true);
+    setTimeout(() => setActiveEffect(false), 1500);
+  }
+
   function updateDailyStreak() {
     const today      = new Date().toDateString();
     const lastPlayed = localStorage.getItem('tradara_last_played');
@@ -115,7 +119,6 @@ export default function App() {
     if (lastPlayed === today) return;
     const current   = parseInt(localStorage.getItem('tradara_daily_streak') || '0');
     const newStreak = lastPlayed === yesterday ? current + 1 : 1;
-    setDailyStreak(newStreak);
     localStorage.setItem('tradara_daily_streak', String(newStreak));
     localStorage.setItem('tradara_last_played', today);
     if (newStreak >= 3)  tryUnlockBadge('consistent');
@@ -158,6 +161,7 @@ export default function App() {
       }
       setStreak(s => s + 1);
       if (streak >= 2) playStreak(); else playWin();
+      triggerEffect();
       earnXP(10);
       localStorage.setItem('tradara_lose_streak', '0');
     } else if (win && neutral) {
@@ -170,9 +174,7 @@ export default function App() {
       }
       setStreak(s => s + 1);
       playWin();
-      // Efecto cosmético
-      setActiveEffect(true);
-      setTimeout(() => setActiveEffect(false), 1500);
+      triggerEffect();
       earnXP(5);
       localStorage.setItem('tradara_lose_streak', '0');
     } else if (!win && !neutral) {
@@ -269,7 +271,6 @@ export default function App() {
     if (acc === 100 && nonSkips === 25) tryUnlockBadge('perfectionist');
     const catsWon = new Set(history.map((h, i) => h === 'win' ? ASSETS[i % ASSETS.length].cat : null).filter(Boolean));
     if (catsWon.size >= 4) tryUnlockBadge('all_rounder');
-
     setGameOver(false);
     setRound(1);
     setScore(0);
@@ -302,7 +303,6 @@ export default function App() {
       while (history[i + s] === 'win') s++;
       return Math.max(acc, s);
     }, 0);
-
     const level    = getLevel(xp);
     const next     = getNextLevel(xp);
     const progress = getProgress(xp);
@@ -399,14 +399,14 @@ export default function App() {
     return (
       <>
         <Home onSelect={(mode) => {
-          if (mode === 'arena') setScreen('arena');
-          else if (mode === 'legal') setScreen('legal');
-          else if (mode === 'badges') setScreen('badges');
-          else if (mode === 'daily') setScreen('daily');
+          if (mode === 'arena')      setScreen('arena');
+          else if (mode === 'legal')      setScreen('legal');
+          else if (mode === 'badges')     setScreen('badges');
+          else if (mode === 'daily')      setScreen('daily');
           else if (mode === 'historical') setScreen('historical');
           else if (mode === 'tournament') setScreen('tournament');
-          else if (mode === 'survival') setScreen('survival');
-          else if (mode === 'shop') setScreen('shop');
+          else if (mode === 'survival')   setScreen('survival');
+          else if (mode === 'shop')       setScreen('shop');
           else setScreen('game');
         }} />
         <NotificationBanner />
@@ -414,14 +414,14 @@ export default function App() {
     );
   }
 
-  if (screen === 'arena')      return <Arena onBack={() => setScreen('home')} />;
-  if (screen === 'legal')      return <Legal onBack={() => setScreen('home')} />;
-  if (screen === 'badges')     return <Badges onBack={() => setScreen('home')} />;
-  if (screen === 'daily')      return <Daily onBack={() => setScreen('home')} />;
+  if (screen === 'arena')      return <Arena      onBack={() => setScreen('home')} />;
+  if (screen === 'legal')      return <Legal      onBack={() => setScreen('home')} />;
+  if (screen === 'badges')     return <Badges     onBack={() => setScreen('home')} />;
+  if (screen === 'daily')      return <Daily      onBack={() => setScreen('home')} />;
   if (screen === 'historical') return <Historical onBack={() => setScreen('home')} />;
   if (screen === 'tournament') return <Tournament onBack={() => setScreen('home')} />;
-  if (screen === 'survival') return <Survival onBack={() => setScreen('home')} />;
-  if (screen === 'shop') return <Shop onBack={() => setScreen('home')} />;
+  if (screen === 'survival')   return <Survival   onBack={() => setScreen('home')} />;
+  if (screen === 'shop')       return <Shop       onBack={() => setScreen('home')} />;
 
   // ── Game ──────────────────────────────────────────────────────────
   const cls      = result ? (result.win && !result.neutral ? 'win' : !result.win && !result.neutral ? 'lose' : 'neutral') : '';

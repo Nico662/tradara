@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from 'react';
 import { useAuth } from './AuthContext';
+import { useLang } from './LangContext.jsx';
 import Chart from './Chart';
 import { addXP } from './levels.js';
 import { unlockBadge, BADGES } from './badges.js';
@@ -16,6 +17,7 @@ const AVATAR_EMOJIS = {
 
 export default function Tournament({ onBack }) {
   const { user, syncProgress } = useAuth();
+  const { t } = useLang();
   const [phase, setPhase] = useState('loading');
   const [rounds, setRounds] = useState([]);
   const [round, setRound] = useState(0);
@@ -74,7 +76,6 @@ export default function Tournament({ onBack }) {
     const data = await res.json();
     setWeekId(data.weekId);
     setLeaderboard(data.scores);
-
     if (user) {
       const position = data.scores.findIndex(e => e.name === user.name);
       if (position !== -1 && position < 10) {
@@ -101,15 +102,15 @@ export default function Tournament({ onBack }) {
 
   function makeChoice(choice) {
     if (result || revealing) return;
-    const cur = rounds[round];
-    const future = cur.future;
+    const cur        = rounds[round];
+    const future     = cur.future;
     const lastClose  = cur.visible[cur.visible.length - 1].close;
     const lastFuture = future[future.length - 1].close;
     const pctMove    = (lastFuture - lastClose) / lastClose * 100;
     const direction  = pctMove > 0.1 ? 'up' : pctMove < -0.1 ? 'down' : 'flat';
-    const win = (choice === 'long' && direction === 'up')
+    const win = (choice === 'long'  && direction === 'up')
              || (choice === 'short' && direction === 'down')
-             || (choice === 'skip' && direction === 'flat');
+             || (choice === 'skip'  && direction === 'flat');
     const pts = win && choice !== 'skip' ? 100 : win && choice === 'skip' ? 50 : 0;
     setScore(s => s + pts);
     setHistory(h => [...h, { choice, win, pts }]);
@@ -122,10 +123,8 @@ export default function Tournament({ onBack }) {
     if (round + 1 >= rounds.length) {
       const finalScore = score;
       const token = localStorage.getItem('tradara_token');
-
       const cosmetics = JSON.parse(localStorage.getItem('tradara_cosmetics') || '{}');
       const cosmeticAvatar = cosmetics.avatar ? AVATAR_EMOJIS[cosmetics.avatar] : null;
-
       await fetch(`${SERVER}/tournament/score`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
@@ -155,8 +154,8 @@ export default function Tournament({ onBack }) {
       <div style={{ padding: '48px 28px', textAlign: 'center' }}>
         <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← menu</button>
         <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏆</div>
-        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: '#f0f0f0', marginBottom: '8px' }}>Weekly Tournament</div>
-        <div style={{ fontSize: '11px', color: '#4a5568', marginBottom: '32px' }}>Sign in to compete</div>
+        <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '24px', color: '#f0f0f0', marginBottom: '8px' }}>{t.home.mode3}</div>
+        <div style={{ fontSize: '11px', color: '#4a5568', marginBottom: '32px' }}>{t.arena.searching}</div>
         <a href={`${SERVER}/auth/google`} style={{ display: 'inline-block', padding: '12px 24px', background: 'rgba(34,211,165,0.08)', border: '1px solid #22d3a5', borderRadius: '8px', color: '#22d3a5', fontFamily: "'Space Mono', monospace", fontSize: '11px', textDecoration: 'none', fontWeight: 700 }}>
           Sign in with Google
         </a>
@@ -168,14 +167,14 @@ export default function Tournament({ onBack }) {
     return (
       <div style={{ padding: '48px 28px', textAlign: 'center' }}>
         <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer' }}>← menu</button>
-        <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>Loading tournament...</div>
+        <div style={{ fontSize: '11px', color: '#4a5568', fontFamily: "'Space Mono', monospace" }}>{t.game.reading}</div>
       </div>
     );
   }
 
   if (phase === 'already_played' || phase === 'finished') {
     return (
-      <div style={{ position: 'relative', paddingTop: 'calc(52px + env(safe-area-inset-top))', padding: '0 0 32px' }}>
+      <div style={{ position: 'relative', padding: '0 0 32px' }}>
         <button
           onClick={onBack}
           style={{
@@ -197,7 +196,7 @@ export default function Tournament({ onBack }) {
           }}
           onMouseEnter={e => e.currentTarget.style.color = '#e2e8f0'}
           onMouseLeave={e => e.currentTarget.style.color = '#3a4455'}
-        >← menu</button>
+        >← {t.game.menu.replace('← ', '')}</button>
 
         <div style={{ paddingTop: 'calc(52px + env(safe-area-inset-top))', paddingLeft: '28px', paddingRight: '28px' }}>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
@@ -209,7 +208,9 @@ export default function Tournament({ onBack }) {
               <div style={{ marginTop: '8px', fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '32px', color: '#f5c842' }}>{score}</div>
             )}
             {phase === 'already_played' && (
-              <div style={{ marginTop: '8px', fontSize: '11px', color: '#4a5568' }}>Your score: <span style={{ color: '#f5c842', fontWeight: 700 }}>{alreadyScore}</span></div>
+              <div style={{ marginTop: '8px', fontSize: '11px', color: '#4a5568' }}>
+                {t.gameover.finalScore}: <span style={{ color: '#f5c842', fontWeight: 700 }}>{alreadyScore}</span>
+              </div>
             )}
           </div>
 
@@ -232,7 +233,9 @@ export default function Tournament({ onBack }) {
             </div>
           ))}
 
-          <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '9px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>New tournament every Monday</div>
+          <div style={{ textAlign: 'center', marginTop: '16px', fontSize: '9px', color: '#3a4455', fontFamily: "'Space Mono', monospace" }}>
+            New tournament every Monday
+          </div>
         </div>
 
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
@@ -242,20 +245,27 @@ export default function Tournament({ onBack }) {
 
   if (!currentRound) return null;
 
+  const dirLabel = result
+    ? (result.direction === 'up' ? t.game.up : result.direction === 'down' ? t.game.down : t.game.flatDir)
+    : '';
+
   return (
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
-      <button onClick={onBack} style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', zIndex: 10 }}>← menu</button>
+      <button onClick={onBack}
+        style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', zIndex: 10 }}>
+        {t.game.menu}
+      </button>
 
       <div className="header">
-        <div className="logo">🏆 TOURNAMENT</div>
+        <div className="logo">🏆 {t.home.mode3.toUpperCase()}</div>
         <div className="stats-row">
           <div className="stat-item">
-            <span className="stat-label">ROUND</span>
+            <span className="stat-label">{t.game.round}</span>
             <span className="stat-val">{round + 1}/10</span>
           </div>
           <div className="stat-item">
-            <span className="stat-label">SCORE</span>
+            <span className="stat-label">{t.game.score}</span>
             <span className="stat-val yellow">{score}</span>
           </div>
         </div>
@@ -268,29 +278,28 @@ export default function Tournament({ onBack }) {
 
       <div className="chart-area">
         <div className="chart-wrapper">
-          <Chart
-            ref={chartRef}
-            asset={stableAsset}
-            externalCandles={stableCandles}
-          />
+          <Chart ref={chartRef} asset={stableAsset} externalCandles={stableCandles} />
         </div>
       </div>
 
       {!result && (
         <div className="action-zone">
-          <div className="prompt-text">What happens next?</div>
+          <div className="prompt-text">{t.game.whatNext}</div>
           <div className="buttons-row">
             <button className="trade-btn long" onClick={() => makeChoice('long')}>
               <span className="btn-icon">▲</span>
-              <span>Long</span>
+              <span>{t.game.long}</span>
+              <span className="btn-sublabel">{t.game.longSub}</span>
             </button>
             <button className="trade-btn notrade" onClick={() => makeChoice('skip')}>
               <span className="btn-icon">—</span>
-              <span>No Trade</span>
+              <span>{t.game.noTrade}</span>
+              <span className="btn-sublabel">{t.game.noTradeSub}</span>
             </button>
             <button className="trade-btn short" onClick={() => makeChoice('short')}>
               <span className="btn-icon">▼</span>
-              <span>Short</span>
+              <span>{t.game.short}</span>
+              <span className="btn-sublabel">{t.game.shortSub}</span>
             </button>
           </div>
         </div>
@@ -301,10 +310,10 @@ export default function Tournament({ onBack }) {
           <div className={`result-card ${result.win ? 'win' : 'lose'}`}>
             <div className="result-left">
               <div className={`result-verdict ${result.win ? 'win' : 'lose'}`}>
-                {result.win ? 'CORRECT' : 'WRONG'}
+                {result.win ? t.game.correct : t.game.wrong}
               </div>
               <div className="result-detail">
-                {result.direction === 'up' ? '▲ UP' : result.direction === 'down' ? '▼ DOWN' : '— FLAT'} {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}%
+                price {dirLabel} {result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}%
               </div>
             </div>
             <div className={`result-pnl ${result.pts > 0 ? 'pos' : 'neg'}`}>
@@ -312,7 +321,7 @@ export default function Tournament({ onBack }) {
             </div>
             <button className="next-btn" onClick={nextRound} disabled={revealing}
               style={{ opacity: revealing ? 0.3 : 1, cursor: revealing ? 'not-allowed' : 'pointer', flexShrink: 0, minWidth: '80px' }}>
-              {revealing ? '...' : round + 1 >= rounds.length ? 'Finish' : 'Next'}
+              {revealing ? '...' : round + 1 >= rounds.length ? '✓' : t.game.next}
             </button>
           </div>
         </div>

@@ -44,26 +44,26 @@ function randomAsset() {
 }
 
 export default function Survival({ onBack }) {
-  const { t, lang, setLang } = useLang();
+  const { t } = useLang();
   const { syncProgress, activeCosmetics } = useAuth();
 
-  const [phase,      setPhase]      = useState('choose');
-  const [asset,      setAsset]      = useState(() => randomAsset());
-  const [result,     setResult]     = useState(null);
-  const [score,      setScore]      = useState(0);
-  const [streak,     setStreak]     = useState(0);
-  const [lives,      setLives]      = useState(MAX_LIVES);
-  const [round,      setRound]      = useState(1);
-  const [history,    setHistory]    = useState([]);
-  const [selected,   setSelected]   = useState(null);
-  const [gameOver,   setGameOver]   = useState(false);
-  const [revealing,  setRevealing]  = useState(false);
-  const [highscore,  setHighscore]  = useState(() => parseInt(localStorage.getItem('tradara_survival_highscore') || '0'));
-  const [newBadge,   setNewBadge]   = useState(null);
-  const [floatingXP, setFloatingXP] = useState(null);
-  const [liveLost,   setLiveLost]   = useState(false);
+  const [phase,       setPhase]      = useState('choose');
+  const [asset,       setAsset]      = useState(() => randomAsset());
+  const [result,      setResult]     = useState(null);
+  const [score,       setScore]      = useState(0);
+  const [streak,      setStreak]     = useState(0);
+  const [lives,       setLives]      = useState(MAX_LIVES);
+  const [round,       setRound]      = useState(1);
+  const [history,     setHistory]    = useState([]);
+  const [selected,    setSelected]   = useState(null);
+  const [gameOver,    setGameOver]   = useState(false);
+  const [revealing,   setRevealing]  = useState(false);
+  const [highscore,   setHighscore]  = useState(() => parseInt(localStorage.getItem('tradara_survival_highscore') || '0'));
+  const [newBadge,    setNewBadge]   = useState(null);
+  const [floatingXP,  setFloatingXP] = useState(null);
+  const [liveLost,    setLiveLost]   = useState(false);
+  const [activeEffect,setActiveEffect] = useState(false);
   const chartRef = useRef(null);
-  const [activeEffect, setActiveEffect] = useState(false);
 
   function tryUnlockBadge(id) {
     const unlocked = unlockBadge(id);
@@ -84,6 +84,11 @@ export default function Survival({ onBack }) {
     }, 50);
     const badges = JSON.parse(localStorage.getItem('tradara_badges') || '[]');
     syncProgress(newXP, badges);
+  }
+
+  function triggerEffect() {
+    setActiveEffect(true);
+    setTimeout(() => setActiveEffect(false), 1500);
   }
 
   const makeChoice = useCallback((choice) => {
@@ -109,7 +114,7 @@ export default function Survival({ onBack }) {
                  || (choice === 'skip'  && direction === 'flat');
     const neutral = choice === 'skip';
 
-    let pts = 0;
+    let pts      = 0;
     let newLives = lives;
 
     if (win && !neutral) {
@@ -124,8 +129,7 @@ export default function Survival({ onBack }) {
       });
       setStreak(s => s + 1);
       if (streak >= 2) playStreak(); else playWin();
-      setActiveEffect(true);
-      setTimeout(() => setActiveEffect(false), 1500);
+      triggerEffect();
       earnXP(10);
     } else if (win && neutral) {
       pts = 50;
@@ -139,11 +143,9 @@ export default function Survival({ onBack }) {
       });
       setStreak(s => s + 1);
       playWin();
-      setActiveEffect(true);
-      setTimeout(() => setActiveEffect(false), 1500);
+      triggerEffect();
       earnXP(5);
     } else if (!win && !neutral) {
-      pts = 0;
       newLives = lives - 1;
       setLives(newLives);
       setStreak(0);
@@ -154,10 +156,9 @@ export default function Survival({ onBack }) {
 
     if (win && streak + 1 >= 5)  tryUnlockBadge('sniper');
     if (win && streak + 1 >= 10) tryUnlockBadge('on_fire');
-    // Survival badges
- if (round >= 20) tryUnlockBadge('survivor');
- if (round >= 50 && lives === MAX_LIVES) tryUnlockBadge('immortal');
- if (lives === 1 && !win && !neutral) tryUnlockBadge('last_stand');
+    if (round >= 20)                              tryUnlockBadge('survivor');
+    if (round >= 50 && lives === MAX_LIVES)       tryUnlockBadge('immortal');
+    if (lives === 1 && !win && !neutral)          tryUnlockBadge('last_stand');
 
     const outcome = win && !neutral ? 'win' : !win && !neutral ? 'lose' : 'skip';
     setHistory(h => [...h, outcome]);
@@ -204,12 +205,11 @@ export default function Survival({ onBack }) {
       <div id="gtm-root" style={{ position: 'relative' }}>
         <div className="scanlines" />
         <div style={{ padding: '40px 28px 36px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
-
           <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '36px', color: '#f05454', marginBottom: '4px' }}>
             {t.survival.gameOver}
           </div>
           <div style={{ fontSize: '10px', color: '#3a4455', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '32px' }}>
-           survival mode · {round - 1} {t.survival.roundsSurvived}
+            survival mode · {round - 1} {t.survival.roundsSurvived}
           </div>
 
           <div style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '12px', padding: '28px 24px', marginBottom: '20px' }}>
@@ -228,9 +228,9 @@ export default function Survival({ onBack }) {
 
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '20px', marginBottom: '16px' }}>
               {[
-                { label: 'rounds',    value: round - 1,      color: '#e2e8f0' },
-                { label: 'correct',   value: wins,           color: '#22d3a5' },
-                { label: 'accuracy',  value: accuracy + '%', color: '#f5c842' },
+                { label: 'rounds',   value: round - 1,      color: '#e2e8f0' },
+                { label: 'correct',  value: wins,           color: '#22d3a5' },
+                { label: 'accuracy', value: accuracy + '%', color: '#f5c842' },
               ].map(s => (
                 <div key={s.label} style={{ background: '#0a0c0f', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px 8px' }}>
                   <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
@@ -271,12 +271,11 @@ export default function Survival({ onBack }) {
         style={{ position: 'absolute', top: 'calc(14px + env(safe-area-inset-top))', left: '16px', background: 'transparent', border: 'none', color: '#3a4455', fontFamily: "'Space Mono', monospace", fontSize: '11px', cursor: 'pointer', letterSpacing: '0.06em', zIndex: 10, padding: '4px 0', transition: 'color 0.15s' }}
         onMouseEnter={e => e.target.style.color = '#e2e8f0'}
         onMouseLeave={e => e.target.style.color = '#3a4455'}
-      >← menu</button>
+      >{t.survival.back}</button>
 
       <div className="header">
-        <div className="logo">SURVIVAL</div>
+        <div className="logo">☠️ {t.survival.title}</div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-          {/* Vidas */}
           <div style={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
             {Array.from({ length: MAX_LIVES }, (_, i) => (
               <span key={i} style={{
@@ -289,7 +288,7 @@ export default function Survival({ onBack }) {
           </div>
           <div className="stats-row">
             <div className="stat-item">
-              <span className="stat-label">ROUND</span>
+              <span className="stat-label">{t.game.round}</span>
               <span className="stat-val">{round}</span>
             </div>
             <div className="stat-item">
@@ -352,41 +351,41 @@ export default function Survival({ onBack }) {
       )}
 
       {result && (
-  <div className="result-overlay">
-    <div className={`result-card ${cls}`}>
-      <div className="result-left">
-        <div className={`result-verdict ${cls}`}>
-          {result.win && !result.neutral ? t.game.correct : !result.win && !result.neutral ? t.game.wrong : t.game.flat}
+        <div className="result-overlay">
+          <div className={`result-card ${cls}`}>
+            <div className="result-left">
+              <div className={`result-verdict ${cls}`}>
+                {result.win && !result.neutral ? t.game.correct : !result.win && !result.neutral ? t.game.wrong : t.game.flat}
+              </div>
+              <div className="result-detail">
+                price {dirLabel} &nbsp;{result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}% · you: {result.choice.toUpperCase()}
+                {!result.win && !result.neutral && (
+                  <span style={{ color: '#f05454', marginLeft: '8px' }}>
+                    {result.livesLeft > 0 ? `❤️ ${result.livesLeft} left` : '💀 game over'}
+                  </span>
+                )}
+              </div>
+            </div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, marginLeft: 'auto' }}>
+              <div className={`result-pnl ${result.pts > 0 ? 'pos' : 'zero'}`}>
+                {result.pts > 0 ? '+' + result.pts : '✕'}
+              </div>
+              {result.livesLeft > 0 && (
+                <button className="next-btn" onClick={nextRound} disabled={revealing}
+                  style={{ opacity: revealing ? 0.3 : 1, cursor: revealing ? 'not-allowed' : 'pointer' }}>
+                  {revealing ? '...' : t.game.next}
+                </button>
+              )}
+            </div>
+          </div>
         </div>
-        <div className="result-detail">
-          price {dirLabel} &nbsp;{result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}% · you: {result.choice.toUpperCase()}
-          {!result.win && !result.neutral && (
-            <span style={{ color: '#f05454', marginLeft: '8px' }}>
-              {result.livesLeft > 0 ? `❤️ ${result.livesLeft} left` : '💀 game over'}
-            </span>
-          )}
-        </div>
-      </div>
-      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0 , marginLeft: 'auto'}}>
-        <div className={`result-pnl ${result.pts > 0 ? 'pos' : 'zero'}`}>
-          {result.pts > 0 ? '+' + result.pts : '✕'}
-        </div>
-        {result.livesLeft > 0 && (
-          <button className="next-btn" onClick={nextRound} disabled={revealing}
-            style={{ opacity: revealing ? 0.3 : 1, cursor: revealing ? 'not-allowed' : 'pointer'}}>
-            {revealing ? '...' : t.game.next}
-          </button>
-        )}
-      </div>
-    </div>
-  </div>
- )}
+      )}
 
       <div style={{ padding: '12px 20px', borderTop: '1px solid #1e2530', display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', position: 'relative', zIndex: 2 }}>
         {[
-          { label: 'CORRECT',  value: history.filter(h => h === 'win').length,  color: '#22d3a5' },
-          { label: 'WRONG',    value: history.filter(h => h === 'lose').length, color: '#f05454' },
-          { label: 'BEST',     value: highscore, color: '#f5c842' },
+          { label: 'CORRECT', value: history.filter(h => h === 'win').length,  color: '#22d3a5' },
+          { label: 'WRONG',   value: history.filter(h => h === 'lose').length, color: '#f05454' },
+          { label: 'BEST',    value: highscore,                                color: '#f5c842' },
         ].map(s => (
           <div key={s.label} style={{ background: '#0f141b', border: '1px solid #1e2530', borderRadius: '8px', padding: '10px 8px', textAlign: 'center' }}>
             <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
@@ -410,7 +409,7 @@ export default function Survival({ onBack }) {
         </div>
       )}
 
-     {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
+      {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
 
       {activeEffect && activeCosmetics.effect && (
         <div style={{

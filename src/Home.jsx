@@ -18,9 +18,15 @@ const FRAME_STYLES = {
   frame_diamond: { border: '2px solid #8899b0', boxShadow: '0 0 8px rgba(136,153,176,0.6)' },
 };
 
+const TOURNAMENT_SUB = {
+  en: 'Weekly · Global ranking · 10 rounds',
+  es: 'Semanal · Ranking global · 10 rondas',
+  de: 'Wöchentlich · Globales Ranking · 10 Runden',
+};
+
 export default function Home({ onSelect }) {
   const { lang, setLang, t } = useLang();
-  const [dailyStreak] = useState(() => parseInt(localStorage.getItem('tradara_daily_streak_count') || '0'));
+  const [dailyStreak] = useState(() => parseInt(localStorage.getItem('tradara_daily_streak') || '0'));
   const unlockedCount = getUnlocked().length;
   const xp    = getXP();
   const level = getLevel(xp);
@@ -31,8 +37,7 @@ export default function Home({ onSelect }) {
   useEffect(() => {
     const fetchStats = async () => {
       try {
-        const res  = await fetch('https://tradara-production.up.railway.app/stats');
-        const data = await res.json();
+        await fetch('https://tradara-production.up.railway.app/stats');
       } catch {}
     };
     fetchStats();
@@ -185,7 +190,7 @@ export default function Home({ onSelect }) {
               <span className="mode-icon">🏆</span>
               <div>
                 <div className="mode-title">{t.home.mode3}</div>
-                <div className="mode-sub">Weekly · Global ranking · 10 rounds</div>
+                <div className="mode-sub">{TOURNAMENT_SUB[lang]}</div>
               </div>
             </div>
             <span className="mode-arrow">→</span>
