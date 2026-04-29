@@ -269,7 +269,11 @@ const futureMapped = cleanFuture.map((c, i) => {
         : asset.tf === '15m' ? '15m'
         : '1d';
 
-      const loadCandles = asset._dailyVisible
+      const isOnline = navigator.onLine;
+
+       const loadCandles = !isOnline
+        ? Promise.resolve(generateCandles(700, asset.base(), asset.vol))
+        : asset._dailyVisible
         ? Promise.resolve([...asset._dailyVisible, ...asset._dailyFuture])
         : asset.binance
         ? fetchBinanceCandles(asset.binance, interval, 700)
