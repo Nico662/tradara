@@ -58,6 +58,7 @@ const ScoreSchema = new mongoose.Schema({
   score:     { type: Number, default: 0 },
   rounds:    { type: Array, default: [] },
   createdAt: { type: Date, default: Date.now },
+  cosmeticAvatar: { type: String, default: null },
 });
 
 ScoreSchema.index({ weekId: 1, userId: 1 }, { unique: true });
@@ -433,7 +434,7 @@ app.post('/tournament/score', express.json(), async (req, res) => {
     const existing = await Score.findOne({ weekId, userId: user._id });
     if (existing) return res.status(400).json({ error: 'Already played this week' });
     const { score, rounds } = req.body;
-    await Score.create({ weekId, userId: user._id, name: user.name, avatar: user.avatar, score, rounds });
+    await Score.create({ weekId, userId: user._id, name: user.name, avatar: user.avatar, score, rounds, cosmeticAvatar: req.body.cosmeticAvatar || null });
     res.json({ ok: true });
   } catch (err) {
     res.status(500).json({ error: err.message });

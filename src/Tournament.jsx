@@ -7,6 +7,13 @@ import BadgeNotification from './BadgeNotification.jsx';
 
 const SERVER = 'https://tradara-production.up.railway.app';
 
+const AVATAR_EMOJIS = {
+  avatar_bull:  '🐂',
+  avatar_bear:  '🐻',
+  avatar_whale: '🐋',
+  avatar_robot: '🤖',
+};
+
 export default function Tournament({ onBack }) {
   const { user, syncProgress } = useAuth();
   const [phase, setPhase] = useState('loading');
@@ -115,10 +122,14 @@ export default function Tournament({ onBack }) {
     if (round + 1 >= rounds.length) {
       const finalScore = score;
       const token = localStorage.getItem('tradara_token');
+
+      const cosmetics = JSON.parse(localStorage.getItem('tradara_cosmetics') || '{}');
+      const cosmeticAvatar = cosmetics.avatar ? AVATAR_EMOJIS[cosmetics.avatar] : null;
+
       await fetch(`${SERVER}/tournament/score`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ score: finalScore, rounds: history }),
+        body: JSON.stringify({ score: finalScore, rounds: history, cosmeticAvatar }),
       });
       const xpGained = Math.floor(finalScore / 10);
       const newXP = addXP(xpGained);
@@ -209,7 +220,13 @@ export default function Tournament({ onBack }) {
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: i === 0 ? '#f5c842' : i === 1 ? '#8899b0' : i === 2 ? '#cd7f32' : '#3a4455', width: '24px' }}>
                 {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
               </div>
-              {entry.avatar && <img src={entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%' }} />}
+              {entry.cosmeticAvatar ? (
+                <div style={{ width: '24px', height: '24px', borderRadius: '50%', background: '#0f141b', border: '1px solid #22d3a5', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px', flexShrink: 0 }}>
+                  {entry.cosmeticAvatar}
+                </div>
+              ) : entry.avatar ? (
+                <img src={entry.avatar} style={{ width: '24px', height: '24px', borderRadius: '50%', flexShrink: 0 }} />
+              ) : null}
               <div style={{ flex: 1, fontFamily: "'Syne', sans-serif", fontWeight: 700, fontSize: '12px', color: '#f0f0f0' }}>{entry.name}</div>
               <div style={{ fontFamily: "'Syne', sans-serif", fontWeight: 800, fontSize: '16px', color: '#22d3a5' }}>{entry.score}</div>
             </div>
