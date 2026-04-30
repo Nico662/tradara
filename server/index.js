@@ -846,6 +846,38 @@ cron.schedule('0 8 * * *', async () => {
   await Promise.all(promises);
   console.log(`Sent to ${pushSubscriptions.length} subscribers`);
 });
-
+app.get('/stats/dashboard', async (req, res) => {
+  try {
+    const users  = await User.aggregate([
+      { $group: {
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+        count: { $sum: 1 }
+      }},
+      { $sort: { _id: 1 } }
+    ]);
+    const scores = await Score.aggregate([
+      { $group: {
+        _id: { $dateToString: { format: '%Y-%m-%d', date: '$createdAt' } },
+        count: { $sum: 1 },
+        avgScore: { $avg: '$score' }
+      }},
+      { $sort: { _id: 1 } }
+    ]);
+    const purchases = await User.aggregate([
+      { $unwind: '$purchases' },
+      { $group: { _id: '$purchases', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+    const totalUsers     = await User.countDocuments();
+    const totalScores    = await Score.countDocuments();
+    const totalPurchases = await User.aggregate([
+      { $project: { count: { $size: '$purchases' } } },
+      { $group: { _id: null, total: { $sum: '$count' } } }
+    ]);
+    res.json({ users, scores, purchases, totalUsers, totalScores, totalPurchases: totalPurchases[0]?.total || 0 });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
+});
 // ── Start ─────────────────────────────────────────────────────────
 httpServer.listen(PORT, () => console.log(`Server running on port ${PORT}`));
