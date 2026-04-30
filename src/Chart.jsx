@@ -248,10 +248,9 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
             low:   parseFloat(c.low),
             close: parseFloat(c.close),
           }));
-        const dates = cleaned.map(c => new Date(c.time * 1000).toDateString());
-        const hasDuplicateDates = dates.length !== new Set(dates).size;
-        isUnixRef.current = hasDuplicateDates;
-        const mapped = hasDuplicateDates ? toChartDataForex(cleaned, 0) : toChartData(cleaned, 0);
+        const isForex = FOREX.includes(asset.name);
+        isUnixRef.current = isForex;
+        const mapped = isForex ? toChartDataForex(cleaned, 0) : toChartData(cleaned, 0);
         allCandlesRef.current = cleaned;
         candlesRef.current    = cleaned;
         revealPoolRef.current = [];
