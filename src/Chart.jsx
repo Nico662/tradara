@@ -35,7 +35,6 @@ async function fetchYahooCandles(symbol, interval) {
   const res  = await fetch(`https://tradara-production.up.railway.app/candles?symbol=${encodeURIComponent(symbol)}&interval=${interval}`);
   const data = await res.json();
   if (data.error) throw new Error(data.error);
-  return data;
 }
 
 async function fetchAlphaVantageCandles(symbol, interval) {
@@ -105,7 +104,7 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
   const candlesRef    = useRef([]);
   const revealPoolRef = useRef([]);
   const isForexRef    = useRef(false);
-  const isUnixRef     = useRef(false);
+  const isUnixRef     = useRef(false); // ← añadir esta ref
   const allCandlesRef = useRef([]);
 
   useImperativeHandle(ref, () => ({
@@ -134,7 +133,7 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
 
     revealFuture(futureCandles, onDone) {
       if (!seriesRef.current) return;
-
+      const forex = isForexRef.current;
       const fn = (isForexRef.current || isUnixRef.current) ? toChartDataForex : toChartData;
 
       const cleanFuture = futureCandles.filter(c =>
@@ -144,23 +143,22 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
         c.close != null && c.close > 0
       );
 
-      const existing    = fn(candlesRef.current, 0);
-      const lastTime    = existing[existing.length - 1]?.time;
-      const useUnixTime = isForexRef.current || isUnixRef.current;
+      const existing = fn(candlesRef.current, 0);
+const lastTime = existing[existing.length - 1]?.time;
+const useUnixTime = isForexRef.current || isUnixRef.current;
 
-      const futureMapped = cleanFuture.map((c, i) => {
-        let time;
-        if (useUnixTime) {
-          const baseTime = typeof lastTime === 'number' ? lastTime : Math.floor(Date.now() / 1000);
-          time = baseTime + (i + 1) * 3600;
-        } else {
-          const base = lastTime ? new Date(lastTime) : new Date();
-          base.setDate(base.getDate() + i + 1);
-          time = `${base.getFullYear()}-${String(base.getMonth()+1).padStart(2,'0')}-${String(base.getDate()).padStart(2,'0')}`;
-        }
-        return { time, open: c.open, high: c.high, low: c.low, close: c.close };
-      });
-
+const futureMapped = cleanFuture.map((c, i) => {
+  let time;
+  if (forex || useUnixTime) {
+    const baseTime = typeof lastTime === 'number' ? lastTime : Math.floor(Date.now() / 1000);
+    time = baseTime + (i + 1) * 3600;
+  } else {
+    const base = lastTime ? new Date(lastTime) : new Date();
+    base.setDate(base.getDate() + i + 1);
+    time = `${base.getFullYear()}-${String(base.getMonth()+1).padStart(2,'0')}-${String(base.getDate()).padStart(2,'0')}`;
+  }
+  return { time, open: c.open, high: c.high, low: c.low, close: c.close };
+});
       let i = 0;
       const interval = setInterval(() => {
         if (!seriesRef.current || i >= futureMapped.length) {
@@ -204,11 +202,11 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
         },
         rightPriceScale: { borderColor: 'transparent' },
         timeScale: {
-          borderColor:  'transparent',
-          barSpacing:   6,
-          rightOffset:  3,
-          timeVisible:  false,
-          visible:      false,
+          borderColor: 'transparent',
+          barSpacing:  6,
+          rightOffset: 3,
+          timeVisible: false,
+          visible:     false,
           fixLeftEdge:  true,
           fixRightEdge: false,
         },
@@ -238,32 +236,33 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
       chartRef.current  = chart;
       seriesRef.current = series;
 
-      if (externalCandles && externalCandles.length > 0) {
-        const cleaned = externalCandles
-          .filter(c => c && parseFloat(c.open) > 0 && parseFloat(c.high) > 0 && parseFloat(c.low) > 0 && parseFloat(c.close) > 0)
-          .map(c => ({
-            time:  c.time,
-            open:  parseFloat(c.open),
-            high:  parseFloat(c.high),
-            low:   parseFloat(c.low),
-            close: parseFloat(c.close),
-          }));
-        const dates = cleaned.map(c => new Date(c.time * 1000).toDateString());
-        const hasDuplicateDates = dates.length !== new Set(dates).size;
-        isUnixRef.current = hasDuplicateDates;
-        const mapped = hasDuplicateDates ? toChartDataForex(cleaned, 0) : toChartData(cleaned, 0);
-        allCandlesRef.current = cleaned;
-        candlesRef.current    = cleaned;
-        revealPoolRef.current = [];
-        series.setData(mapped);
-        chart.timeScale().fitContent();
-        ro = new ResizeObserver(() => {
-          if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth });
-        });
-        ro.observe(containerRef.current);
-        return;
-      }
+      const fn = forex ? toChartDataForex : toChartData;
 
+     if (externalCandles && externalCandles.length > 0) {
+  const cleaned = externalCandles
+    .filter(c => c && parseFloat(c.open) > 0 && parseFloat(c.high) > 0 && parseFloat(c.low) > 0 && parseFloat(c.close) > 0)
+    .map(c => ({
+      time:  c.time,
+      open:  parseFloat(c.open),
+      high:  parseFloat(c.high),
+      low:   parseFloat(c.low),
+      close: parseFloat(c.close),
+    }));
+  const dates = cleaned.map(c => new Date(c.time * 1000).toDateString());
+  const hasDuplicateDates = dates.length !== new Set(dates).size;
+  isUnixRef.current = hasDuplicateDates; // ← guardar si usamos Unix
+  const mapped = hasDuplicateDates ? toChartDataForex(cleaned, 0) : toChartData(cleaned, 0);
+  allCandlesRef.current = cleaned;
+  candlesRef.current    = cleaned;
+  revealPoolRef.current = [];
+  series.setData(mapped);
+  chart.timeScale().fitContent();
+  ro = new ResizeObserver(() => {
+    if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth });
+  });
+  ro.observe(containerRef.current);
+  return;
+}
       const interval = asset.forex ? '1h'
         : asset.tf === '1m'  ? '1m'
         : asset.tf === '5m'  ? '5m'
@@ -272,7 +271,7 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
 
       const isOnline = navigator.onLine;
 
-      const loadCandles = !isOnline
+       const loadCandles = !isOnline
         ? Promise.resolve(generateCandles(700, asset.base(), asset.vol))
         : asset._dailyVisible
         ? Promise.resolve([...asset._dailyVisible, ...asset._dailyFuture])
@@ -285,37 +284,32 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
         : Promise.resolve(generateCandles(700, asset.base(), asset.vol));
 
       loadCandles.then(candles => {
-        allCandlesRef.current = candles;
-        if (candles.length > 1 && typeof candles[0].time === 'number') {
-          if (FOREX.includes(asset.name)) {
-            // Forex Yahoo usa timestamps horarios — siempre usar toChartDataForex
-            isUnixRef.current = true;
-          } else {
-            // Crypto/indices — detectar si hay múltiples velas por día (intraday)
-            const dates = candles.slice(0, 20).map(c => new Date(c.time * 1000).toDateString());
-            isUnixRef.current = dates.length !== new Set(dates).size;
-          }
-        }
-        const fnFinal = (isForexRef.current || isUnixRef.current) ? toChartDataForex : toChartData;
-        if (asset._dailyVisible) {
-          candlesRef.current    = asset._dailyVisible;
-          revealPoolRef.current = asset._dailyFuture;
-        } else {
-          const maxStart = Math.max(0, candles.length - 100);
-          const start    = Math.floor(Math.random() * maxStart);
-          candlesRef.current    = candles.slice(start, start + 80);
-          revealPoolRef.current = candles.slice(start + 80, start + 100);
-        }
-        series.setData(fnFinal(candlesRef.current, 0));
-        chart.timeScale().fitContent();
-      }).catch(() => {
-        const candles = generateCandles(500, asset.base(), asset.vol);
-        allCandlesRef.current = candles;
-        candlesRef.current    = candles.slice(0, 80);
-        revealPoolRef.current = candles.slice(80, 100);
-        series.setData(toChartData(candlesRef.current, 0));
-        chart.timeScale().fitContent();
-      });
+  allCandlesRef.current = candles;
+  // detectar si las velas usan Unix timestamps intraday
+  if (candles.length > 1 && typeof candles[0].time === 'number') {
+    const dates = candles.slice(0, 10).map(c => new Date(c.time * 1000).toDateString());
+    isUnixRef.current = dates.length !== new Set(dates).size;
+  }
+  const fnFinal = (isForexRef.current || isUnixRef.current) ? toChartDataForex : toChartData;
+  if (asset._dailyVisible) {
+    candlesRef.current    = asset._dailyVisible;
+    revealPoolRef.current = asset._dailyFuture;
+  } else {
+    const maxStart = Math.max(0, candles.length - 100);
+    const start = Math.floor(Math.random() * maxStart);
+    candlesRef.current    = candles.slice(start, start + 80);
+    revealPoolRef.current = candles.slice(start + 80, start + 100);
+  }
+  series.setData(fnFinal(candlesRef.current, 0));
+  chart.timeScale().fitContent();
+}).catch(() => {
+  const candles = generateCandles(500, asset.base(), asset.vol);
+  allCandlesRef.current = candles;
+  candlesRef.current    = candles.slice(0, 80);
+  revealPoolRef.current = candles.slice(80, 100);
+  series.setData(toChartData(candlesRef.current, 0));
+  chart.timeScale().fitContent();
+});
 
       ro = new ResizeObserver(() => {
         if (containerRef.current) chart.applyOptions({ width: containerRef.current.clientWidth });
