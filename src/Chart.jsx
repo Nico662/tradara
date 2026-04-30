@@ -204,11 +204,11 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
         },
         rightPriceScale: { borderColor: 'transparent' },
         timeScale: {
-          borderColor: 'transparent',
-          barSpacing:  6,
-          rightOffset: 3,
-          timeVisible: false,
-          visible:     false,
+          borderColor:  'transparent',
+          barSpacing:   6,
+          rightOffset:  3,
+          timeVisible:  false,
+          visible:      false,
           fixLeftEdge:  true,
           fixRightEdge: false,
         },
@@ -248,9 +248,10 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
             low:   parseFloat(c.low),
             close: parseFloat(c.close),
           }));
-        const isForex = FOREX.includes(asset.name);
-        isUnixRef.current = isForex;
-        const mapped = isForex ? toChartDataForex(cleaned, 0) : toChartData(cleaned, 0);
+        const dates = cleaned.map(c => new Date(c.time * 1000).toDateString());
+        const hasDuplicateDates = dates.length !== new Set(dates).size;
+        isUnixRef.current = hasDuplicateDates;
+        const mapped = hasDuplicateDates ? toChartDataForex(cleaned, 0) : toChartData(cleaned, 0);
         allCandlesRef.current = cleaned;
         candlesRef.current    = cleaned;
         revealPoolRef.current = [];
@@ -286,7 +287,14 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
       loadCandles.then(candles => {
         allCandlesRef.current = candles;
         if (candles.length > 1 && typeof candles[0].time === 'number') {
-          isUnixRef.current = FOREX.includes(asset.name);
+          if (FOREX.includes(asset.name)) {
+            // Forex Yahoo usa timestamps horarios — siempre usar toChartDataForex
+            isUnixRef.current = true;
+          } else {
+            // Crypto/indices — detectar si hay múltiples velas por día (intraday)
+            const dates = candles.slice(0, 20).map(c => new Date(c.time * 1000).toDateString());
+            isUnixRef.current = dates.length !== new Set(dates).size;
+          }
         }
         const fnFinal = (isForexRef.current || isUnixRef.current) ? toChartDataForex : toChartData;
         if (asset._dailyVisible) {
