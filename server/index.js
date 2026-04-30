@@ -845,8 +845,9 @@ cron.schedule('0 8 * * *', async () => {
   );
   await Promise.all(promises);
   console.log(`Sent to ${pushSubscriptions.length} subscribers`);
-});
-app.get('/stats/dashboard', async (req, res) => {
+ });
+ app.get('/stats/dashboard', async (req, res) => {
+  res.header('Access-Control-Allow-Origin', '*');
   try {
     const users  = await User.aggregate([
       { $group: {
