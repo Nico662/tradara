@@ -286,8 +286,7 @@ const Chart = forwardRef(function Chart({ asset, externalCandles }, ref) {
       loadCandles.then(candles => {
         allCandlesRef.current = candles;
         if (candles.length > 1 && typeof candles[0].time === 'number') {
-          const dates = candles.slice(0, 10).map(c => new Date(c.time * 1000).toDateString());
-          isUnixRef.current = dates.length !== new Set(dates).size;
+          isUnixRef.current = FOREX.includes(asset.name);
         }
         const fnFinal = (isForexRef.current || isUnixRef.current) ? toChartDataForex : toChartData;
         if (asset._dailyVisible) {
