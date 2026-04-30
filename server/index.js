@@ -872,7 +872,7 @@ cron.schedule('0 8 * * *', async () => {
     const totalUsers     = await User.countDocuments();
     const totalScores    = await Score.countDocuments();
     const totalPurchases = await User.aggregate([
-      { $project: { count: { $size: '$purchases' } } },
+      { $project: { count: { $size: { $ifNull: ['$purchases', []] } } } },
       { $group: { _id: null, total: { $sum: '$count' } } }
     ]);
     res.json({ users, scores, purchases, totalUsers, totalScores, totalPurchases: totalPurchases[0]?.total || 0 });
