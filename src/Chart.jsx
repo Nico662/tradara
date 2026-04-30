@@ -248,10 +248,11 @@ const futureMapped = cleanFuture.map((c, i) => {
       low:   parseFloat(c.low),
       close: parseFloat(c.close),
     }));
+  const isForexAsset = FOREX.includes(asset.name);
   const dates = cleaned.map(c => new Date(c.time * 1000).toDateString());
   const hasDuplicateDates = dates.length !== new Set(dates).size;
-  isUnixRef.current = hasDuplicateDates; // ← guardar si usamos Unix
-  const mapped = hasDuplicateDates ? toChartDataForex(cleaned, 0) : toChartData(cleaned, 0);
+  isUnixRef.current = isForexAsset || hasDuplicateDates;
+  const mapped = (isForexAsset || hasDuplicateDates) ? toChartDataForex(cleaned, 0) : toChartData(cleaned, 0);
   allCandlesRef.current = cleaned;
   candlesRef.current    = cleaned;
   revealPoolRef.current = [];
