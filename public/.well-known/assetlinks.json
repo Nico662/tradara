@@ -1,0 +1,8 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.tradiko.app",
+    "sha256_cert_fingerprints": ["65:6E:DF:4C:49:A2:86:FD:A9:66:7D:CC:00:31:E5:27:56:E1:58:77:CA:8B:D4:84:9F:B5:B4:7B:20:5E:87:6F"]
+  }
+}]
