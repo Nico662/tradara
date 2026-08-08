@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { SERVER } from './config.js';
 import { useAuth } from './AuthContext.jsx';
+import { Zap } from 'lucide-react';
 
 export default function NotificationBanner() {
   const [show, setShow] = useState(false);
@@ -70,7 +71,7 @@ export default function NotificationBanner() {
       animation: 'slideUp 0.3s ease',
     }}>
       <div style={{ display: 'flex', alignItems: 'flex-start', gap: '12px' }}>
-        <div style={{ fontSize: '24px' }}>⚡</div>
+        <div><Zap size={24} strokeWidth={2} aria-hidden style={{ stroke: 'var(--green)' }} /></div>
         <div style={{ flex: 1 }}>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)', marginBottom: '4px' }}>
             Daily Challenge notifications

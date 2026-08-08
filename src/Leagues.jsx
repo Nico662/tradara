@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
 import { SERVER } from './config.js';
+import { Trophy } from 'lucide-react';
 
 export default function Leagues({ onOpenLeague, onBack }) {
   const { user } = useAuth();
@@ -72,7 +73,7 @@ export default function Leagues({ onOpenLeague, onBack }) {
 
   if (!tok || !user) return (
     <div style={{ padding: '60px 20px', textAlign: 'center' }}>
-      <div style={{ fontSize: '32px', marginBottom: '12px' }}>🏆</div>
+      <div style={{ marginBottom: '12px' }}><Trophy size={32} strokeWidth={2} aria-hidden style={{ stroke: 'var(--color-neutral)' }} /></div>
       <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>{tl.signIn}</div>
     </div>
   );
@@ -98,7 +99,7 @@ export default function Leagues({ onOpenLeague, onBack }) {
           <div style={{ textAlign: 'center', padding: '40px', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '12px' }}>...</div>
         ) : leagues.length === 0 ? (
           <div style={{ textAlign: 'center', padding: '40px 20px' }}>
-            <div style={{ fontSize: '32px', marginBottom: '12px' }}>🏆</div>
+            <div style={{ marginBottom: '12px' }}><Trophy size={32} strokeWidth={2} aria-hidden style={{ stroke: 'var(--color-neutral)' }} /></div>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>{tl.empty}</div>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', marginTop: '6px' }}>{tl.emptySub}</div>
           </div>

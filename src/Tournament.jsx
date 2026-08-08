@@ -6,6 +6,7 @@ import Chart from './Chart';
 import { addXP } from './levels.js';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
+import { Trophy } from 'lucide-react';
 import EffectOverlay from './EffectOverlay.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
 
@@ -237,7 +238,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
     return (
       <div style={{ padding: '48px 28px', textAlign: 'center' }}>
         <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>{t.common.menu}</button>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏆</div>
+        <div style={{ marginBottom: '16px' }}><Trophy size={48} strokeWidth={2} aria-hidden style={{ stroke: 'var(--color-neutral)' }} /></div>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '24px', color: 'var(--text-primary)', marginBottom: '8px' }}>{t.home.mode3}</div>
         <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '32px' }}>{t.arena.searching}</div>
         <a href={`${SERVER}/auth/google`} style={{ display: 'inline-block', padding: '12px 24px', background: 'var(--green-dim)', border: '1px solid var(--border-green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', textDecoration: 'none', fontWeight: 700 }}>
@@ -266,7 +267,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
 
         <div style={{ paddingTop: 'calc(52px + env(safe-area-inset-top))', paddingLeft: '28px', paddingRight: '28px' }}>
           <div style={{ textAlign: 'center', marginBottom: '24px' }}>
-            <div style={{ fontSize: '32px', marginBottom: '8px' }}>🏆</div>
+            <div style={{ marginBottom: '8px' }}><Trophy size={32} strokeWidth={2} aria-hidden style={{ stroke: 'var(--color-neutral)' }} /></div>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--text-primary)' }}>
               {academyTournamentId && academyTournamentData ? academyTournamentData.name : formatWeekId(weekId)}
             </div>
@@ -420,7 +421,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
 
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--text-primary)', letterSpacing: '0.08em', lineHeight: 1 }}>
-            🏆 {t.home.mode3.toUpperCase()}
+            <Trophy size={16} strokeWidth={2} aria-hidden style={{ display: 'inline', verticalAlign: 'middle' }} /> {t.home.mode3.toUpperCase()}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
             {t.tournament.mode}

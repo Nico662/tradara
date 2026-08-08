@@ -1,6 +1,7 @@
 import { useLang } from './LangContext';
 import { useState, useEffect, useRef } from 'react';
-import { ShoppingBag, Users, Settings } from 'lucide-react';
+import { ShoppingBag, Users, Settings, Trophy, Briefcase, Zap } from 'lucide-react';
+import { ModeIcon, StreakIcon, ProIcon } from './components/AppIcons';
 import MissionsCard from './MissionsCard.jsx';
 import WordOfTheDay from './WordOfTheDay.jsx';
 import { SERVER } from './config.js';
@@ -189,7 +190,7 @@ export default function Home({ onSelect }) {
 
           {isPro ? (
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', padding: '5px 12px', background: 'var(--green-dim)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>
-              ⚡ Pro
+              <ProIcon size={12} style={{ stroke: 'var(--green)' }} /> Pro
             </div>
           ) : (
             <button onClick={() => onSelect('pricing')}
@@ -350,7 +351,7 @@ export default function Home({ onSelect }) {
           <div style={{ marginTop: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '14px' }}>
             {dailyStreak > 0 && (
               <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--pink-dim)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-full)', padding: '4px 10px' }}>
-                <span style={{ fontSize: '12px' }}>🔥</span>
+                <StreakIcon size={12} style={{ stroke: 'var(--pink)' }} />
                 <span style={{ fontSize: '12px', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{dailyStreak} {t.common.days}</span>
               </div>
             )}
@@ -379,7 +380,7 @@ export default function Home({ onSelect }) {
               onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
               onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
             >
-              <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(198,11,30,0.12)', border: '1px solid rgba(198,11,30,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px', flexShrink: 0 }}>🏆</div>
+              <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(198,11,30,0.12)', border: '1px solid rgba(198,11,30,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Trophy size={22} strokeWidth={2} aria-hidden style={{ stroke: '#c60b1e' }} /></div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: '#ffffff', marginBottom: '3px' }}>Copa del Mundo Tradiko 2026</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: '#ffc400' }}>Top 3 gana Pro para siempre · Acaba el 27 jul</div>
@@ -397,7 +398,7 @@ export default function Home({ onSelect }) {
             onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
             onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
           >
-            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(55,138,221,0.15)', border: '1px solid rgba(55,138,221,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>💼</div>
+            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(55,138,221,0.15)', border: '1px solid rgba(55,138,221,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Briefcase size={22} strokeWidth={2} aria-hidden style={{ stroke: '#378ADD' }} /></div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: 'var(--text-primary)', marginBottom: '3px' }}>{t.portfolio?.title ?? 'Portfolio Mode'}</div>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{t.portfolio?.sub ?? '$50,000 virtual · real prices'}</div>
@@ -414,7 +415,7 @@ export default function Home({ onSelect }) {
             onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
             onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
           >
-            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(232,184,75,0.12)', border: '1px solid rgba(232,184,75,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px', flexShrink: 0 }}>⚡</div>
+            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(232,184,75,0.12)', border: '1px solid rgba(232,184,75,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Zap size={22} strokeWidth={2} aria-hidden style={{ stroke: '#e8b84b' }} /></div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: 'var(--text-primary)', marginBottom: '3px' }}>{t.home.mode4}</div>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{t.home.mode4sub}</div>
@@ -431,14 +432,14 @@ export default function Home({ onSelect }) {
 
           {/* Secondary cards */}
           {[
-            { id: 'survival',   icon: '☠️', label: t.survival.title,   sub: t.survival.sub,       color: 'var(--text-primary)', delay: '0.15s' },
-            { id: 'historical', icon: '📜', label: t.home.mode5,        sub: t.home.mode5sub,      color: 'var(--text-primary)', delay: '0.20s' },
-            { id: 'arena',      icon: '⚔️', label: t.home.mode2,        sub: t.arena.sub,          color: 'var(--text-primary)', delay: '0.25s' },
+            { id: 'survival',   label: t.survival.title,   sub: t.survival.sub,       color: 'var(--text-primary)', delay: '0.15s' },
+            { id: 'historical', label: t.home.mode5,        sub: t.home.mode5sub,      color: 'var(--text-primary)', delay: '0.20s' },
+            { id: 'arena',      label: t.home.mode2,        sub: t.arena.sub,          color: 'var(--text-primary)', delay: '0.25s' },
             ...(new Date() >= new Date('2026-07-20') && new Date() <= new Date('2026-07-27') ? [] : [
-              { id: 'tournament', icon: '🏆', label: t.home.mode3, sub: TOURNAMENT_SUB[lang], color: 'var(--text-primary)', delay: '0.30s' },
+              { id: 'tournament', label: t.home.mode3, sub: TOURNAMENT_SUB[lang], color: 'var(--text-primary)', delay: '0.30s' },
             ]),
-            { id: 'game',       icon: '📈', label: t.home.mode1,        sub: t.home.mode1sub,      color: 'var(--text-primary)', delay: '0.35s' },
-          ].map(({ id, icon, label, sub, color, delay }) => (
+            { id: 'game',       label: t.home.mode1,        sub: t.home.mode1sub,      color: 'var(--text-primary)', delay: '0.35s' },
+          ].map(({ id, label, sub, color, delay }) => (
             <button
               key={id}
               onClick={() => onSelect(id)}
@@ -448,7 +449,7 @@ export default function Home({ onSelect }) {
               onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
               onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
             >
-              <div style={{ width: '38px', height: '38px', borderRadius: 'var(--radius-md)', background: 'var(--bg-base)', border: '0.5px solid var(--border-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>{icon}</div>
+              <div style={{ width: '38px', height: '38px', borderRadius: 'var(--radius-md)', background: 'var(--bg-base)', border: '0.5px solid var(--border-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><ModeIcon id={id} size={20} style={{ stroke: 'var(--text-muted)' }} /></div>
               <div style={{ flex: 1 }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color, marginBottom: '3px' }}>{label}</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{sub}</div>

@@ -8,6 +8,7 @@ import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
+import { Swords } from 'lucide-react';
 
 import { SERVER } from './config.js';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
@@ -616,7 +617,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
           ← {t.arena.menu}
         </button>
-        <div style={{ fontSize: '40px', marginBottom: '16px' }}>⚔️</div>
+        <div style={{ marginBottom: '16px' }}><Swords size={40} strokeWidth={2} aria-hidden style={{ stroke: 'var(--color-down)' }} /></div>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: 'var(--text-primary)', marginBottom: '8px' }}>
           {t.arena.asyncAcceptTitle}
         </div>
@@ -810,7 +811,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           <div style={{ display: 'flex', gap: '10px', marginBottom: '10px' }}>
             <button onClick={handleRematch}
               style={{ flex: 1, padding: '12px', background: 'rgba(255,126,179,0.08)', border: '1px solid var(--color-down)', borderRadius: '6px', color: 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-              ⚔️ {t.arena.asyncRematch}
+              <Swords size={14} strokeWidth={2} aria-hidden /> {t.arena.asyncRematch}
             </button>
             <button onClick={handleShare}
               style={{ flex: 1, padding: '12px', background: 'rgba(232,184,75,0.06)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
@@ -820,7 +821,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
 
           {/* Hidden share card */}
           <div id="async-share-card" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-base)', border: '1px solid var(--color-neutral)', borderRadius: '12px', padding: '28px 24px', fontFamily: 'var(--font-body)' }}>
-            <div style={{ fontSize: '12px', color: '#5a6a7d', letterSpacing: '0.1em', marginBottom: '16px' }}>⚔️ TRADIKO ASYNC DUEL</div>
+            <div style={{ fontSize: '12px', color: '#5a6a7d', letterSpacing: '0.1em', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '4px' }}><Swords size={12} strokeWidth={2} aria-hidden /> TRADIKO ASYNC DUEL</div>
             <div style={{ display: 'flex', gap: '16px', marginBottom: '16px' }}>
               <div style={{ flex: 1, textAlign: 'center' }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '36px', color: 'var(--green)' }}>{chalCorrect}</div>
@@ -878,7 +879,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           <button onClick={findRandom} disabled={!name.trim()}
             style={{ width: '100%', padding: '16px', background: name.trim() ? 'var(--gradient-brand)' : 'var(--bg-surface)', border: 'none', borderRadius: '8px', color: name.trim() ? '#0d0d0d' : 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: name.trim() ? 'pointer' : 'not-allowed', transition: 'all 0.18s' }}
           >
-            ⚡ {t.arena.findMatch}
+            {t.arena.findMatch}
           </button>
           <button onClick={createRoom} disabled={!name.trim()}
             style={{ width: '100%', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '14px', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', transition: 'border-color 0.15s' }}
@@ -969,7 +970,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           {status === 'waiting_for_friend' ? t.arena.roomCreated : status === 'JOINING_CHALLENGE' ? t.arena.joiningChallenge : t.arena.searching}
         </div>
         <div style={{ fontSize: '32px', marginBottom: '24px' }}>
-          {status === 'waiting_for_friend' ? '🔒' : status === 'JOINING_CHALLENGE' ? '🤝' : '⚔️'}
+          {status === 'waiting_for_friend' ? '🔒' : status === 'JOINING_CHALLENGE' ? '🤝' : <Swords size={32} strokeWidth={2} aria-hidden />}
         </div>
 
         {status === 'JOINING_CHALLENGE' && (
@@ -1322,7 +1323,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           </button>
         </div>
         <div id="share-card-arena" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: `1px solid ${iWon ? 'var(--border-green)' : isDraw ? 'var(--color-neutral)' : 'var(--color-down)'}`, borderRadius: '12px', padding: '28px 24px', fontFamily: 'var(--font-body)' }}>
-          <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '16px' }}>⚡ TRADIKO ARENA</div>
+          <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.1em', marginBottom: '16px' }}>TRADIKO ARENA</div>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '28px', color: iWon ? 'var(--green)' : isDraw ? 'var(--color-neutral)' : 'var(--color-down)', marginBottom: '20px' }}>
             {iWon ? t.arena.won : isDraw ? t.arena.draw : t.arena.lost}
           </div>

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth, isIOSApp } from '../AuthContext';
 import { SERVER } from '../config.js';
+import { Zap } from 'lucide-react';
 
 export default function ProGate({ children, feature = '' }) {
   const { isPro, user } = useAuth();
@@ -43,7 +44,7 @@ export default function ProGate({ children, feature = '' }) {
         background: 'rgba(10,12,15,0.75)', borderRadius: '10px', gap: '12px', padding: '24px',
         backdropFilter: 'blur(4px)',
       }}>
-        <div style={{ fontSize: '28px' }}>⚡</div>
+        <Zap size={28} strokeWidth={2} aria-hidden style={{ stroke: 'var(--green)' }} />
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)', textAlign: 'center' }}>
           Función Pro
         </div>

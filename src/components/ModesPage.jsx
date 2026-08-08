@@ -1,16 +1,17 @@
 import { useLang } from '../LangContext';
+import { ModeIcon } from './AppIcons';
 
 export default function ModesPage({ onSelect }) {
   const { t } = useLang();
 
   const MODES = [
-    { id: 'game',       icon: '📈', color: 'green', available: true },
-    { id: 'daily',      icon: '⚡', color: 'pink',  available: true },
-    { id: 'survival',   icon: '☠️', color: 'green', available: true },
-    { id: 'historical', icon: '📜', color: 'green', available: true },
-    { id: 'arena',      icon: '⚔️', color: 'pink',  available: true },
-    { id: 'tournament', icon: '🏆', color: 'pink',  available: true },
-    { id: 'portfolio',  icon: '💼', color: 'green', available: true },
+    { id: 'game',       color: 'green', available: true },
+    { id: 'daily',      color: 'pink',  available: true },
+    { id: 'survival',   color: 'green', available: true },
+    { id: 'historical', color: 'green', available: true },
+    { id: 'arena',      color: 'pink',  available: true },
+    { id: 'tournament', color: 'pink',  available: true },
+    { id: 'portfolio',  color: 'green', available: true },
   ];
 
   return (
@@ -60,10 +61,9 @@ export default function ModesPage({ onSelect }) {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              fontSize: 20,
               flexShrink: 0,
             }}>
-              {mode.icon}
+              <ModeIcon id={mode.id} size={20} style={{ stroke: mode.color === 'green' ? 'var(--green)' : 'var(--pink)' }} />
             </div>
 
             <div style={{ flex: 1, minWidth: 0 }}>

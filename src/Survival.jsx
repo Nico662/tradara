@@ -6,6 +6,7 @@ import Chart, { generateCandles } from "./Chart";
 import { useLang } from './LangContext.jsx';
 import { playWin, playLose, playClick, playStreak } from './sounds.js';
 import { BADGES, unlockBadge } from './badges.js';
+import { Skull } from 'lucide-react';
 import BadgeNotification from './BadgeNotification.jsx';
 import { addXP, getXP, getLevel } from './levels.js';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
@@ -335,7 +336,7 @@ export default function Survival({ onBack }) {
         {/* Centered title */}
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--text-primary)', letterSpacing: '0.08em', lineHeight: 1 }}>
-            ☠️ {t.survival.title}
+            <Skull size={18} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {t.survival.title}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
             {t.survival.mode}

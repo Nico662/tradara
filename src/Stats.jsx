@@ -3,6 +3,7 @@ import { SERVER } from './config.js';
 import { getUnlocked, BADGES } from './badges.js';
 import { useLang } from './LangContext.jsx';
 import { useAuth } from './AuthContext';
+import { ModeIcon } from './components/AppIcons';
 
 function AccuracyGraph({ trend }) {
   if (!trend || trend.length < 2) return null;
@@ -36,7 +37,6 @@ function AccuracyGraph({ trend }) {
 }
 
 const MODE_LABELS = { guess: 'Guess', survival: 'Survival', daily: 'Daily', arena: 'Arena', tournament: 'Tournament' };
-const MODE_ICONS  = { guess: '🎯', survival: '☠️', daily: '⚡', arena: '⚔️', tournament: '🏆' };
 
 export default function Stats({ onBack, onSelect }) {
   const { t } = useLang();
@@ -147,7 +147,7 @@ export default function Stats({ onBack, onSelect }) {
                     const pct = Math.round(count / total * 100);
                     return (
                       <div key={mode} style={{ display: 'flex', alignItems: 'center', gap: '10px', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '10px 12px' }}>
-                        <span style={{ fontSize: '16px', flexShrink: 0 }}>{MODE_ICONS[mode] || '🎮'}</span>
+                        <span style={{ flexShrink: 0, display: 'flex' }}><ModeIcon id={mode} size={16} style={{ stroke: 'var(--text-muted)' }} /></span>
                         <div style={{ flex: 1 }}>
                           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--text-primary)', marginBottom: '4px' }}>{MODE_LABELS[mode] || mode}</div>
                           <div style={{ height: '3px', background: 'var(--bg-elevated)', borderRadius: 'var(--radius-full)', overflow: 'hidden' }}>

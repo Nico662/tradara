@@ -6,6 +6,7 @@ import Chart from './Chart.jsx';
 import { addXP } from './levels.js';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
+import { Scroll } from 'lucide-react';
 import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
 import { incrementMission, recordModePlayed, recordWeeklyModePlayed } from './missions.js';
@@ -122,7 +123,7 @@ export default function Historical({ onBack }) {
 
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--color-neutral)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(232,184,75,0.2)' }}>
-              📜 {t.historical.title}
+              <Scroll size={18} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {t.historical.title}
             </div>
             <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
               {t.historical.mode}
@@ -187,7 +188,7 @@ export default function Historical({ onBack }) {
 
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--color-neutral)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(232,184,75,0.2)' }}>
-              📜 {t.historical.title}
+              <Scroll size={18} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {t.historical.title}
             </div>
             <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
               {t.historical.mode}

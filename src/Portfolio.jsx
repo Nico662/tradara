@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
+import { Briefcase, Swords, Trophy } from 'lucide-react';
 const Chart = lazy(() => import('./Chart.jsx'));
 import { ASSET_INFO } from './assetInfo.js';
 
@@ -558,7 +559,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       <div className="scanlines" />
       <div style={{ padding: '48px 28px', textAlign: 'center', position: 'relative', zIndex: 2 }}>
         <button onClick={onBack} style={{ position: 'absolute', top: '20px', left: '16px', background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer' }}>{t.game.menu}</button>
-        <div style={{ fontSize: '48px', marginBottom: '16px' }}>💼</div>
+        <div style={{ marginBottom: '16px' }}><Briefcase size={48} strokeWidth={2} aria-hidden style={{ stroke: 'var(--green)' }} /></div>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '24px', color: 'var(--t1)', marginBottom: '8px' }}>{t.portfolio.title}</div>
         <div style={{ fontSize: '12px', color: 'var(--t5)', marginBottom: '32px' }}>{t.portfolio.signIn}</div>
         <button onClick={login} style={{ display: 'inline-block', padding: '12px 24px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', textDecoration: 'none', fontWeight: 700, cursor: 'pointer' }}>
@@ -819,7 +820,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
 
         <div style={{ textAlign: 'center' }}>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--green)', letterSpacing: '0.08em', lineHeight: 1, textShadow: '0 0 10px rgba(0,229,160,0.2)' }}>
-            💼 {t.portfolio.title}
+            <Briefcase size={18} strokeWidth={2} aria-hidden style={{ display: 'inline', verticalAlign: 'middle' }} /> {t.portfolio.title}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
             PORTFOLIO MODE
@@ -1231,7 +1232,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
           {leaderboardTab === 'global' && (
             leaderboard.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                <div style={{ fontSize: '32px', marginBottom: '12px' }}>🏆</div>
+                <div style={{ marginBottom: '12px' }}><Trophy size={32} strokeWidth={2} aria-hidden style={{ stroke: 'var(--color-neutral)' }} /></div>
                 <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noLeaderboard}</div>
               </div>
             ) : (
@@ -1313,7 +1314,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
           {/* Empty state / challenge button */}
           {!activeDuel && (
             <div style={{ textAlign: 'center', padding: '32px 0 16px' }}>
-              <div style={{ fontSize: '40px', marginBottom: '12px' }}>⚔️</div>
+              <div style={{ marginBottom: '12px' }}><Swords size={40} strokeWidth={2} aria-hidden style={{ stroke: 'var(--green)' }} /></div>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '6px' }}>{t.portfolio.duelTitle}</div>
               <div style={{ fontSize: '12px', color: 'var(--t5)', marginBottom: '24px', lineHeight: 1.6 }}>{t.portfolio.duelDesc}</div>
               <button onClick={() => { setShowFriendPicker(true); loadDuelFriends(); }}
