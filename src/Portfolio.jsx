@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
-import { Briefcase, Swords, Trophy, BarChart2, Globe, DollarSign, Lightbulb, Inbox, Bell, FileText, Lock, Calendar, ClipboardList } from 'lucide-react';
+import { Briefcase, Swords, Trophy, BarChart2, Globe, DollarSign, Lightbulb, Inbox, Bell, FileText, Lock, Calendar, ClipboardList, TrendingUp, Bitcoin, Wheat } from 'lucide-react';
 const Chart = lazy(() => import('./Chart.jsx'));
 import { ASSET_INFO } from './assetInfo.js';
 
@@ -22,11 +22,11 @@ const TYPE_COLORS = {
   commodity: 'var(--color-down)',
 };
 
-const TYPE_EMOJIS = {
-  stock:     'stock',
-  crypto:    'crypto',
-  index:     'index',
-  commodity: 'commodity',
+const TYPE_ICONS = {
+  stock:     <TrendingUp size={14} strokeWidth={2} aria-hidden />,
+  crypto:    <Bitcoin size={14} strokeWidth={2} aria-hidden />,
+  index:     <BarChart2 size={14} strokeWidth={2} aria-hidden />,
+  commodity: <Wheat size={14} strokeWidth={2} aria-hidden />,
 };
 
 const RISK_DOT = {
@@ -968,8 +968,8 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                     onMouseEnter={e => { e.currentTarget.style.borderColor = TYPE_COLORS[asset.type]; setHoveredSymbol(asset.symbol); }}
                     onMouseLeave={e => { e.currentTarget.style.borderColor = 'var(--bd)'; setHoveredSymbol(null); }}
                   >
-                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: `${TYPE_COLORS[asset.type]}15`, border: `1px solid ${TYPE_COLORS[asset.type]}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '16px', flexShrink: 0 }}>
-                      {TYPE_EMOJIS[asset.type]}
+                    <div style={{ width: '36px', height: '36px', borderRadius: '50%', background: `${TYPE_COLORS[asset.type]}15`, border: `1px solid ${TYPE_COLORS[asset.type]}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, color: TYPE_COLORS[asset.type] }}>
+                      {TYPE_ICONS[asset.type]}
                     </div>
                     <div style={{ flex: 1, minWidth: 0 }}>
                       <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--t1)' }}>{asset.name}</div>
