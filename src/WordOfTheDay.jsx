@@ -260,13 +260,14 @@ export default function WordOfTheDay() {
 
         {/* Word */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', marginBottom: '7px' }}>
-          <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: accent, lineHeight: 1.25, minWidth: 0, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+          <Lightbulb size={14} strokeWidth={1.5} color="var(--green)" aria-hidden style={{ flexShrink: 0, marginTop: '2px' }} />
+          <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '18px', color: accent, lineHeight: 1.25, minWidth: 0, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
             {word}
           </span>
         </div>
 
         {/* Definition — truncated */}
-        <p style={{ fontSize: '12px', color: 'var(--text-secondary)', margin: '0', lineHeight: 1.5, flex: 1, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical' }}>
+        <p style={{ fontSize: '13px', color: 'var(--text-secondary)', margin: '0', lineHeight: 1.5, flex: 1, overflow: 'hidden', display: '-webkit-box', WebkitLineClamp: 4, WebkitBoxOrient: 'vertical' }}>
           {definition}
         </p>
 
