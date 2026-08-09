@@ -17,7 +17,7 @@ export const LANGS = {
       mode5sub: '50 real events · can you call them?',
       moreModes: 'More Modes',
       shop: 'Shop',
-      academy: '🏫 Academy', myAcademy: 'MY ACADEMY', joinAcademy: '+ Academy', goPro: '⚡ Go Pro', student: 'STUDENT',
+      academy: 'Academy', myAcademy: 'MY ACADEMY', joinAcademy: '+ Academy', goPro: '⚡ Go Pro', student: 'STUDENT',
     },
     game: {
       round: 'ROUND', score: 'SCORE', streak: 'STREAK',
@@ -618,7 +618,7 @@ export const LANGS = {
       mode5sub: '50 eventos reales · ¿puedes acertarlos?',
       moreModes: 'Más Modos',
       shop: 'Tienda',
-      academy: '🏫 Academia', myAcademy: 'MI ACADEMIA', joinAcademy: '+ Academia', goPro: '⚡ Hazte Pro', student: 'ALUMNO',
+      academy: 'Academia', myAcademy: 'MI ACADEMIA', joinAcademy: '+ Academia', goPro: '⚡ Hazte Pro', student: 'ALUMNO',
     },
     game: {
       round: 'RONDA', score: 'PUNTOS', streak: 'RACHA',
@@ -1219,7 +1219,7 @@ export const LANGS = {
       mode5sub: '50 echte Ereignisse · kannst du sie erraten?',
       moreModes: 'Mehr Modi',
       shop: 'Shop',
-      academy: '🏫 Akademie', myAcademy: 'MEINE AKADEMIE', joinAcademy: '+ Akademie', goPro: '⚡ Pro werden', student: 'SCHÜLER',
+      academy: 'Akademie', myAcademy: 'MEINE AKADEMIE', joinAcademy: '+ Akademie', goPro: '⚡ Pro werden', student: 'SCHÜLER',
     },
     game: {
       round: 'RUNDE', score: 'PUNKTE', streak: 'SERIE',
