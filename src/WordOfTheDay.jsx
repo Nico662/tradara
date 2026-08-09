@@ -261,9 +261,6 @@ export default function WordOfTheDay() {
 
         {/* Word */}
         <div style={{ marginBottom: '7px' }}>
-          <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--green)', letterSpacing: '2px', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '4px' }}>
-            {LABELS.today[lang]}
-          </div>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             <Lightbulb size={16} strokeWidth={1.5} color="var(--green)" aria-hidden style={{ flexShrink: 0, marginRight: '6px' }} />
             <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'white', lineHeight: 1.25, minWidth: 0, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
