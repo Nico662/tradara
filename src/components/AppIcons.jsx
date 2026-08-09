@@ -1,4 +1,4 @@
-import { Flame, Zap, Skull, Scroll, Swords, Medal, LineChart, Briefcase, GraduationCap, Lightbulb, TrendingUp, Gem, Star, Trophy } from 'lucide-react';
+import { Flame, Zap, Skull, Scroll, Swords, Medal, LineChart, Briefcase, GraduationCap, Lightbulb, TrendingUp, Gem, Star, Trophy, Crown } from 'lucide-react';
 
 export const ModeIcon = ({ id, size = 22, ...props }) => {
   const icons = {
@@ -35,6 +35,7 @@ export const LevelIcon = ({ id, size = 16, ...props }) => {
     trader: <TrendingUp size={size} strokeWidth={2} aria-hidden {...props} />,
     pro: <Zap size={size} strokeWidth={2} aria-hidden {...props} />,
     expert: <Gem size={size} strokeWidth={2} aria-hidden {...props} />,
+    legend: <Crown size={size} strokeWidth={2} aria-hidden {...props} />,
   };
   return icons[id] || null;
 };

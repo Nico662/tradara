@@ -1,7 +1,7 @@
 import { useLang } from './LangContext';
 import { useState, useEffect, useRef } from 'react';
 import { ShoppingBag, Users, Settings, Trophy, Briefcase, Zap, User, Camera } from 'lucide-react';
-import { ModeIcon, StreakIcon, ProIcon } from './components/AppIcons';
+import { ModeIcon, StreakIcon, ProIcon, LevelIcon } from './components/AppIcons';
 import MissionsCard from './MissionsCard.jsx';
 import WordOfTheDay from './WordOfTheDay.jsx';
 import { SERVER } from './config.js';
@@ -356,7 +356,7 @@ export default function Home({ onSelect }) {
               </div>
             )}
             <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--green-dim)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', padding: '4px 10px' }}>
-              <span style={{ fontSize: '12px' }}>{level.icon}</span>
+              <LevelIcon id={level.id} size={12} style={{ stroke: 'var(--green)' }} />
               <span style={{ fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{level.name} · {xp} XP</span>
             </div>
           </div>

@@ -7,6 +7,7 @@ import UserAvatar from './UserAvatar.jsx';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
+import { LevelIcon } from './components/AppIcons';
 
 function authHeaders() {
   return {
@@ -36,7 +37,7 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
           {isFounder(f.username) && <FounderBadge size={11} />}
         </div>
         <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
-          {level.icon} {level.name} · {f.xp || 0} XP
+          <LevelIcon id={level.id} size={12} style={{ verticalAlign: 'middle' }} /> {level.name} · {f.xp || 0} XP
         </div>
         {f.username && onViewProfile && (
           <button onClick={() => onViewProfile(f.username)}
@@ -73,7 +74,7 @@ function PendingCard({ req, onAccept, onReject }) {
           {isFounder(req.username) && <FounderBadge size={11} />}
         </div>
         <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
-          {level.icon} {level.name}
+          <LevelIcon id={level.id} size={12} style={{ verticalAlign: 'middle' }} /> {level.name}
         </div>
       </div>
       <div style={{ display: 'flex', gap: '6px', flexShrink: 0 }}>
@@ -114,7 +115,7 @@ function SearchResultCard({ profile, onSendRequest }) {
             {isFounder(profile.username) && <FounderBadge size={12} />}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginTop: '2px' }}>
-            {level.icon} {level.name} · {profile.xp || 0} XP
+            <LevelIcon id={level.id} size={12} style={{ verticalAlign: 'middle' }} /> {level.name} · {profile.xp || 0} XP
           </div>
           {profile.portfolioReturn !== null && profile.portfolioReturn !== undefined && (
             <div style={{ fontSize: '12px', fontFamily: 'var(--font-body)', marginTop: '2px', color: profile.portfolioReturn >= 0 ? 'var(--green)' : 'var(--color-down)' }}>

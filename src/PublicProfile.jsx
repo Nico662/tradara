@@ -6,6 +6,7 @@ import { BADGES } from './badges.js';
 import { SERVER } from './config.js';
 import UserAvatar from './UserAvatar.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
+import { LevelIcon } from './components/AppIcons';
 
 export default function PublicProfile({ username, onBack, onChallenge }) {
   const { user } = useAuth();
@@ -102,7 +103,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
         {/* Stats: level / streak / badges */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '16px' }}>
           {[
-            { icon: level.icon, value: level.name, sub: `${profile.xp} XP` },
+            { icon: <LevelIcon id={level.id} size={22} />, value: level.name, sub: `${profile.xp} XP` },
             { icon: '🔥',       value: profile.dailyStreak, sub: t.profile.streak },
             { icon: '🏅',       value: unlockedBadges.length, sub: t.profile.badges },
           ].map((s, i) => (
