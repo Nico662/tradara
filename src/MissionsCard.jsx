@@ -174,7 +174,7 @@ export default function MissionsCard() {
         flexDirection: 'column',
       }}>
         {/* Header */}
-        <div style={{ fontSize: '12px', color: 'var(--border-subtle)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '8px' }}>
+        <div style={{ fontSize: '12px', color: '#888', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '8px' }}>
           {LABELS.header[lang]}
         </div>
 

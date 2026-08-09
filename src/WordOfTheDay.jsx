@@ -247,7 +247,7 @@ export default function WordOfTheDay() {
             onMouseEnter={e => e.currentTarget.style.color = accent}
             onMouseLeave={e => e.currentTarget.style.color = 'var(--text-muted)'}
           >←</button>
-          <span style={{ fontSize: '12px', color: 'var(--border-subtle)', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', textAlign: 'center', flex: 1 }}>
+          <span style={{ fontSize: '12px', color: '#888', letterSpacing: '0.18em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', textAlign: 'center', flex: 1 }}>
             {dayLabel}
           </span>
           <button
