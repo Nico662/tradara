@@ -20,7 +20,7 @@ export default function FounderBadge({ size = 13 }) {
         flexShrink: 0,
       }}
     >
-      <Crown size={size} strokeWidth={2} aria-hidden style={{ filter: 'drop-shadow(0 0 5px rgba(245,158,11,0.7))', color: 'rgb(245,158,11)' }} />
+      <Crown size={Math.max(size, 12)} strokeWidth={2} aria-hidden style={{ filter: 'drop-shadow(0 0 5px rgba(245,158,11,0.7))', color: 'rgb(245,158,11)' }} />
     </span>
   );
 }
