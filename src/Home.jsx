@@ -1,6 +1,6 @@
 import { useLang } from './LangContext';
 import { useState, useEffect, useRef } from 'react';
-import { ShoppingBag, Users, Settings, Trophy, Briefcase, Zap } from 'lucide-react';
+import { ShoppingBag, Users, Settings, Trophy, Briefcase, Zap, User, Camera } from 'lucide-react';
 import { ModeIcon, StreakIcon, ProIcon } from './components/AppIcons';
 import MissionsCard from './MissionsCard.jsx';
 import WordOfTheDay from './WordOfTheDay.jsx';
@@ -211,14 +211,14 @@ export default function Home({ onSelect }) {
                 {(user.customAvatar || user.avatar) ? (
                   <img src={user.customAvatar || user.avatar} style={{ width: '28px', height: '28px', borderRadius: '50%', objectFit: 'cover', ...frameStyle }} />
                 ) : (
-                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--bg-card2)', ...frameStyle, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '14px' }}>👤</div>
+                  <div style={{ width: '28px', height: '28px', borderRadius: '50%', background: 'var(--bg-card2)', ...frameStyle, display: 'flex', alignItems: 'center', justifyContent: 'center' }}><User size={16} strokeWidth={1.5} aria-hidden style={{ stroke: 'var(--text-muted)' }} /></div>
                 )}
                 <button
                   onClick={() => fileInputRef.current?.click()}
                   disabled={avatarLoading}
                   style={{ position: 'absolute', top: '-5px', right: '-5px', width: '13px', height: '13px', borderRadius: '50%', background: 'var(--bg-card)', border: '1px solid var(--t6)', fontSize: '12px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 0, lineHeight: 1 }}
                 >
-                  📷
+                  <Camera size={8} strokeWidth={2} aria-hidden style={{ stroke: 'var(--text-muted)' }} />
                 </button>
                 <input ref={fileInputRef} type="file" accept="image/*" style={{ display: 'none' }} onChange={handleAvatarChange} />
               </div>

@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { useLang } from './LangContext.jsx';
 import { SERVER } from './config.js';
 import { isIOSApp } from './AuthContext';
+import { Zap } from 'lucide-react';
 
 // ── Visual sub-components (same pattern as PortfolioTutorial) ─────────────────
 
 function DashboardVisual() {
   const rows = [
-    { name: '@lucia_m',  acc: '88%', streak: '🔥 9', last: 'hoy'    },
-    { name: '@maria_g',  acc: '74%', streak: '🔥 5', last: 'ayer'   },
+    { name: '@lucia_m',  acc: '88%', streak: '9', last: 'hoy'    },
+    { name: '@maria_g',  acc: '74%', streak: '5', last: 'ayer'   },
     { name: '@pedro_t',  acc: '61%', streak: '—',    last: 'hace 3d' },
   ];
   return (
@@ -40,7 +41,7 @@ function TournamentVisual() {
     <div>
       <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
         <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--t1)' }}>Torneo — Semana 1</span>
-        <span style={{ fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', padding: '3px 8px', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.3)', borderRadius: '4px', letterSpacing: '0.08em' }}>⚡ ACTIVO</span>
+        <span style={{ fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', padding: '3px 8px', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.3)', borderRadius: '4px', letterSpacing: '0.08em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Zap size={12} strokeWidth={2} aria-hidden /> ACTIVO</span>
       </div>
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {rows.map((r, i) => (

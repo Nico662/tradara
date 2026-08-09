@@ -4,6 +4,7 @@ import { getUnlocked, BADGES } from './badges.js';
 import { useLang } from './LangContext.jsx';
 import { useAuth } from './AuthContext';
 import { ModeIcon } from './components/AppIcons';
+import { User } from 'lucide-react';
 
 function AccuracyGraph({ trend }) {
   if (!trend || trend.length < 2) return null;
@@ -79,7 +80,7 @@ export default function Stats({ onBack, onSelect }) {
                 alt="foto de perfil"
               />
             ) : (
-              <span style={{ fontSize: '24px' }}>👤</span>
+              <User size={24} strokeWidth={1.5} aria-hidden style={{ stroke: 'var(--text-muted)' }} />
             )}
           </div>
           {user?.username && (

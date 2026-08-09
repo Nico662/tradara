@@ -3,6 +3,7 @@ import { useAuth } from './AuthContext';
 import { SERVER } from './config.js';
 import { useLang } from './LangContext.jsx';
 import AcadiasLanding from './AcadiasLanding.jsx';
+import { AlertTriangle } from 'lucide-react';
 
 function Label({ children }) {
   return (
@@ -13,9 +14,9 @@ function Label({ children }) {
 }
 
 function Medal({ pos }) {
-  if (pos === 1) return '🥇';
-  if (pos === 2) return '🥈';
-  if (pos === 3) return '🥉';
+  if (pos === 1) return <span style={{ color: '#FFD700', fontWeight: 900 }}>1</span>;
+  if (pos === 2) return <span style={{ color: '#C0C0C0', fontWeight: 900 }}>2</span>;
+  if (pos === 3) return <span style={{ color: '#CD7F32', fontWeight: 900 }}>3</span>;
   return <span style={{ color: 'var(--t5)' }}>#{pos}</span>;
 }
 
@@ -146,7 +147,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
             background: 'rgba(255,126,179,0.08)', border: '1px solid rgba(255,126,179,0.35)',
             borderRadius: '8px',
           }}>
-            <span style={{ fontSize: '14px' }}>⚠️</span>
+            <AlertTriangle size={16} strokeWidth={2} aria-hidden style={{ stroke: 'var(--color-down)', flexShrink: 0 }} />
             <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', lineHeight: 1.5 }}>
               {t.academy.academyExpired}
             </span>

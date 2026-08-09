@@ -8,7 +8,7 @@ import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
-import { Swords } from 'lucide-react';
+import { Swords, Lock, Handshake } from 'lucide-react';
 
 import { SERVER } from './config.js';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
@@ -970,7 +970,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           {status === 'waiting_for_friend' ? t.arena.roomCreated : status === 'JOINING_CHALLENGE' ? t.arena.joiningChallenge : t.arena.searching}
         </div>
         <div style={{ fontSize: '32px', marginBottom: '24px' }}>
-          {status === 'waiting_for_friend' ? '🔒' : status === 'JOINING_CHALLENGE' ? '🤝' : <Swords size={32} strokeWidth={2} aria-hidden />}
+          {status === 'waiting_for_friend' ? <Lock size={32} strokeWidth={2} aria-hidden /> : status === 'JOINING_CHALLENGE' ? <Handshake size={32} strokeWidth={2} aria-hidden /> : <Swords size={32} strokeWidth={2} aria-hidden />}
         </div>
 
         {status === 'JOINING_CHALLENGE' && (

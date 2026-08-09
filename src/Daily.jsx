@@ -10,6 +10,7 @@ import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
+import { Calendar, Clipboard } from 'lucide-react';
 
 function ShareButton({ onShare, shareStatus }) {
   const isError  = shareStatus === 'error';
@@ -17,7 +18,7 @@ function ShareButton({ onShare, shareStatus }) {
   return (
     <button onClick={onShare}
       style={{ marginTop: '12px', width: '100%', padding: '12px', background: isError ? 'rgba(224,85,85,0.08)' : 'var(--green-dim)', border: `1px solid ${isError ? 'var(--color-down)' : 'var(--border-green)'}`, borderRadius: '6px', color: isError ? 'var(--color-down)' : 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-      {isCopied ? '✅ COPIED!' : isError ? '❌ ERROR' : '📋 SHARE'}
+      {isCopied ? 'OK COPIED!' : isError ? 'X ERROR' : <><Clipboard size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> SHARE</>}
     </button>
   );
 }
@@ -224,7 +225,7 @@ export default function Daily({ onBack }) {
 
           <div style={{ textAlign: 'center' }}>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--text-primary)', letterSpacing: '0.08em', lineHeight: 1 }}>
-              📅 {t.daily.title}
+              <Calendar size={18} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {t.daily.title}
             </div>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
               {t.daily.mode}

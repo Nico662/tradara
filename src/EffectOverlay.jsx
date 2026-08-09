@@ -250,7 +250,7 @@ function Stars({ base }) {
           fontSize:   `${s.size}px`,
           lineHeight: 1,
           animation:  `star-rise ${s.dur}s ${s.delay}s ease-out forwards`,
-        }}>⭐</div>
+        }}>*</div>
       ))}
     </div>
   );

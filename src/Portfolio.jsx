@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef, lazy, Suspense } from 'react';
 import { useAuth } from './AuthContext';
 import { useLang } from './LangContext.jsx';
-import { Briefcase, Swords, Trophy } from 'lucide-react';
+import { Briefcase, Swords, Trophy, BarChart2, Globe, DollarSign, Lightbulb, Inbox, Bell, FileText, Lock, Calendar, ClipboardList } from 'lucide-react';
 const Chart = lazy(() => import('./Chart.jsx'));
 import { ASSET_INFO } from './assetInfo.js';
 
@@ -23,10 +23,10 @@ const TYPE_COLORS = {
 };
 
 const TYPE_EMOJIS = {
-  stock:     '📈',
-  crypto:    '₿',
-  index:     '📊',
-  commodity: '🪙',
+  stock:     'stock',
+  crypto:    'crypto',
+  index:     'index',
+  commodity: 'commodity',
 };
 
 const RISK_DOT = {
@@ -81,7 +81,11 @@ function getWeekStart() {
   return `${mon.getUTCDate().toString().padStart(2, '0')}/${(mon.getUTCMonth() + 1).toString().padStart(2, '0')}`;
 }
 
-const LB_MEDALS = ['🥇', '🥈', '🥉'];
+const LB_MEDALS = [
+  <span style={{ color: '#FFD700', fontWeight: 900 }}>1</span>,
+  <span style={{ color: '#C0C0C0', fontWeight: 900 }}>2</span>,
+  <span style={{ color: '#CD7F32', fontWeight: 900 }}>3</span>,
+];
 
 function LeaderboardList({ entries, userPosition, user, onViewProfile, t }) {
   const myId = String(user?._id || user?.id || '');
@@ -690,9 +694,9 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
         {info && (
           <div style={{ margin: '12px 20px 0', padding: '14px 16px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', position: 'relative', zIndex: 2 }}>
             <div style={{ display: 'flex', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
-              <span style={{ fontSize: '12px', color: '#378ADD', background: 'rgba(55,138,221,0.1)', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em' }}>📊 {info.sector}</span>
-              <span style={{ fontSize: '12px', color: 'var(--t5)', background: 'var(--bg-page)', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em' }}>🌍 {info.country}</span>
-              <span style={{ fontSize: '12px', color: 'var(--color-neutral)', background: 'rgba(232,184,75,0.08)', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em' }}>💰 {info.cap}</span>
+              <span style={{ fontSize: '12px', color: '#378ADD', background: 'rgba(55,138,221,0.1)', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><BarChart2 size={12} strokeWidth={2} aria-hidden /> {info.sector}</span>
+              <span style={{ fontSize: '12px', color: 'var(--t5)', background: 'var(--bg-page)', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><Globe size={12} strokeWidth={2} aria-hidden /> {info.country}</span>
+              <span style={{ fontSize: '12px', color: 'var(--color-neutral)', background: 'rgba(232,184,75,0.08)', padding: '3px 10px', borderRadius: '4px', letterSpacing: '0.04em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}><DollarSign size={12} strokeWidth={2} aria-hidden /> {info.cap}</span>
             </div>
             <div style={{ fontSize: '12px', color: 'var(--t4)', lineHeight: 1.7 }}>{info[lang]}</div>
           </div>
@@ -795,7 +799,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
 
           {error    && <div style={{ fontSize: '12px', color: 'var(--color-down)', marginBottom: '10px' }}>{error}</div>}
           {tradeMsg && <div style={{ fontSize: '12px', color: 'var(--green)', marginBottom: '10px' }}>{tradeMsg}</div>}
-          {factMsg  && <div style={{ fontSize: '12px', color: 'var(--t4)', marginBottom: '10px', padding: '6px 10px', background: 'rgba(55,138,221,0.05)', border: '1px solid rgba(55,138,221,0.12)', borderRadius: '6px', letterSpacing: '0.02em' }}>💡 {factMsg}</div>}
+          {factMsg  && <div style={{ fontSize: '12px', color: 'var(--t4)', marginBottom: '10px', padding: '6px 10px', background: 'rgba(55,138,221,0.05)', border: '1px solid rgba(55,138,221,0.12)', borderRadius: '6px', letterSpacing: '0.02em', display: 'flex', alignItems: 'flex-start', gap: '6px' }}><Lightbulb size={14} strokeWidth={2} aria-hidden style={{ flexShrink: 0, marginTop: '1px' }} /> {factMsg}</div>}
 
           <button onClick={handleTrade} disabled={loading || !qty || parseFloat(qty) <= 0}
             style={{ width: '100%', padding: '14px', background: loading ? 'var(--bg-card)' : action === 'buy' ? 'rgba(0,229,160,0.08)' : 'rgba(255,126,179,0.08)', border: `1px solid ${action === 'buy' ? 'var(--green)' : 'var(--color-down)'}`, borderRadius: '6px', color: action === 'buy' ? 'var(--green)' : 'var(--color-down)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: loading ? 'not-allowed' : 'pointer', opacity: loading || !qty || parseFloat(qty) <= 0 ? 0.4 : 1 }}>
@@ -999,7 +1003,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
         <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
           {positionsWithValue.length === 0 ? (
             <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>📭</div>
+              <div style={{ marginBottom: '12px', color: 'var(--t5)' }}><Inbox size={32} strokeWidth={1.5} aria-hidden /></div>
               <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noPositions}</div>
               <button onClick={() => setTab('market')} style={{ marginTop: '16px', padding: '10px 20px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer' }}>
                 {t.portfolio.goToMarket}
@@ -1037,7 +1041,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                         existingAlert ? (
                           <>
                             <span style={{ fontSize: '12px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', flex: 1 }}>
-                              🔔 {existingAlert.condition === 'above' ? '↑' : '↓'} {formatPrice(existingAlert.targetPrice, pos.type)}
+                              <Bell size={12} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {existingAlert.condition === 'above' ? '↑' : '↓'} {formatPrice(existingAlert.targetPrice, pos.type)}
                             </span>
                             <button
                               onClick={() => deleteAlert(existingAlert._id)}
@@ -1062,12 +1066,12 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                       <button
                         onClick={e => { e.stopPropagation(); setNoteText(notes[pos.symbol] || ''); setNoteModal({ symbol: pos.symbol, name: pos.name }); }}
                         style={{ flexShrink: 0, background: notes[pos.symbol] ? 'rgba(232,184,75,0.08)' : 'transparent', border: `1px solid ${notes[pos.symbol] ? 'rgba(232,184,75,0.4)' : 'var(--bd2)'}`, borderRadius: '6px', color: notes[pos.symbol] ? 'var(--color-neutral)' : 'var(--t6)', fontSize: '12px', padding: '3px 10px', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.04em' }}
-                      >📝 {notes[pos.symbol] ? 'nota' : 'anotar'}</button>
+                      ><FileText size={12} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {notes[pos.symbol] ? 'nota' : 'anotar'}</button>
                     ) : (
                       <button
                         onClick={() => onGoPricing?.()}
                         style={{ flexShrink: 0, background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t6)', fontSize: '12px', padding: '3px 10px', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.04em', opacity: 0.45 }}
-                      >📝 🔒</button>
+                      ><FileText size={12} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> <Lock size={12} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /></button>
                     )}
                   </div>
                 </div>
@@ -1088,7 +1092,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
             >
               <div>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: user?.isPro ? 'var(--green)' : 'var(--t4)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  {user?.isPro ? '📊' : '🔒'} vs #1 del ranking
+                  {user?.isPro ? <BarChart2 size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> : <Lock size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} />} vs #1 del ranking
                   {!user?.isPro && <span style={{ fontSize: '12px', color: 'var(--color-neutral)', background: 'rgba(232,184,75,0.1)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'var(--font-body)', letterSpacing: '0.04em' }}>PRO</span>}
                 </div>
                 {compareData?.top1 && user?.isPro && (
@@ -1112,7 +1116,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                   ))}
                 </div>
                 <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '10px' }}>
-                  <span style={{ fontSize: '20px' }}>🔒</span>
+                  <Lock size={20} strokeWidth={2} aria-hidden style={{ stroke: 'var(--t5)' }} />
                   <button onClick={() => onGoPricing?.()} style={{ padding: '8px 20px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}>{t.portfolio.unlockPro}</button>
                 </div>
               </div>
@@ -1134,7 +1138,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                       </div>
                       <div style={{ width: '1px', background: 'var(--bd)' }} />
                       <div style={{ flex: 1, textAlign: 'center' }}>
-                        <div style={{ fontSize: '12px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', marginBottom: '3px' }}>🥇 @{compareData.top1.username}</div>
+                        <div style={{ fontSize: '12px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', marginBottom: '3px' }}><span style={{ color: '#FFD700', fontWeight: 900 }}>#1</span> @{compareData.top1.username}</div>
                         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--color-neutral)' }}>
                           {compareData.top1.returnPct >= 0 ? '+' : ''}{compareData.top1.returnPct?.toFixed(2)}%
                         </div>
@@ -1247,7 +1251,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
               </div>
             ) : weeklyLeaderboard.length === 0 ? (
               <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-                <div style={{ fontSize: '32px', marginBottom: '12px' }}>📅</div>
+                <div style={{ marginBottom: '12px', color: 'var(--t5)' }}><Calendar size={32} strokeWidth={1.5} aria-hidden /></div>
                 <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noWeeklyData}</div>
               </div>
             ) : (
@@ -1360,7 +1364,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
         <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
           {(!portfolio?.transactions || portfolio.transactions.length === 0) ? (
             <div style={{ textAlign: 'center', padding: '60px 20px' }}>
-              <div style={{ fontSize: '32px', marginBottom: '12px' }}>📋</div>
+              <div style={{ marginBottom: '12px', color: 'var(--t5)' }}><ClipboardList size={32} strokeWidth={1.5} aria-hidden /></div>
               <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.portfolio.noHistory}</div>
             </div>
           ) : (
