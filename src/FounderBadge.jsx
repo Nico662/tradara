@@ -1,3 +1,5 @@
+import { Crown } from 'lucide-react';
+
 export const FOUNDER = 'nico_founder';
 
 export function isFounder(username) {
@@ -12,15 +14,13 @@ export default function FounderBadge({ size = 13 }) {
         display: 'inline-flex',
         alignItems: 'center',
         marginLeft: '3px',
-        fontSize: size,
         lineHeight: 1,
         verticalAlign: 'middle',
-        filter: 'drop-shadow(0 0 5px rgba(245,158,11,0.7))',
         cursor: 'default',
         flexShrink: 0,
       }}
     >
-      👑
+      <Crown size={size} strokeWidth={2} aria-hidden style={{ filter: 'drop-shadow(0 0 5px rgba(245,158,11,0.7))', color: 'rgb(245,158,11)' }} />
     </span>
   );
 }

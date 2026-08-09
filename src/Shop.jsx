@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { Frame, Palette, User, Sparkles } from 'lucide-react';
 import { useLang } from './LangContext.jsx';
 import { useAuth, isIOSApp } from './AuthContext.jsx';
 import { SERVER } from './config.js';
@@ -101,10 +102,10 @@ const CATEGORY_TYPES = {
 };
 
 const CATEGORIES = [
-  { id: 'frames',  label: 'Frames',  emoji: '🖼️' },
-  { id: 'themes',  label: 'Themes',  emoji: '🎨' },
-  { id: 'avatars', label: 'Avatars', emoji: '👤' },
-  { id: 'effects', label: 'Effects', emoji: '✨' },
+  { id: 'frames',  label: 'Frames',  icon: <Frame    size={14} strokeWidth={2} aria-hidden /> },
+  { id: 'themes',  label: 'Themes',  icon: <Palette  size={14} strokeWidth={2} aria-hidden /> },
+  { id: 'avatars', label: 'Avatars', icon: <User     size={14} strokeWidth={2} aria-hidden /> },
+  { id: 'effects', label: 'Effects', icon: <Sparkles size={14} strokeWidth={2} aria-hidden /> },
 ];
 
 function PreviewFrame({ item, userAvatar }) {
@@ -417,7 +418,7 @@ export default function Shop({ onBack }) {
                 fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
                 letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase',
               }}>
-              {cat.emoji} {cat.label}
+              {cat.icon} {cat.label}
             </button>
           ))}
         </div>
