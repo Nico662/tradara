@@ -233,7 +233,6 @@ export default function WordOfTheDay() {
         background: 'var(--bg-surface)',
         border: '1px solid var(--border-default)',
         borderTop: `2px solid ${accent}`,
-        borderLeft: '3px solid var(--green)',
         borderRadius: '8px',
         padding: '10px 12px 12px',
         display: 'flex', flexDirection: 'column',
