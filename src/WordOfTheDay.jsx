@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
+import { Lightbulb } from 'lucide-react';
 import { GLOSSARY } from './tradingGlossary.js';
 import { CHARTS } from './glossaryCharts.jsx';
 import { useLang } from './LangContext.jsx';
@@ -106,12 +107,12 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
           {LABELS.header[lang]}
         </div>
 
-        {/* Emoji */}
-        <div style={{ fontSize: '48px', lineHeight: 1, marginBottom: '14px' }}>{entry.emoji}</div>
-
-        {/* Word */}
-        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: accent, lineHeight: 1.1, marginBottom: '20px', letterSpacing: '-0.01em', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
-          {word}
+        {/* Icon + Word */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
+          <Lightbulb size={36} strokeWidth={1.5} color="var(--green)" aria-hidden style={{ flexShrink: 0 }} />
+          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '24px', color: accent, lineHeight: 1.1, letterSpacing: '-0.01em', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
+            {word}
+          </div>
         </div>
 
         {/* Divider */}
@@ -175,7 +176,6 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
                 onMouseEnter={e => e.currentTarget.style.borderColor = ac + '55'}
                 onMouseLeave={e => e.currentTarget.style.borderColor = isSelected ? ac + '55' : 'var(--border-default)'}
               >
-                <span style={{ fontSize: '18px', lineHeight: 1, flexShrink: 0 }}>{e.emoji}</span>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div style={{ fontSize: '12px', color: isSelected ? ac : 'var(--text-primary)', fontFamily: 'var(--font-body)', fontWeight: 800, overflowWrap: 'break-word', wordBreak: 'break-word' }}>
                     {e.word[lang] || e.word.en}
@@ -258,9 +258,8 @@ export default function WordOfTheDay() {
           >→</button>
         </div>
 
-        {/* Emoji + word */}
+        {/* Word */}
         <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', marginBottom: '7px' }}>
-          <span style={{ fontSize: '20px', lineHeight: 1, flexShrink: 0, marginTop: '1px' }}>{entry.emoji}</span>
           <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: accent, lineHeight: 1.25, minWidth: 0, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
             {word}
           </span>
