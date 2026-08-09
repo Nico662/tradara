@@ -233,6 +233,7 @@ export default function WordOfTheDay() {
         background: 'var(--bg-surface)',
         border: '1px solid var(--border-default)',
         borderTop: `2px solid ${accent}`,
+        borderLeft: '3px solid var(--green)',
         borderRadius: '8px',
         padding: '10px 12px 12px',
         display: 'flex', flexDirection: 'column',
@@ -259,11 +260,16 @@ export default function WordOfTheDay() {
         </div>
 
         {/* Word */}
-        <div style={{ display: 'flex', alignItems: 'flex-start', gap: '6px', marginBottom: '7px' }}>
-          <Lightbulb size={14} strokeWidth={1.5} color="var(--green)" aria-hidden style={{ flexShrink: 0, marginTop: '2px' }} />
-          <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '18px', color: accent, lineHeight: 1.25, minWidth: 0, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
-            {word}
-          </span>
+        <div style={{ marginBottom: '7px' }}>
+          <div style={{ fontSize: '10px', fontWeight: 700, color: 'var(--green)', letterSpacing: '2px', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '4px' }}>
+            {LABELS.today[lang]}
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <Lightbulb size={16} strokeWidth={1.5} color="var(--green)" aria-hidden style={{ flexShrink: 0, marginRight: '6px' }} />
+            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'white', lineHeight: 1.25, minWidth: 0, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+              {word}
+            </span>
+          </div>
         </div>
 
         {/* Definition — truncated */}
