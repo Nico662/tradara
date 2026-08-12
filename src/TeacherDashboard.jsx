@@ -102,6 +102,34 @@ function FieldInput({ label, type = 'text', value, onChange, placeholder }) {
   );
 }
 
+// ── Sparkline SVG chart ───────────────────────────────────────────
+function MiniChart({ values, vbH = 60, color = 'var(--green)', filled = false, showDots = false, style = {} }) {
+  const vbW = 480, pad = 6;
+  if (!values || values.length < 2) return null;
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+  const pts = values.map((v, i) => [
+    +(pad + (i / (values.length - 1)) * (vbW - pad * 2)).toFixed(1),
+    +(pad + ((max - v) / range) * (vbH - pad * 2)).toFixed(1),
+  ]);
+  const poly = pts.map(([x, y]) => `${x},${y}`).join(' ');
+  return (
+    <svg viewBox={`0 0 ${vbW} ${vbH}`} width="100%" style={{ display: 'block', overflow: 'visible', ...style }}>
+      {filled && (
+        <polygon
+          points={`${pts[0][0]},${vbH - pad} ${poly} ${pts[pts.length - 1][0]},${vbH - pad}`}
+          fill={color} fillOpacity={0.07}
+        />
+      )}
+      <polyline points={poly} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
+      {showDots && pts.map(([x, y], i) => (
+        <circle key={i} cx={x} cy={y} r="2.5" fill={color} fillOpacity={0.9} />
+      ))}
+    </svg>
+  );
+}
+
 // ── Create academy screen (shown when teacher has no academy yet) ──
 function CreateAcademyScreen({ onBack, onCreated }) {
   const { t } = useLang();
@@ -214,6 +242,13 @@ function AcademyDashboard({ academyId, onBack }) {
   const [feedbackSending, setFeedbackSending] = useState(false);
   const [feedbackLoading, setFeedbackLoading] = useState(false);
   const [feedbackErr,     setFeedbackErr]     = useState(null);
+  const [selectedStudent,       setSelectedStudent]       = useState(null);
+  const [studentDetail,         setStudentDetail]         = useState(null);
+  const [detailLoading,         setDetailLoading]         = useState(false);
+  const [detailErr,             setDetailErr]             = useState(null);
+  const [detailFeedbackMsg,     setDetailFeedbackMsg]     = useState('');
+  const [detailFeedbackSending, setDetailFeedbackSending] = useState(false);
+  const [detailFeedbackErr,     setDetailFeedbackErr]     = useState(null);
 
   useEffect(() => {
     if (!tok) { setLoading(false); return; }
@@ -393,6 +428,51 @@ function AcademyDashboard({ academyId, onBack }) {
       setFeedbackMsg('');
     } catch { setFeedbackErr('Error de red'); }
     setFeedbackSending(false);
+  }
+
+  async function openStudentDetail(s) {
+    setSelectedStudent(s);
+    setStudentDetail(null);
+    setDetailLoading(true);
+    setDetailErr(null);
+    setDetailFeedbackMsg('');
+    setDetailFeedbackErr(null);
+    try {
+      const res  = await fetch(`${SERVER}/academy/${academyId}/student/${s.id}`, {
+        headers: { Authorization: `Bearer ${tok}` },
+      });
+      const data = await res.json();
+      if (!res.ok) { setDetailErr(data.error || 'Error'); setDetailLoading(false); return; }
+      setStudentDetail(data);
+    } catch { setDetailErr('Error de red'); }
+    setDetailLoading(false);
+  }
+
+  function closeDetail() {
+    setSelectedStudent(null);
+    setStudentDetail(null);
+    setDetailLoading(false);
+    setDetailErr(null);
+    setDetailFeedbackMsg('');
+    setDetailFeedbackErr(null);
+  }
+
+  async function sendDetailFeedback() {
+    if (!detailFeedbackMsg.trim() || !selectedStudent) return;
+    setDetailFeedbackSending(true);
+    setDetailFeedbackErr(null);
+    try {
+      const res  = await fetch(`${SERVER}/academy/${academyId}/feedback`, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ toId: selectedStudent.id, message: detailFeedbackMsg.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setDetailFeedbackErr(data.error || 'Error'); setDetailFeedbackSending(false); return; }
+      setStudentDetail(prev => ({ ...prev, feedback: [data, ...(prev.feedback || [])] }));
+      setDetailFeedbackMsg('');
+    } catch { setDetailFeedbackErr('Error de red'); }
+    setDetailFeedbackSending(false);
   }
 
   // ── Render: loading / error ──
@@ -614,12 +694,14 @@ function AcademyDashboard({ academyId, onBack }) {
                 {students.map((s, i) => (
                   <div
                     key={s.id}
+                    onClick={() => openStudentDetail(s)}
                     style={{
                       display: 'grid', gridTemplateColumns: '28px 1fr 36px 42px 36px 44px 64px 64px 52px 32px',
                       gap: '8px', padding: '10px 14px', alignItems: 'center',
                       borderBottom: i < students.length - 1 ? '1px solid var(--bd)' : 'none',
                       background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.012)',
                       minWidth: '600px',
+                      cursor: 'pointer',
                     }}
                   >
                     {/* Avatar */}
@@ -688,7 +770,7 @@ function AcademyDashboard({ academyId, onBack }) {
                     {/* Feedback button */}
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <button
-                        onClick={() => { setFeedbackModal({ studentId: s.id, studentName: s.name }); setFeedbackMsg(''); setFeedbackErr(null); }}
+                        onClick={e => { e.stopPropagation(); setFeedbackModal({ studentId: s.id, studentName: s.name }); setFeedbackMsg(''); setFeedbackErr(null); }}
                         title={`Mensaje a ${s.name}`}
                         style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--t5)', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
@@ -1165,6 +1247,253 @@ function AcademyDashboard({ academyId, onBack }) {
                 {asgSubmitting ? '...' : 'Crear'}
               </Btn>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Student detail panel ── */}
+      {selectedStudent && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.82)',
+          zIndex: 200, overflowY: 'auto', padding: '20px 16px',
+        }}>
+          <div style={{
+            background: 'var(--bg-card)', border: '1px solid var(--bd2)',
+            borderRadius: '14px', width: '100%', maxWidth: '560px',
+            margin: '0 auto', boxShadow: '0 24px 80px rgba(0,0,0,0.7)',
+          }}>
+
+            {/* ── Header ── */}
+            <div style={{ padding: '20px 24px', borderBottom: '1px solid var(--bd)', display: 'flex', alignItems: 'center', gap: '14px' }}>
+              <div style={{
+                width: '48px', height: '48px', borderRadius: '50%', flexShrink: 0,
+                background: 'rgba(0,229,160,0.12)', border: '2px solid rgba(0,229,160,0.35)',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '18px', color: 'var(--green)',
+              }}>
+                {(selectedStudent.name || '?')[0].toUpperCase()}
+              </div>
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--t1)', marginBottom: '2px' }}>
+                  {selectedStudent.name}
+                </div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginBottom: '8px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                  {selectedStudent.email || '—'}
+                </div>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                  {selectedStudent.currentStreak > 0 && (
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-neutral)', background: 'rgba(232,184,75,0.08)', border: '1px solid rgba(232,184,75,0.25)', borderRadius: '5px', padding: '2px 8px' }}>
+                      ⚡ {selectedStudent.currentStreak}d racha
+                    </span>
+                  )}
+                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--bd)', borderRadius: '5px', padding: '2px 8px' }}>
+                    🎮 {selectedStudent.gamesPlayed} partidas
+                  </span>
+                  {selectedStudent.lastSeen && (
+                    <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--bd)', borderRadius: '5px', padding: '2px 8px' }}>
+                      {relativeDate(selectedStudent.lastSeen, t)}
+                    </span>
+                  )}
+                </div>
+              </div>
+              <button
+                onClick={closeDetail}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--t4)', fontSize: '22px', lineHeight: 1, flexShrink: 0, padding: '4px' }}
+              >
+                ×
+              </button>
+            </div>
+
+            {/* ── Loading / error ── */}
+            {detailLoading && (
+              <div style={{ padding: '48px 24px', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>
+                Cargando datos…
+              </div>
+            )}
+            {detailErr && (
+              <div style={{ padding: '24px', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)' }}>
+                {detailErr}
+              </div>
+            )}
+
+            {/* ── Detail sections ── */}
+            {studentDetail && (() => {
+              const activeModes = studentDetail.modeBreakdown.filter(m => m.gamesPlayed > 0);
+              return (
+                <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', gap: '28px' }}>
+
+                  {/* ── Portfolio ── */}
+                  <section>
+                    <Label>Portfolio</Label>
+                    <div style={{ display: 'flex', gap: '10px', marginBottom: '14px', flexWrap: 'wrap' }}>
+                      {[
+                        { label: 'Valor', val: fmtUSD(selectedStudent.portfolioValue), color: 'var(--t1)' },
+                        { label: 'P&L',   val: fmtPnl(selectedStudent.portfolioPnl),   color: selectedStudent.portfolioPnl === null ? 'var(--t5)' : selectedStudent.portfolioPnl >= 0 ? 'var(--green)' : 'var(--color-down)' },
+                        { label: 'P&L %', val: fmtPct(selectedStudent.portfolioPnlPct), color: selectedStudent.portfolioPnlPct === null ? 'var(--t5)' : selectedStudent.portfolioPnlPct >= 0 ? 'var(--green)' : 'var(--color-down)' },
+                      ].map(({ label, val, color }) => (
+                        <div key={label} style={{ flex: 1, minWidth: '90px', background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '12px 14px' }}>
+                          <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginBottom: '4px' }}>{label}</div>
+                          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color }}>{val}</div>
+                        </div>
+                      ))}
+                    </div>
+                    {studentDetail.portfolioHistory.length >= 2 ? (
+                      <div style={{ background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '12px 14px' }}>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', marginBottom: '8px' }}>
+                          {studentDetail.portfolioHistory[0].date} → {studentDetail.portfolioHistory[studentDetail.portfolioHistory.length - 1].date}
+                        </div>
+                        <MiniChart
+                          values={studentDetail.portfolioHistory.map(h => h.totalValue)}
+                          vbH={56}
+                          color="var(--green)"
+                          filled
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', marginTop: '4px' }}>
+                          <span>${Math.min(...studentDetail.portfolioHistory.map(h => h.totalValue)).toLocaleString()}</span>
+                          <span>${Math.max(...studentDetail.portfolioHistory.map(h => h.totalValue)).toLocaleString()}</span>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', fontStyle: 'italic' }}>
+                        Sin datos de evolución (el alumno debe abrir el modo Portfolio)
+                      </div>
+                    )}
+                  </section>
+
+                  {/* ── Rendimiento por modo ── */}
+                  {activeModes.length > 0 && (
+                    <section>
+                      <Label>Rendimiento por modo</Label>
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '8px' }}>
+                        {activeModes.map(m => (
+                          <div key={m.mode} style={{ background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '12px 14px' }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                              {MODE_LABELS[m.mode] || m.mode}
+                            </div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--t1)', marginBottom: '2px' }}>
+                              {m.gamesPlayed}
+                            </div>
+                            <div style={{
+                              fontFamily: 'var(--font-body)', fontSize: '12px',
+                              color: m.avgAccuracy >= 70 ? 'var(--green)' : m.avgAccuracy >= 50 ? 'var(--color-neutral)' : 'var(--t4)',
+                            }}>
+                              {m.avgAccuracy}% precisión
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* ── Evolución de precisión ── */}
+                  {studentDetail.accuracyTrend.length >= 2 && (
+                    <section>
+                      <Label>Evolución de precisión — últimas {studentDetail.accuracyTrend.length} partidas</Label>
+                      <div style={{ background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '12px 14px' }}>
+                        <MiniChart
+                          values={studentDetail.accuracyTrend.map(g => g.accuracy)}
+                          vbH={64}
+                          color="rgba(0,229,160,0.85)"
+                          showDots
+                        />
+                        <div style={{ display: 'flex', justifyContent: 'space-between', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', marginTop: '4px' }}>
+                          <span>↑ {Math.max(...studentDetail.accuracyTrend.map(g => g.accuracy))}% máx</span>
+                          <span>↓ {Math.min(...studentDetail.accuracyTrend.map(g => g.accuracy))}% mín</span>
+                        </div>
+                      </div>
+                    </section>
+                  )}
+
+                  {/* ── Deberes ── */}
+                  {studentDetail.assignments.length > 0 && (
+                    <section>
+                      <Label>Deberes</Label>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {studentDetail.assignments.map(asg => {
+                          const sub = asg.submission || { gamesPlayed: 0, completed: false };
+                          const pct = Math.min(100, Math.round(((sub.gamesPlayed || 0) / asg.targetGames) * 100));
+                          const aStatus = assignmentStatus(asg);
+                          return (
+                            <div key={String(asg._id)} style={{ background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '12px 14px' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                                <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--t1)', flex: 1, minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {asg.title}
+                                </span>
+                                <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', color: 'var(--t4)', background: 'rgba(100,115,130,0.12)', border: '1px solid rgba(100,115,130,0.3)', flexShrink: 0 }}>
+                                  {MODE_LABELS[asg.mode] || asg.mode}
+                                </span>
+                                {sub.completed ? (
+                                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', color: 'var(--green)', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.25)', flexShrink: 0 }}>
+                                    ✓ Completado
+                                  </span>
+                                ) : (
+                                  <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', color: aStatus.color, background: `${aStatus.color}18`, border: `1px solid ${aStatus.color}40`, flexShrink: 0 }}>
+                                    {aStatus.label}
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <div style={{ flex: 1, height: '4px', background: 'var(--bd)', borderRadius: '2px' }}>
+                                  <div style={{ width: `${pct}%`, height: '100%', background: sub.completed ? 'var(--green)' : 'rgba(0,229,160,0.45)', borderRadius: '2px', transition: 'width 0.3s' }} />
+                                </div>
+                                <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', whiteSpace: 'nowrap' }}>
+                                  {sub.gamesPlayed || 0}/{asg.targetGames}
+                                </span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </section>
+                  )}
+
+                  {/* ── Mensajes ── */}
+                  <section>
+                    <Label>Mensajes</Label>
+                    <textarea
+                      value={detailFeedbackMsg}
+                      onChange={e => setDetailFeedbackMsg(e.target.value.slice(0, 500))}
+                      placeholder="Escribe un comentario para este alumno…"
+                      rows={3}
+                      style={{
+                        width: '100%', padding: '11px 12px', boxSizing: 'border-box',
+                        background: 'var(--bg-card2)', border: '1px solid var(--bd2)',
+                        borderRadius: '6px', color: 'var(--t1)',
+                        fontFamily: 'var(--font-body)', fontSize: '12px',
+                        outline: 'none', resize: 'vertical', marginBottom: '4px',
+                      }}
+                    />
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '14px' }}>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)' }}>{detailFeedbackErr || ''}</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>{detailFeedbackMsg.length}/500</span>
+                        <Btn onClick={sendDetailFeedback} disabled={detailFeedbackSending || !detailFeedbackMsg.trim()} style={{ padding: '7px 14px' }}>
+                          {detailFeedbackSending ? '...' : 'Enviar'}
+                        </Btn>
+                      </div>
+                    </div>
+                    {studentDetail.feedback.length > 0 && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                        {studentDetail.feedback.map(m => (
+                          <div key={String(m._id)} style={{ background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '6px', padding: '10px 12px' }}>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)', lineHeight: 1.5, marginBottom: '4px' }}>{m.message}</div>
+                            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>
+                              {new Date(m.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                    {studentDetail.feedback.length === 0 && (
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', fontStyle: 'italic' }}>
+                        Sin mensajes enviados a este alumno todavía.
+                      </div>
+                    )}
+                  </section>
+
+                </div>
+              );
+            })()}
           </div>
         </div>
       )}

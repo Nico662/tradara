@@ -461,6 +461,81 @@ router.get('/:id/feedback/unread-count', requireAuth, async (req, res) => {
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
+// ── GET /academy/:id/student/:studentId ─────────────────────────────
+router.get('/:id/student/:studentId', requireTeacher, async (req, res) => {
+  try {
+    const { id: academyId, studentId: sid } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(sid))
+      return res.status(400).json({ error: 'ID de alumno inválido' });
+
+    const academy = await Academy.findById(academyId, 'ownerId students');
+    if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });
+    if (academy.ownerId.toString() !== req.user._id.toString())
+      return res.status(403).json({ error: 'No autorizado' });
+    if (!academy.students.some(s => s.toString() === sid))
+      return res.status(404).json({ error: 'Alumno no encontrado en esta academia' });
+
+    const GameHistory      = mongoose.model('GameHistory');
+    const PortfolioHistory = mongoose.model('PortfolioHistory');
+    const User             = mongoose.model('User');
+    const sidObj           = new mongoose.Types.ObjectId(sid);
+
+    const [student, modeBreakdown, recentGames, portfolioHist, feedback, assignments] = await Promise.all([
+      User.findById(sid, 'name email dailyStreak lastLogin'),
+
+      GameHistory.aggregate([
+        { $match: { userId: sidObj, mode: { $in: ['guess', 'survival', 'daily', 'historical', 'portfolio'] } } },
+        { $group: { _id: '$mode', gamesPlayed: { $sum: 1 }, avgAccuracy: { $avg: '$accuracy' } } },
+      ]),
+
+      GameHistory.find({ userId: sid })
+        .sort({ createdAt: -1 }).limit(20).select('accuracy createdAt').lean(),
+
+      PortfolioHistory.find({ userId: sid }).sort({ date: 1 }).select('date totalValue').lean(),
+
+      AcademyFeedback.find({ academyId, toId: sid }).sort({ createdAt: -1 }).lean(),
+
+      AcademyAssignment.find({ academyId }).sort({ startsAt: -1 }).lean(),
+    ]);
+
+    if (!student) return res.status(404).json({ error: 'Alumno no encontrado' });
+
+    res.json({
+      student: {
+        id:            student._id,
+        name:          student.name,
+        email:         student.email,
+        currentStreak: student.dailyStreak || 0,
+        lastSeen:      student.lastLogin   || null,
+      },
+      modeBreakdown: modeBreakdown.map(m => ({
+        mode:        m._id,
+        gamesPlayed: m.gamesPlayed,
+        avgAccuracy: Math.round(m.avgAccuracy),
+      })),
+      accuracyTrend: [...recentGames].reverse().map(g => ({
+        date:     g.createdAt,
+        accuracy: g.accuracy,
+      })),
+      portfolioHistory: portfolioHist.map(h => ({ date: h.date, totalValue: h.totalValue })),
+      feedback,
+      assignments: assignments.map(a => {
+        const sub = a.submissions.find(s => s.userId.toString() === sid);
+        return {
+          _id:         a._id,
+          title:       a.title,
+          mode:        a.mode,
+          targetGames: a.targetGames,
+          startsAt:    a.startsAt,
+          endsAt:      a.endsAt,
+          submission:  sub ? { gamesPlayed: sub.gamesPlayed, completed: sub.completed, completedAt: sub.completedAt } : null,
+        };
+      }),
+    });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
 // ── GET /academy/:id/name ─────────────────────────────────────────
 router.get('/:id/name', async (req, res) => {
   try {
