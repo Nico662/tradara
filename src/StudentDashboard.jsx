@@ -38,6 +38,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
   const [confirmLeave,  setConfirmLeave]  = useState(false);
   const [leaving,       setLeaving]       = useState(false);
   const [assignments,   setAssignments]   = useState([]);
+  const [inbox,         setInbox]         = useState([]);
 
   // Same pattern as Portfolio.jsx loadAll(): check localStorage then MongoDB
   useEffect(() => {
@@ -113,13 +114,18 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
       fetch(`${SERVER}/academy/${academyId}/assignments`, {
         headers: { Authorization: `Bearer ${tok}` },
       }).then(r => r.ok ? r.json() : []).catch(() => []),
+
+      fetch(`${SERVER}/academy/${academyId}/feedback/inbox`, {
+        headers: { Authorization: `Bearer ${tok}` },
+      }).then(r => r.ok ? r.json() : []).catch(() => []),
     ])
-      .then(([dash, tour, status, assigns]) => {
+      .then(([dash, tour, status, assigns, msgs]) => {
         const sorted = [...(dash.students || [])].sort((a, b) => b.avgAccuracy - a.avgAccuracy);
         setStudents(sorted);
         setTournament(tour?.active ? tour.tournament : false);
         setAcademyStatus(status);
         setAssignments(assigns || []);
+        setInbox(msgs || []);
       })
       .catch(e => {
         if (e === '__ACADEMY_GONE__') { onBack(); return; }
@@ -189,6 +195,41 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
             {t.academy.studentLabel} — {user?.username ? `@${user.username}` : user?.name}
           </span>
         </div>
+
+        {/* ── Mensajes del profesor ── */}
+        {inbox.length > 0 && (
+          <div style={{ marginBottom: '32px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
+                MENSAJES DE TU PROFESOR
+              </div>
+              {inbox.filter(m => !m.read).length > 0 && (
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: 'var(--green)', background: 'rgba(0,229,160,0.1)', border: '1px solid rgba(0,229,160,0.3)', borderRadius: '10px', padding: '1px 7px' }}>
+                  {inbox.filter(m => !m.read).length}
+                </span>
+              )}
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {inbox.map(msg => (
+                <div key={msg._id} style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '14px 16px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', marginBottom: '6px' }}>
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>
+                      {new Date(msg.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </div>
+                    {!msg.read && (
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', padding: '2px 7px', borderRadius: '4px', color: 'var(--green)', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.25)', flexShrink: 0 }}>
+                        NUEVO
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '13px', color: 'var(--t1)', lineHeight: 1.6 }}>
+                    {msg.message}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* ── Ranking ── */}
         <div style={{ marginBottom: '32px' }}>

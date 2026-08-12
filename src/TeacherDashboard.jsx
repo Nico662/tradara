@@ -208,6 +208,12 @@ function AcademyDashboard({ academyId, onBack }) {
   const [asgForm,       setAsgForm]       = useState({ title: '', description: '', mode: 'guess', targetGames: 5, startsAt: '', endsAt: '' });
   const [asgErr,        setAsgErr]        = useState(null);
   const [asgSubmitting, setAsgSubmitting] = useState(false);
+  const [feedbackModal,   setFeedbackModal]   = useState(null); // null | { studentId, studentName }
+  const [feedbackMsg,     setFeedbackMsg]     = useState('');
+  const [feedbackHist,    setFeedbackHist]    = useState([]);
+  const [feedbackSending, setFeedbackSending] = useState(false);
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackErr,     setFeedbackErr]     = useState(null);
 
   useEffect(() => {
     if (!tok) { setLoading(false); return; }
@@ -242,6 +248,19 @@ function AcademyDashboard({ academyId, onBack }) {
       .then(data => setAssignments(data))
       .catch(() => {});
   }, [academyId]);
+
+  useEffect(() => {
+    if (!feedbackModal) return;
+    setFeedbackLoading(true);
+    setFeedbackHist([]);
+    fetch(`${SERVER}/academy/${academyId}/feedback/sent?toId=${feedbackModal.studentId}`, {
+      headers: { Authorization: `Bearer ${tok}` },
+    })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setFeedbackHist(data))
+      .catch(() => {})
+      .finally(() => setFeedbackLoading(false));
+  }, [feedbackModal?.studentId]);
 
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
@@ -356,6 +375,24 @@ function AcademyDashboard({ academyId, onBack }) {
       setAsgForm({ title: '', description: '', mode: 'guess', targetGames: 5, startsAt: '', endsAt: '' });
     } catch { setAsgErr('Error de red'); }
     setAsgSubmitting(false);
+  }
+
+  async function sendFeedback() {
+    if (!feedbackMsg.trim()) return;
+    setFeedbackSending(true);
+    setFeedbackErr(null);
+    try {
+      const res = await fetch(`${SERVER}/academy/${academyId}/feedback`, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify({ toId: feedbackModal.studentId, message: feedbackMsg.trim() }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setFeedbackErr(data.error || 'Error'); setFeedbackSending(false); return; }
+      setFeedbackHist(prev => [data, ...prev]);
+      setFeedbackMsg('');
+    } catch { setFeedbackErr('Error de red'); }
+    setFeedbackSending(false);
   }
 
   // ── Render: loading / error ──
@@ -560,13 +597,13 @@ function AcademyDashboard({ academyId, onBack }) {
               <>
                 {/* Table header */}
                 <div style={{
-                  display: 'grid', gridTemplateColumns: '28px 1fr 36px 42px 36px 44px 64px 64px 52px',
+                  display: 'grid', gridTemplateColumns: '28px 1fr 36px 42px 36px 44px 64px 64px 52px 32px',
                   gap: '8px', padding: '8px 14px',
                   borderBottom: '1px solid var(--bd)',
                   alignItems: 'center',
-                  minWidth: '560px',
+                  minWidth: '600px',
                 }}>
-                  {['', t.academy.colName, t.academy.colGames, t.academy.colAccuracy, t.academy.colStreak, t.academy.colLast, 'Portfolio', 'P&L', 'P&L %'].map((h, i) => (
+                  {['', t.academy.colName, t.academy.colGames, t.academy.colAccuracy, t.academy.colStreak, t.academy.colLast, 'Portfolio', 'P&L', 'P&L %', ''].map((h, i) => (
                     <div key={i} style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.08em', textAlign: i >= 2 ? 'center' : 'left' }}>
                       {h}
                     </div>
@@ -578,11 +615,11 @@ function AcademyDashboard({ academyId, onBack }) {
                   <div
                     key={s.id}
                     style={{
-                      display: 'grid', gridTemplateColumns: '28px 1fr 36px 42px 36px 44px 64px 64px 52px',
+                      display: 'grid', gridTemplateColumns: '28px 1fr 36px 42px 36px 44px 64px 64px 52px 32px',
                       gap: '8px', padding: '10px 14px', alignItems: 'center',
                       borderBottom: i < students.length - 1 ? '1px solid var(--bd)' : 'none',
                       background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.012)',
-                      minWidth: '560px',
+                      minWidth: '600px',
                     }}
                   >
                     {/* Avatar */}
@@ -646,6 +683,19 @@ function AcademyDashboard({ academyId, onBack }) {
                       color: s.portfolioPnlPct === null ? 'var(--t5)' : s.portfolioPnlPct >= 0 ? 'var(--green)' : 'var(--color-down)',
                     }}>
                       {fmtPct(s.portfolioPnlPct)}
+                    </div>
+
+                    {/* Feedback button */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <button
+                        onClick={() => { setFeedbackModal({ studentId: s.id, studentName: s.name }); setFeedbackMsg(''); setFeedbackErr(null); }}
+                        title={`Mensaje a ${s.name}`}
+                        style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--t5)', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                        </svg>
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -1115,6 +1165,61 @@ function AcademyDashboard({ academyId, onBack }) {
                 {asgSubmitting ? '...' : 'Crear'}
               </Btn>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Feedback modal ── */}
+      {feedbackModal && (
+        <div
+          onClick={e => { if (e.target === e.currentTarget) { setFeedbackModal(null); setFeedbackMsg(''); setFeedbackErr(null); } }}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', zIndex: 100 }}
+        >
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.6)', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '18px' }}>
+              <div>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>Mensaje al alumno</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginTop: '3px' }}>{feedbackModal.studentName}</div>
+              </div>
+              <button onClick={() => { setFeedbackModal(null); setFeedbackMsg(''); setFeedbackErr(null); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--t5)', fontSize: '18px', lineHeight: 1, flexShrink: 0 }}>×</button>
+            </div>
+
+            <textarea
+              value={feedbackMsg}
+              onChange={e => setFeedbackMsg(e.target.value.slice(0, 500))}
+              placeholder="Escribe un comentario..."
+              rows={4}
+              style={{ width: '100%', padding: '11px 12px', background: 'var(--bg-card2)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t1)', fontFamily: 'var(--font-body)', fontSize: '12px', outline: 'none', boxSizing: 'border-box', resize: 'vertical' }}
+            />
+            <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', textAlign: 'right', marginTop: '3px', marginBottom: '10px' }}>
+              {feedbackMsg.length}/500
+            </div>
+
+            {feedbackErr && <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', marginBottom: '10px' }}>{feedbackErr}</div>}
+
+            <Btn onClick={sendFeedback} disabled={feedbackSending || !feedbackMsg.trim()} style={{ width: '100%', padding: '11px' }}>
+              {feedbackSending ? '...' : 'Enviar'}
+            </Btn>
+
+            {(feedbackLoading || feedbackHist.length > 0) && (
+              <div style={{ marginTop: '20px', borderTop: '1px solid var(--bd)', paddingTop: '16px' }}>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>Mensajes anteriores</div>
+                {feedbackLoading ? (
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>Cargando...</div>
+                ) : (
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                    {feedbackHist.map(m => (
+                      <div key={m._id} style={{ background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '6px', padding: '10px 12px' }}>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)', lineHeight: 1.5, marginBottom: '4px' }}>{m.message}</div>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>
+                          {new Date(m.createdAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short', year: 'numeric' })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </div>
       )}

@@ -5,6 +5,7 @@ const Stripe         = require('stripe');
 const Academy        = require('../models/Academy');
 const AcademyTournament  = require('../models/AcademyTournament');
 const AcademyAssignment  = require('../models/AcademyAssignment');
+const AcademyFeedback    = require('../models/AcademyFeedback');
 const requireTeacher     = require('../middleware/requireTeacher');
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
@@ -378,6 +379,85 @@ router.post('/:id/assignment/:aId/progress', requireAuth, async (req, res) => {
     }
     await assignment.save();
     res.json({ ok: true, submission: sub });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── POST /academy/:id/feedback ───────────────────────────────────
+router.post('/:id/feedback', requireTeacher, async (req, res) => {
+  try {
+    const { toId, message } = req.body;
+    if (!toId || !message?.trim())
+      return res.status(400).json({ error: 'toId y message son obligatorios' });
+    if (message.trim().length > 500)
+      return res.status(400).json({ error: 'Mensaje demasiado largo (max 500 caracteres)' });
+
+    const academy = await Academy.findById(req.params.id, 'ownerId students');
+    if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });
+    if (academy.ownerId.toString() !== req.user._id.toString())
+      return res.status(403).json({ error: 'No autorizado' });
+    if (!academy.students.some(s => s.toString() === toId))
+      return res.status(400).json({ error: 'El alumno no pertenece a esta academia' });
+
+    const feedback = await AcademyFeedback.create({
+      academyId: req.params.id,
+      fromId:    req.user._id,
+      toId,
+      message:   message.trim(),
+    });
+    res.status(201).json(feedback);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── GET /academy/:id/feedback/sent ───────────────────────────────
+router.get('/:id/feedback/sent', requireTeacher, async (req, res) => {
+  try {
+    const academy = await Academy.findById(req.params.id, 'ownerId');
+    if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });
+    if (academy.ownerId.toString() !== req.user._id.toString())
+      return res.status(403).json({ error: 'No autorizado' });
+
+    const query = { academyId: req.params.id, fromId: req.user._id };
+    if (req.query.toId) query.toId = req.query.toId;
+
+    const messages = await AcademyFeedback.find(query).sort({ createdAt: -1 });
+    const studentIds = [...new Set(messages.map(m => m.toId.toString()))];
+    const students   = await mongoose.model('User').find({ _id: { $in: studentIds } }, 'name');
+    const nameMap    = {};
+    students.forEach(s => { nameMap[s._id.toString()] = s.name; });
+
+    res.json(messages.map(m => ({
+      ...m.toObject(),
+      recipientName: nameMap[m.toId.toString()] || '—',
+    })));
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── GET /academy/:id/feedback/inbox ──────────────────────────────
+router.get('/:id/feedback/inbox', requireAuth, async (req, res) => {
+  try {
+    const messages = await AcademyFeedback.find({
+      academyId: req.params.id,
+      toId:      req.user._id,
+    }).sort({ createdAt: -1 });
+
+    res.json(messages.map(m => m.toObject()));
+
+    AcademyFeedback.updateMany(
+      { academyId: req.params.id, toId: req.user._id, read: false },
+      { $set: { read: true } }
+    ).catch(() => {});
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── GET /academy/:id/feedback/unread-count ───────────────────────
+router.get('/:id/feedback/unread-count', requireAuth, async (req, res) => {
+  try {
+    const count = await AcademyFeedback.countDocuments({
+      academyId: req.params.id,
+      toId:      req.user._id,
+      read:      false,
+    });
+    res.json({ count });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 
