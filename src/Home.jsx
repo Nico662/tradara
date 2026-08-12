@@ -275,7 +275,7 @@ export default function Home({ onSelect }) {
                 <svg width="16" height="16" viewBox="0 0 48 48" xmlns="http://www.w3.org/2000/svg">
                   <path fill="#00c087" d="M44.5 20H24v8.5h11.8C34.7 33.9 29.1 37 24 37c-7.2 0-13-5.8-13-13s5.8-13 13-13c3.1 0 5.9 1.1 8.1 2.9l6.4-6.4C34.6 4.1 29.6 2 24 2 11.8 2 2 11.8 2 24s9.8 22 22 22c11 0 21-8 21-22 0-1.3-.2-2.7-.5-4z"/>
                 </svg>
-                Sign in with Google
+                {t.common.signInGoogle}
               </button>
               {typeof window !== 'undefined' && window.webkit?.messageHandlers?.appleSignIn && (
                 <button
@@ -300,7 +300,7 @@ export default function Home({ onSelect }) {
                   <svg width="16" height="16" viewBox="0 0 814 1000" fill="white" xmlns="http://www.w3.org/2000/svg">
                     <path d="M788.1 340.9c-5.8 4.5-108.2 62.2-108.2 190.5 0 148.4 130.3 200.9 134.2 202.2-.6 3.2-20.7 71.9-68.7 141.9-42.8 61.6-87.5 123.1-155.5 123.1s-85.5-39.5-164-39.5c-76 0-103.7 40.8-165.9 40.8s-105-57.8-155.5-127.4C46 790.7 0 663 0 541.8c0-207.4 135.4-317 269-317 71 0 130.5 46.8 175 46.8 42.3 0 108.5-49.9 190.5-49.9zm-194.5-55.7c-31.1-37.5-55.9-89.8-55.9-142.1 0-7.7.6-15.4 1.9-22.4 56.4 2.6 112.8 38.4 149.4 80.8 30.5 36.5 55.9 89.8 55.9 142.1 0 7.7-.6 15.4-1.9 22.4-57 0-113.8-36.5-149.4-80.8z"/>
                   </svg>
-                  Sign in with Apple
+                  {t.common.signInApple}
                 </button>
               )}
               <button
@@ -472,11 +472,11 @@ export default function Home({ onSelect }) {
             </button>
             <button onClick={() => onSelect('privacy')}
               style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
-              Privacy
+              {t.common.privacy}
             </button>
             <button onClick={() => onSelect('support')}
               style={{ background: 'transparent', border: 'none', color: 'var(--text-hint)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.08em', textTransform: 'uppercase', textDecoration: 'underline' }}>
-              Support
+              {t.common.support}
             </button>
           </div>
         </div>

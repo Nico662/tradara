@@ -13,20 +13,18 @@ function relativeDate(d, t) {
   return new Date(d).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' });
 }
 
-function tournamentStatus(t) {
+function tournamentStatus(trn) {
   const now = Date.now();
-  if (new Date(t.endsAt)   < now) return { label: 'finalizado', color: 'var(--t5)' };
-  if (new Date(t.startsAt) > now) return { label: 'próximo',    color: 'var(--color-neutral)' };
-  return                                 { label: 'activo',      color: 'var(--green)' };
+  if (new Date(trn.endsAt)   < now) return { type: 'finished', color: 'var(--t5)' };
+  if (new Date(trn.startsAt) > now) return { type: 'upcoming', color: 'var(--color-neutral)' };
+  return                                   { type: 'active',   color: 'var(--green)' };
 }
-
-const MODE_LABELS = { guess: 'Adivina', survival: 'Survival', daily: 'Diario', portfolio: 'Portfolio' };
 
 function assignmentStatus(a) {
   const now = Date.now();
-  if (new Date(a.endsAt)   < now) return { label: 'FINALIZADO', color: 'var(--t5)' };
-  if (new Date(a.startsAt) > now) return { label: 'PRÓXIMO',    color: 'var(--color-neutral)' };
-  return                                  { label: 'ACTIVO',     color: 'var(--green)' };
+  if (new Date(a.endsAt)   < now) return { type: 'finished', color: 'var(--t5)' };
+  if (new Date(a.startsAt) > now) return { type: 'upcoming', color: 'var(--color-neutral)' };
+  return                                  { type: 'active',  color: 'var(--green)' };
 }
 
 function fmtUSD(v) {
@@ -215,6 +213,7 @@ function CreateAcademyScreen({ onBack, onCreated }) {
 // ── Dashboard content (academyId guaranteed valid) ────────────────
 function AcademyDashboard({ academyId, onBack }) {
   const { t } = useLang();
+  const getModeLabel = (mode) => t.academy['mode_' + mode] || mode;
   const { updateUser } = useAuth();
   const tok = localStorage.getItem('tradaria_token');
 
@@ -384,9 +383,9 @@ function AcademyDashboard({ academyId, onBack }) {
 
   async function createAssignment() {
     if (!asgForm.title.trim() || !asgForm.startsAt || !asgForm.endsAt)
-      return setAsgErr('Título, fecha inicio y fecha fin son obligatorios');
+      return setAsgErr(t.academy.allRequired);
     if (new Date(asgForm.endsAt) <= new Date(asgForm.startsAt))
-      return setAsgErr('La fecha fin debe ser posterior al inicio');
+      return setAsgErr(t.academy.endAfterStart);
     setAsgSubmitting(true);
     setAsgErr(null);
     try {
@@ -403,11 +402,11 @@ function AcademyDashboard({ academyId, onBack }) {
         }),
       });
       const data = await res.json();
-      if (!res.ok) { setAsgErr(data.error || 'Error'); setAsgSubmitting(false); return; }
+      if (!res.ok) { setAsgErr(data.error || t.academy.createError); setAsgSubmitting(false); return; }
       setAssignments(prev => [data, ...prev]);
       setAsgModal(false);
       setAsgForm({ title: '', description: '', mode: 'guess', targetGames: 5, startsAt: '', endsAt: '' });
-    } catch { setAsgErr('Error de red'); }
+    } catch { setAsgErr(t.academy.networkError); }
     setAsgSubmitting(false);
   }
 
@@ -422,10 +421,10 @@ function AcademyDashboard({ academyId, onBack }) {
         body:    JSON.stringify({ toId: feedbackModal.studentId, message: feedbackMsg.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) { setFeedbackErr(data.error || 'Error'); setFeedbackSending(false); return; }
+      if (!res.ok) { setFeedbackErr(data.error || t.academy.createError); setFeedbackSending(false); return; }
       setFeedbackHist(prev => [data, ...prev]);
       setFeedbackMsg('');
-    } catch { setFeedbackErr('Error de red'); }
+    } catch { setFeedbackErr(t.academy.networkError); }
     setFeedbackSending(false);
   }
 
@@ -441,9 +440,9 @@ function AcademyDashboard({ academyId, onBack }) {
         headers: { Authorization: `Bearer ${tok}` },
       });
       const data = await res.json();
-      if (!res.ok) { setDetailErr(data.error || 'Error'); setDetailLoading(false); return; }
+      if (!res.ok) { setDetailErr(data.error || t.academy.createError); setDetailLoading(false); return; }
       setStudentDetail(data);
-    } catch { setDetailErr('Error de red'); }
+    } catch { setDetailErr(t.academy.networkError); }
     setDetailLoading(false);
   }
 
@@ -467,10 +466,10 @@ function AcademyDashboard({ academyId, onBack }) {
         body:    JSON.stringify({ toId: selectedStudent.id, message: detailFeedbackMsg.trim() }),
       });
       const data = await res.json();
-      if (!res.ok) { setDetailFeedbackErr(data.error || 'Error'); setDetailFeedbackSending(false); return; }
+      if (!res.ok) { setDetailFeedbackErr(data.error || t.academy.createError); setDetailFeedbackSending(false); return; }
       setStudentDetail(prev => ({ ...prev, feedback: [data, ...(prev.feedback || [])] }));
       setDetailFeedbackMsg('');
-    } catch { setDetailFeedbackErr('Error de red'); }
+    } catch { setDetailFeedbackErr(t.academy.networkError); }
     setDetailFeedbackSending(false);
   }
 
@@ -770,7 +769,7 @@ function AcademyDashboard({ academyId, onBack }) {
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <button
                         onClick={e => { e.stopPropagation(); setFeedbackModal({ studentId: s.id, studentName: s.name }); setFeedbackMsg(''); setFeedbackErr(null); }}
-                        title={`Mensaje a ${s.name}`}
+                        title={`${t.academy.messageToStudent}: ${s.name}`}
                         style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--t5)', padding: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                       >
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -807,8 +806,8 @@ function AcademyDashboard({ academyId, onBack }) {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {tournaments.map(trn => {
                 const status     = tournamentStatus(trn);
-                const isActive   = status.label === 'activo';
-                const isFinished = status.label === 'finalizado';
+                const isActive   = status.type === 'active';
+                const isFinished = status.type === 'finished';
                 const badgeLabel = isActive ? t.academy.statusActive : isFinished ? t.academy.statusFinished : t.academy.statusUpcoming;
 
                 const entries = (trn.participants || [])
@@ -954,16 +953,16 @@ function AcademyDashboard({ academyId, onBack }) {
         {/* ── Deberes ── */}
         <div style={{ marginTop: '32px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
-            <Label>DEBERES</Label>
+            <Label>{t.academy.homeworkLabel}</Label>
             <Btn onClick={() => { setAsgModal(true); setAsgErr(null); }} style={{ padding: '6px 11px', fontSize: '12px', marginBottom: '10px' }}>
-              Crear deber
+              {t.academy.newHomework}
             </Btn>
           </div>
 
           {assignments.length === 0 ? (
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '32px 20px', textAlign: 'center' }}>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>
-                No hay deberes creados todavía.
+                {t.academy.noHomeworkYet}
               </div>
             </div>
           ) : (
@@ -979,17 +978,17 @@ function AcademyDashboard({ academyId, onBack }) {
                           {asg.title}
                         </span>
                         <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', padding: '3px 7px', borderRadius: '4px', color: 'var(--t4)', background: 'rgba(100,115,130,0.12)', border: '1px solid rgba(100,115,130,0.3)', flexShrink: 0 }}>
-                          {MODE_LABELS[asg.mode] || asg.mode}
+                          {getModeLabel(asg.mode)}
                         </span>
                         <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', padding: '3px 7px', borderRadius: '4px', color: status.color, background: `${status.color}18`, border: `1px solid ${status.color}40`, flexShrink: 0 }}>
-                          {status.label}
+                          {status.type === 'active' ? t.academy.statusActive : status.type === 'finished' ? t.academy.statusFinished : t.academy.statusUpcoming}
                         </span>
                       </div>
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>
                         {new Date(asg.startsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                         {' — '}
                         {new Date(asg.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
-                        {' · '}{asg.targetGames} partidas
+                        {' · '}{asg.targetGames} {t.academy.gamesUnit}
                       </div>
                       {asg.description && (
                         <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', marginTop: '4px' }}>
@@ -1002,7 +1001,7 @@ function AcademyDashboard({ academyId, onBack }) {
                     {(asg.submissions || []).length > 0 && (
                       <div style={{ borderTop: '1px solid var(--bd)' }}>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 72px', gap: '8px', padding: '7px 14px', borderBottom: '1px solid var(--bd)' }}>
-                          {['Alumno', 'Progreso', 'Estado'].map((h, i) => (
+                          {[t.academy.studentLabel, t.academy.colProgress, t.academy.colStatus].map((h, i) => (
                             <div key={i} style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.08em', textAlign: i === 2 ? 'center' : 'left' }}>
                               {h}
                             </div>
@@ -1205,34 +1204,34 @@ function AcademyDashboard({ academyId, onBack }) {
         >
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.6)', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>Nuevo deber</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>{t.academy.newHomework}</div>
               <button onClick={() => setAsgModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--t5)', fontSize: '18px', lineHeight: 1 }}>×</button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-              <FieldInput label="Título" value={asgForm.title} onChange={e => setAsgForm(f => ({ ...f, title: e.target.value }))} placeholder="Ej: Practica el modo Adivina" />
-              <FieldInput label="Descripción (opcional)" value={asgForm.description} onChange={e => setAsgForm(f => ({ ...f, description: e.target.value }))} placeholder="Instrucciones adicionales..." />
+              <FieldInput label={t.academy.fieldTitle} value={asgForm.title} onChange={e => setAsgForm(f => ({ ...f, title: e.target.value }))} placeholder={t.academy.fieldTitlePlaceholder} />
+              <FieldInput label={t.academy.fieldDescription} value={asgForm.description} onChange={e => setAsgForm(f => ({ ...f, description: e.target.value }))} placeholder={t.academy.fieldDescriptionPlaceholder} />
               <div>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>Modo</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>{t.academy.fieldMode}</div>
                 <select
                   value={asgForm.mode}
                   onChange={e => setAsgForm(f => ({ ...f, mode: e.target.value }))}
                   style={{ width: '100%', padding: '11px 12px', background: 'var(--bg-card2)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t1)', fontFamily: 'var(--font-body)', fontSize: '12px', outline: 'none', boxSizing: 'border-box', colorScheme: 'dark' }}
                 >
-                  <option value="guess">Adivina</option>
-                  <option value="survival">Survival</option>
-                  <option value="daily">Diario</option>
-                  <option value="portfolio">Portfolio</option>
+                  <option value="guess">{t.academy.mode_guess}</option>
+                  <option value="survival">{t.academy.mode_survival}</option>
+                  <option value="daily">{t.academy.mode_daily}</option>
+                  <option value="portfolio">{t.academy.mode_portfolio}</option>
                 </select>
               </div>
               <FieldInput
-                label="Partidas objetivo"
+                label={t.academy.fieldTargetGames}
                 type="number"
                 value={String(asgForm.targetGames)}
                 onChange={e => setAsgForm(f => ({ ...f, targetGames: Math.max(1, parseInt(e.target.value) || 1) }))}
                 placeholder="5"
               />
-              <FieldInput label="Fecha inicio" type="date" value={asgForm.startsAt} onChange={e => setAsgForm(f => ({ ...f, startsAt: e.target.value }))} />
-              <FieldInput label="Fecha fin"    type="date" value={asgForm.endsAt}   onChange={e => setAsgForm(f => ({ ...f, endsAt:   e.target.value }))} />
+              <FieldInput label={t.academy.startDate} type="date" value={asgForm.startsAt} onChange={e => setAsgForm(f => ({ ...f, startsAt: e.target.value }))} />
+              <FieldInput label={t.academy.endDate}   type="date" value={asgForm.endsAt}   onChange={e => setAsgForm(f => ({ ...f, endsAt:   e.target.value }))} />
             </div>
             {asgErr && <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', marginTop: '12px' }}>{asgErr}</div>}
             <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
@@ -1240,10 +1239,10 @@ function AcademyDashboard({ academyId, onBack }) {
                 onClick={() => setAsgModal(false)}
                 style={{ flex: 1, padding: '11px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '7px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer' }}
               >
-                Cancelar
+                {t.academy.cancel}
               </button>
               <Btn onClick={createAssignment} disabled={asgSubmitting} style={{ flex: 1, padding: '11px' }}>
-                {asgSubmitting ? '...' : 'Crear'}
+                {asgSubmitting ? '...' : t.academy.createAssignmentBtn}
               </Btn>
             </div>
           </div>
@@ -1282,11 +1281,11 @@ function AcademyDashboard({ academyId, onBack }) {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {selectedStudent.currentStreak > 0 && (
                     <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-neutral)', background: 'rgba(232,184,75,0.08)', border: '1px solid rgba(232,184,75,0.25)', borderRadius: '5px', padding: '2px 8px' }}>
-                      ⚡ {selectedStudent.currentStreak}d racha
+                      ⚡ {selectedStudent.currentStreak}d {t.academy.streakUnit}
                     </span>
                   )}
                   <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--bd)', borderRadius: '5px', padding: '2px 8px' }}>
-                    🎮 {selectedStudent.gamesPlayed} partidas
+                    🎮 {selectedStudent.gamesPlayed} {t.academy.gamesPlayedUnit}
                   </span>
                   {selectedStudent.lastSeen && (
                     <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--bd)', borderRadius: '5px', padding: '2px 8px' }}>
@@ -1306,7 +1305,7 @@ function AcademyDashboard({ academyId, onBack }) {
             {/* ── Loading / error ── */}
             {detailLoading && (
               <div style={{ padding: '48px 24px', textAlign: 'center', fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>
-                Cargando datos…
+                {t.academy.detailLoading}
               </div>
             )}
             {detailErr && (
@@ -1326,7 +1325,7 @@ function AcademyDashboard({ academyId, onBack }) {
                     <Label>Portfolio</Label>
                     <div style={{ display: 'flex', gap: '10px', marginBottom: '14px', flexWrap: 'wrap' }}>
                       {[
-                        { label: 'Valor', val: fmtUSD(selectedStudent.portfolioValue), color: 'var(--t1)' },
+                        { label: t.academy.portfolioVal, val: fmtUSD(selectedStudent.portfolioValue), color: 'var(--t1)' },
                         { label: 'P&L',   val: fmtPnl(selectedStudent.portfolioPnl),   color: selectedStudent.portfolioPnl === null ? 'var(--t5)' : selectedStudent.portfolioPnl >= 0 ? 'var(--green)' : 'var(--color-down)' },
                         { label: 'P&L %', val: fmtPct(selectedStudent.portfolioPnlPct), color: selectedStudent.portfolioPnlPct === null ? 'var(--t5)' : selectedStudent.portfolioPnlPct >= 0 ? 'var(--green)' : 'var(--color-down)' },
                       ].map(({ label, val, color }) => (
@@ -1354,7 +1353,7 @@ function AcademyDashboard({ academyId, onBack }) {
                       </div>
                     ) : (
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', fontStyle: 'italic' }}>
-                        Sin datos de evolución (el alumno debe abrir el modo Portfolio)
+                        {t.academy.portfolioNoHistory}
                       </div>
                     )}
                   </section>
@@ -1362,12 +1361,12 @@ function AcademyDashboard({ academyId, onBack }) {
                   {/* ── Rendimiento por modo ── */}
                   {activeModes.length > 0 && (
                     <section>
-                      <Label>Rendimiento por modo</Label>
+                      <Label>{t.academy.modePerformance}</Label>
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(140px, 1fr))', gap: '8px' }}>
                         {activeModes.map(m => (
                           <div key={m.mode} style={{ background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '12px 14px' }}>
                             <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginBottom: '6px', textTransform: 'uppercase', letterSpacing: '0.08em' }}>
-                              {MODE_LABELS[m.mode] || m.mode}
+                              {getModeLabel(m.mode)}
                             </div>
                             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--t1)', marginBottom: '2px' }}>
                               {m.gamesPlayed}
@@ -1376,7 +1375,7 @@ function AcademyDashboard({ academyId, onBack }) {
                               fontFamily: 'var(--font-body)', fontSize: '12px',
                               color: m.avgAccuracy >= 70 ? 'var(--green)' : m.avgAccuracy >= 50 ? 'var(--color-neutral)' : 'var(--t4)',
                             }}>
-                              {m.avgAccuracy}% precisión
+                              {m.avgAccuracy}{t.academy.accuracyUnit}
                             </div>
                           </div>
                         ))}
@@ -1387,7 +1386,7 @@ function AcademyDashboard({ academyId, onBack }) {
                   {/* ── Evolución de precisión ── */}
                   {studentDetail.accuracyTrend.length >= 2 && (
                     <section>
-                      <Label>Evolución de precisión — últimas {studentDetail.accuracyTrend.length} partidas</Label>
+                      <Label>{t.academy.accuracyTrend.replace('{n}', studentDetail.accuracyTrend.length)}</Label>
                       <div style={{ background: 'var(--bg-card2)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '12px 14px' }}>
                         <MiniChart
                           values={studentDetail.accuracyTrend.map(g => g.accuracy)}
@@ -1406,7 +1405,7 @@ function AcademyDashboard({ academyId, onBack }) {
                   {/* ── Deberes ── */}
                   {studentDetail.assignments.length > 0 && (
                     <section>
-                      <Label>Deberes</Label>
+                      <Label>{t.academy.detailAssignments}</Label>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {studentDetail.assignments.map(asg => {
                           const sub = asg.submission || { gamesPlayed: 0, completed: false };
@@ -1419,15 +1418,15 @@ function AcademyDashboard({ academyId, onBack }) {
                                   {asg.title}
                                 </span>
                                 <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', color: 'var(--t4)', background: 'rgba(100,115,130,0.12)', border: '1px solid rgba(100,115,130,0.3)', flexShrink: 0 }}>
-                                  {MODE_LABELS[asg.mode] || asg.mode}
+                                  {getModeLabel(asg.mode)}
                                 </span>
                                 {sub.completed ? (
                                   <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', color: 'var(--green)', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.25)', flexShrink: 0 }}>
-                                    ✓ Completado
+                                    {t.academy.assignmentCompletedLabel}
                                   </span>
                                 ) : (
                                   <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, padding: '2px 6px', borderRadius: '4px', color: aStatus.color, background: `${aStatus.color}18`, border: `1px solid ${aStatus.color}40`, flexShrink: 0 }}>
-                                    {aStatus.label}
+                                    {aStatus.type === 'active' ? t.academy.statusActive : aStatus.type === 'finished' ? t.academy.statusFinished : t.academy.statusUpcoming}
                                   </span>
                                 )}
                               </div>
@@ -1448,11 +1447,11 @@ function AcademyDashboard({ academyId, onBack }) {
 
                   {/* ── Mensajes ── */}
                   <section>
-                    <Label>Mensajes</Label>
+                    <Label>{t.academy.messages}</Label>
                     <textarea
                       value={detailFeedbackMsg}
                       onChange={e => setDetailFeedbackMsg(e.target.value.slice(0, 500))}
-                      placeholder="Escribe un comentario para este alumno…"
+                      placeholder={t.academy.messagePlaceholderDetail}
                       rows={3}
                       style={{
                         width: '100%', padding: '11px 12px', boxSizing: 'border-box',
@@ -1467,7 +1466,7 @@ function AcademyDashboard({ academyId, onBack }) {
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>{detailFeedbackMsg.length}/500</span>
                         <Btn onClick={sendDetailFeedback} disabled={detailFeedbackSending || !detailFeedbackMsg.trim()} style={{ padding: '7px 14px' }}>
-                          {detailFeedbackSending ? '...' : 'Enviar'}
+                          {detailFeedbackSending ? '...' : t.academy.sendBtn}
                         </Btn>
                       </div>
                     </div>
@@ -1485,7 +1484,7 @@ function AcademyDashboard({ academyId, onBack }) {
                     )}
                     {studentDetail.feedback.length === 0 && (
                       <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', fontStyle: 'italic' }}>
-                        Sin mensajes enviados a este alumno todavía.
+                        {t.academy.noMessages}
                       </div>
                     )}
                   </section>
@@ -1506,7 +1505,7 @@ function AcademyDashboard({ academyId, onBack }) {
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.6)', maxHeight: '90vh', overflowY: 'auto' }}>
             <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '18px' }}>
               <div>
-                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>Mensaje al alumno</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>{t.academy.messageToStudent}</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', marginTop: '3px' }}>{feedbackModal.studentName}</div>
               </div>
               <button onClick={() => { setFeedbackModal(null); setFeedbackMsg(''); setFeedbackErr(null); }} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--t5)', fontSize: '18px', lineHeight: 1, flexShrink: 0 }}>×</button>
@@ -1515,7 +1514,7 @@ function AcademyDashboard({ academyId, onBack }) {
             <textarea
               value={feedbackMsg}
               onChange={e => setFeedbackMsg(e.target.value.slice(0, 500))}
-              placeholder="Escribe un comentario..."
+              placeholder={t.academy.messagePlaceholder}
               rows={4}
               style={{ width: '100%', padding: '11px 12px', background: 'var(--bg-card2)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t1)', fontFamily: 'var(--font-body)', fontSize: '12px', outline: 'none', boxSizing: 'border-box', resize: 'vertical' }}
             />
@@ -1526,14 +1525,14 @@ function AcademyDashboard({ academyId, onBack }) {
             {feedbackErr && <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', marginBottom: '10px' }}>{feedbackErr}</div>}
 
             <Btn onClick={sendFeedback} disabled={feedbackSending || !feedbackMsg.trim()} style={{ width: '100%', padding: '11px' }}>
-              {feedbackSending ? '...' : 'Enviar'}
+              {feedbackSending ? '...' : t.academy.sendBtn}
             </Btn>
 
             {(feedbackLoading || feedbackHist.length > 0) && (
               <div style={{ marginTop: '20px', borderTop: '1px solid var(--bd)', paddingTop: '16px' }}>
-                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>Mensajes anteriores</div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '10px' }}>{t.academy.previousMessages}</div>
                 {feedbackLoading ? (
-                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>Cargando...</div>
+                  <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>{t.academy.detailLoading}</div>
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                     {feedbackHist.map(m => (

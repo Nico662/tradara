@@ -710,7 +710,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
             {t.arena.asyncYourScore}: <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--color-neutral)' }}>{correctCount}/10</span>
           </div>
           <div style={{ padding: '16px', background: 'var(--bg-surface)', border: '1px solid var(--bd2)', borderRadius: '8px', marginBottom: '20px' }}>
-            <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>Link</div>
+            <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>{t.arena.linkLabel}</div>
             <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)', wordBreak: 'break-all', marginBottom: '12px' }}>{link}</div>
             <div style={{ display: 'flex', gap: '8px' }}>
               <button onClick={handleCopy}
@@ -1068,7 +1068,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: 'var(--green)' }}>{myScore}</span>
         </div>
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', padding: '0 8px' }}>
-          <span style={{ fontSize: '12px', color: 'var(--bd2)', fontFamily: 'var(--font-body)' }}>vs</span>
+          <span style={{ fontSize: '12px', color: 'var(--bd2)', fontFamily: 'var(--font-body)' }}>{t.arena.vs}</span>
         </div>
         <div style={{ flex: 1, background: 'var(--bg-surface)', border: '1px solid var(--border-default)', borderRadius: '6px', padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <span style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{opponent}</span>
@@ -1080,7 +1080,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
             <div className="prompt-text">{t.game.whatNext}</div>
             <div className="buttons-row">
               <button className="btn-long" onClick={() => makeChoice('long')}>
-                <span className="btn-icon">▲</span><span>Long</span>
+                <span className="btn-icon">▲</span><span>{t.game.long}</span>
                 <span className="btn-sublabel">{t.game.longSub}</span>
               </button>
               <button className="btn-neutral" onClick={() => makeChoice('skip')}>
@@ -1088,7 +1088,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
                 <span className="btn-sublabel">{t.game.noTradeSub}</span>
               </button>
               <button className="btn-short" onClick={() => makeChoice('short')}>
-                <span className="btn-icon">▼</span><span>Short</span>
+                <span className="btn-icon">▼</span><span>{t.game.short}</span>
                 <span className="btn-sublabel">{t.game.shortSub}</span>
               </button>
             </div>

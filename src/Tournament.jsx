@@ -242,7 +242,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '24px', color: 'var(--text-primary)', marginBottom: '8px' }}>{t.home.mode3}</div>
         <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '32px' }}>{t.arena.searching}</div>
         <a href={`${SERVER}/auth/google`} style={{ display: 'inline-block', padding: '12px 24px', background: 'var(--green-dim)', border: '1px solid var(--border-green)', borderRadius: '8px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', textDecoration: 'none', fontWeight: 700 }}>
-          Sign in with Google
+          {t.common.signInGoogle}
         </a>
       </div>
     );
@@ -306,7 +306,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                             </div>
                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
                               <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: isMe ? 'var(--green)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{name}</span>
-                              {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
+                              {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>{t.common.you}</span>}
                             </div>
                             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{p.score}</div>
                           </div>
@@ -325,7 +325,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                               <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
                                 {myOutside.userId?.username ? `@${myOutside.userId.username}` : (myOutside.userId?.name || '—')}
                               </span>
-                              <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>
+                              <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>{t.common.you}</span>
                             </div>
                             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{myOutside.score}</div>
                           </div>
@@ -350,7 +350,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
                       <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: isMe ? 'var(--green)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{displayName}</span>
                       {isFounder(entry.username) && <FounderBadge size={11} />}
-                      {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
+                      {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>{t.common.you}</span>}
                     </div>
                     <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{entry.score}</div>
                   </div>
@@ -370,7 +370,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                       <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--green)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
                         {userPosition.username ? `@${userPosition.username}` : userPosition.name}
                       </span>
-                      <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>
+                      <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>{t.common.you}</span>
                     </div>
                     <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--green)' }}>{userPosition.score}</div>
                   </div>

@@ -12,7 +12,6 @@ function Label({ children }) {
   );
 }
 
-const MODE_LABELS = { guess: 'Adivina', survival: 'Survival', daily: 'Diario', portfolio: 'Portfolio' };
 
 function Medal({ pos }) {
   if (pos === 1) return <span style={{ color: '#FFD700', fontWeight: 900 }}>1</span>;
@@ -24,6 +23,7 @@ function Medal({ pos }) {
 export default function StudentDashboard({ onBack, onPlayTournament }) {
   const { user, updateUser } = useAuth();
   const { t } = useLang();
+  const getModeLabel = (mode) => t.academy['mode_' + mode] || mode;
   const tok        = localStorage.getItem('tradaria_token');
   const academyId  = user?.academyId;
   const academyName = localStorage.getItem('academy_name') || 'Mi Academia';
@@ -176,7 +176,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
           <div style={{ marginBottom: '32px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '10px' }}>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.14em', textTransform: 'uppercase' }}>
-                MENSAJES DE TU PROFESOR
+                {t.academy.teacherMessages}
               </div>
               {inbox.filter(m => !m.read).length > 0 && (
                 <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: 'var(--green)', background: 'rgba(0,229,160,0.1)', border: '1px solid rgba(0,229,160,0.3)', borderRadius: '10px', padding: '1px 7px' }}>
@@ -193,7 +193,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                     </div>
                     {!msg.read && (
                       <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', padding: '2px 7px', borderRadius: '4px', color: 'var(--green)', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.25)', flexShrink: 0 }}>
-                        NUEVO
+                        {t.academy.newBadgeLabel}
                       </span>
                     )}
                   </div>
@@ -266,7 +266,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                               }}>
                                 {s.name}
                               </span>
-                              {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
+                              {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>{t.common.you}</span>}
                             </div>
                             <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', textAlign: 'center' }}>
                               {s.gamesPlayed}
@@ -337,7 +337,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
         {/* ── Deberes ── */}
         {assignments.length > 0 && (
           <div style={{ marginBottom: '32px' }}>
-            <Label>DEBERES</Label>
+            <Label>{t.academy.homeworkLabel}</Label>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               {assignments.map(asg => {
                 const sub       = asg.mySubmission || { gamesPlayed: 0, completed: false };
@@ -351,18 +351,18 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                           {asg.title}
                         </div>
                         <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>
-                          {MODE_LABELS[asg.mode] || asg.mode}
-                          {' · Vence '}
+                          {getModeLabel(asg.mode)}
+                          {' · '}{t.academy.dueDatePrefix}
                           {new Date(asg.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
                         </div>
                       </div>
                       {sub.completed ? (
                         <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', padding: '3px 8px', borderRadius: '4px', color: 'var(--green)', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.25)', flexShrink: 0 }}>
-                          ✓ COMPLETADO
+                          {t.academy.assignmentCompleted}
                         </span>
                       ) : isExpired ? (
                         <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', padding: '3px 8px', borderRadius: '4px', color: 'var(--t5)', background: 'rgba(100,115,130,0.1)', border: '1px solid rgba(100,115,130,0.25)', flexShrink: 0 }}>
-                          FINALIZADO
+                          {t.academy.statusFinished}
                         </span>
                       ) : null}
                     </div>
@@ -372,7 +372,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                           <div style={{ width: `${pct}%`, height: '100%', background: 'rgba(0,229,160,0.5)', borderRadius: '2px' }} />
                         </div>
                         <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', whiteSpace: 'nowrap' }}>
-                          {sub.gamesPlayed}/{asg.targetGames} partidas
+                          {sub.gamesPlayed}/{asg.targetGames} {t.academy.gamesUnit}
                         </span>
                       </div>
                     )}
@@ -448,7 +448,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
                               <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: isMe ? 'var(--green)' : 'var(--t1)', fontWeight: isMe ? 700 : 400, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>
                                 {name}
                               </span>
-                              {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>YOU</span>}
+                              {isMe && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'rgba(0,229,160,0.6)', marginLeft: '4px', flexShrink: 0 }}>{t.common.you}</span>}
                             </div>
                             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--green)' }}>
                               {p.score}
