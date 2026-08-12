@@ -21,6 +21,19 @@ function tournamentStatus(t) {
   return                                 { label: 'activo',      color: 'var(--green)' };
 }
 
+function fmtUSD(v) {
+  if (v === null || v === undefined) return '—';
+  return `$${(v / 1000).toFixed(1)}K`;
+}
+function fmtPnl(v) {
+  if (v === null || v === undefined) return '—';
+  return `${v >= 0 ? '+' : '-'}$${Math.abs(v).toLocaleString()}`;
+}
+function fmtPct(v) {
+  if (v === null || v === undefined) return '—';
+  return `${v >= 0 ? '+' : ''}${v.toFixed(1)}%`;
+}
+
 const PLAN_STYLE = {
   starter:    { label: 'STARTER',    color: 'var(--t4)',  bg: 'rgba(100,115,130,0.10)' },
   pro:        { label: 'PRO',        color: 'var(--green)',    bg: 'rgba(0,229,160,0.08)'  },
@@ -479,7 +492,7 @@ function AcademyDashboard({ academyId, onBack }) {
             )}
           </div>
 
-          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', overflow: 'hidden' }}>
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', overflowX: 'auto' }}>
             {students.length === 0 ? (
               <div style={{ padding: '40px 20px', textAlign: 'center' }}>
                 <div style={{ fontSize: '28px', marginBottom: '10px' }}>👥</div>
@@ -494,12 +507,13 @@ function AcademyDashboard({ academyId, onBack }) {
               <>
                 {/* Table header */}
                 <div style={{
-                  display: 'grid', gridTemplateColumns: '28px 1fr 36px 42px 36px 44px',
+                  display: 'grid', gridTemplateColumns: '28px 1fr 36px 42px 36px 44px 64px 64px 52px',
                   gap: '8px', padding: '8px 14px',
                   borderBottom: '1px solid var(--bd)',
                   alignItems: 'center',
+                  minWidth: '560px',
                 }}>
-                  {['', t.academy.colName, t.academy.colGames, t.academy.colAccuracy, t.academy.colStreak, t.academy.colLast].map((h, i) => (
+                  {['', t.academy.colName, t.academy.colGames, t.academy.colAccuracy, t.academy.colStreak, t.academy.colLast, 'Portfolio', 'P&L', 'P&L %'].map((h, i) => (
                     <div key={i} style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.08em', textAlign: i >= 2 ? 'center' : 'left' }}>
                       {h}
                     </div>
@@ -511,10 +525,11 @@ function AcademyDashboard({ academyId, onBack }) {
                   <div
                     key={s.id}
                     style={{
-                      display: 'grid', gridTemplateColumns: '28px 1fr 36px 42px 36px 44px',
+                      display: 'grid', gridTemplateColumns: '28px 1fr 36px 42px 36px 44px 64px 64px 52px',
                       gap: '8px', padding: '10px 14px', alignItems: 'center',
                       borderBottom: i < students.length - 1 ? '1px solid var(--bd)' : 'none',
                       background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.012)',
+                      minWidth: '560px',
                     }}
                   >
                     {/* Avatar */}
@@ -557,6 +572,27 @@ function AcademyDashboard({ academyId, onBack }) {
                     {/* Last seen */}
                     <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', textAlign: 'center' }}>
                       {relativeDate(s.lastSeen, t)}
+                    </div>
+
+                    {/* Portfolio value */}
+                    <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t3)', textAlign: 'center' }}>
+                      {fmtUSD(s.portfolioValue)}
+                    </div>
+
+                    {/* P&L */}
+                    <div style={{
+                      fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, textAlign: 'center',
+                      color: s.portfolioPnl === null ? 'var(--t5)' : s.portfolioPnl >= 0 ? 'var(--green)' : 'var(--color-down)',
+                    }}>
+                      {fmtPnl(s.portfolioPnl)}
+                    </div>
+
+                    {/* P&L % */}
+                    <div style={{
+                      fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, textAlign: 'center',
+                      color: s.portfolioPnlPct === null ? 'var(--t5)' : s.portfolioPnlPct >= 0 ? 'var(--green)' : 'var(--color-down)',
+                    }}>
+                      {fmtPct(s.portfolioPnlPct)}
                     </div>
                   </div>
                 ))}

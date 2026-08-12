@@ -115,13 +115,27 @@ router.get('/:id/dashboard', requireAuth, async (req, res) => {
     if (!isOwner && !isMember) return res.status(403).json({ error: 'No autorizado' });
 
     const GameHistory = mongoose.model('GameHistory');
+    const Portfolio   = mongoose.model('Portfolio');
 
     const studentStats = await Promise.all(academy.students.map(async (student) => {
-      const games = await GameHistory.find({ userId: student._id });
+      const [games, portfolio] = await Promise.all([
+        GameHistory.find({ userId: student._id }),
+        Portfolio.findOne({ userId: student._id }, 'cash positions'),
+      ]);
       const gamesPlayed = games.length;
       const avgAccuracy = gamesPlayed
         ? Math.round(games.reduce((sum, g) => sum + (g.accuracy || 0), 0) / gamesPlayed)
         : 0;
+
+      let portfolioValue  = null;
+      let portfolioPnl    = null;
+      let portfolioPnlPct = null;
+      if (portfolio) {
+        const invested  = portfolio.positions.reduce((s, pos) => s + pos.qty * pos.avgPrice, 0);
+        portfolioValue  = Math.round(portfolio.cash + invested);
+        portfolioPnl    = Math.round(portfolioValue - 50000);
+        portfolioPnlPct = +((portfolioPnl / 50000) * 100).toFixed(2);
+      }
 
       return {
         id:            student._id,
@@ -131,6 +145,9 @@ router.get('/:id/dashboard', requireAuth, async (req, res) => {
         avgAccuracy,
         currentStreak: student.dailyStreak || 0,
         lastSeen:      student.lastLogin || null,
+        portfolioValue,
+        portfolioPnl,
+        portfolioPnlPct,
       };
     }));
 
