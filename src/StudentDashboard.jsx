@@ -2,7 +2,6 @@ import { useState, useEffect } from 'react';
 import { useAuth } from './AuthContext';
 import { SERVER } from './config.js';
 import { useLang } from './LangContext.jsx';
-import AcadiasLanding from './AcadiasLanding.jsx';
 import { AlertTriangle } from 'lucide-react';
 
 function Label({ children }) {
@@ -29,7 +28,6 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
   const academyId  = user?.academyId;
   const academyName = localStorage.getItem('academy_name') || 'Mi Academia';
 
-  const [showLanding,   setShowLanding]   = useState(false);
   const [students,      setStudents]      = useState([]);
   const [tournament,    setTournament]    = useState(undefined); // undefined=loading, false=none
   const [academyStatus, setAcademyStatus] = useState(null);
@@ -40,27 +38,6 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
   const [assignments,   setAssignments]   = useState([]);
   const [inbox,         setInbox]         = useState([]);
 
-  // Same pattern as Portfolio.jsx loadAll(): check localStorage then MongoDB
-  useEffect(() => {
-    if (localStorage.getItem('tradaria_academias_seen')) return;
-    if (!tok) { setShowLanding(true); return; }
-    fetch(`${SERVER}/academias/intro`, { headers: { Authorization: `Bearer ${tok}` } })
-      .then(r => r.json())
-      .then(data => { if (!data.seen) setShowLanding(true); })
-      .catch(() => {});
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  // Same pattern as dismissWelcome() in Portfolio.jsx
-  function dismissLanding() {
-    localStorage.setItem('tradaria_academias_seen', 'true');
-    if (tok) {
-      fetch(`${SERVER}/academias/tutorial-seen`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${tok}` },
-      }).catch(() => {});
-    }
-    setShowLanding(false);
-  }
 
   async function leaveAcademy() {
     setLeaving(true);
@@ -133,8 +110,6 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
       })
       .finally(() => setLoading(false));
   }, [String(academyId)]);
-
-  if (showLanding) return <AcadiasLanding onEnter={dismissLanding} />;
 
   const myId = String(user?._id || user?.id || '');
   const alreadyPlayedTournament = tournament

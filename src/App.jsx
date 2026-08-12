@@ -38,7 +38,6 @@ import Settings from './Settings.jsx';
 import JoinAcademy from './JoinAcademy.jsx';
 import TeacherDashboard from './TeacherDashboard.jsx';
 import StudentDashboard from './StudentDashboard.jsx';
-import AcadiasLanding from './AcadiasLanding.jsx';
 import AppLayout from './components/layout/AppLayout.jsx';
 import ModesPage from './components/ModesPage.jsx';
 
@@ -60,7 +59,6 @@ export default function App() {
   const [screen,      setScreen]    = useState(() => {
     const p = window.location.pathname;
     if (p.startsWith('/u/')) return 'public_profile';
-    if (p === '/academias') return 'academias_landing';
     if (p === '/privacy') return 'privacy';
     if (p === '/support') return 'support';
     return 'home';
@@ -601,17 +599,6 @@ export default function App() {
         {challengeOverlay}
       </div>
     );
-  }
-
-  // ── Academias landing (standalone B2B page at /academias) ─────────
-  if (screen === 'academias_landing') {
-    return <AcadiasLanding onEnter={() => {
-      localStorage.setItem('tradaria_academias_seen', 'true');
-      const tok = localStorage.getItem('tradaria_token');
-      if (tok) fetch(`${SERVER}/academias/tutorial-seen`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
-      window.history.pushState({}, '', '/');
-      setScreen('home');
-    }} />;
   }
 
   // ── Landing ───────────────────────────────────────────────────────
