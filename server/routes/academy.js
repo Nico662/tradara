@@ -3,8 +3,9 @@ const jwt            = require('jsonwebtoken');
 const mongoose       = require('mongoose');
 const Stripe         = require('stripe');
 const Academy        = require('../models/Academy');
-const AcademyTournament = require('../models/AcademyTournament');
-const requireTeacher = require('../middleware/requireTeacher');
+const AcademyTournament  = require('../models/AcademyTournament');
+const AcademyAssignment  = require('../models/AcademyAssignment');
+const requireTeacher     = require('../middleware/requireTeacher');
 
 const stripe = new Stripe(process.env.STRIPE_SECRET_KEY);
 
@@ -248,6 +249,135 @@ router.get('/:id/tournament/active', requireAuth, async (req, res) => {
     }).populate('participants.userId', 'name username');
     if (!tournament) return res.json({ active: false });
     res.json({ active: true, tournament });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── POST /academy/:id/assignment/create ──────────────────────────
+router.post('/:id/assignment/create', requireTeacher, async (req, res) => {
+  try {
+    const academy = await Academy.findById(req.params.id);
+    if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });
+    if (academy.ownerId.toString() !== req.user._id.toString())
+      return res.status(403).json({ error: 'No autorizado' });
+
+    const { title, description, mode, targetGames, startsAt, endsAt } = req.body;
+    if (!title || !mode || !targetGames || !startsAt || !endsAt)
+      return res.status(400).json({ error: 'Título, modo, partidas objetivo, fecha inicio y fecha fin son obligatorios' });
+    if (!['guess', 'survival', 'daily', 'portfolio'].includes(mode))
+      return res.status(400).json({ error: 'Modo no válido' });
+    const tGames = Number(targetGames);
+    if (!Number.isInteger(tGames) || tGames < 1 || tGames > 1000)
+      return res.status(400).json({ error: 'Número de partidas no válido (1-1000)' });
+    if (new Date(endsAt) <= new Date(startsAt))
+      return res.status(400).json({ error: 'La fecha fin debe ser posterior al inicio' });
+
+    const submissions = academy.students.map(studentId => ({
+      userId: studentId, gamesPlayed: 0, completed: false, completedAt: null,
+    }));
+
+    const assignment = await AcademyAssignment.create({
+      academyId:   req.params.id,
+      title:       title.trim(),
+      description: description?.trim() || '',
+      mode,
+      targetGames: tGames,
+      startsAt:    new Date(startsAt),
+      endsAt:      new Date(endsAt),
+      createdBy:   req.user._id,
+      submissions,
+    });
+    res.status(201).json(assignment);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── GET /academy/:id/assignments ─────────────────────────────────
+router.get('/:id/assignments', requireAuth, async (req, res) => {
+  try {
+    const academy = await Academy.findById(req.params.id, 'ownerId students');
+    if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });
+
+    const uid      = req.user._id.toString();
+    const isOwner  = academy.ownerId.toString() === uid;
+    const isMember = academy.students.some(s => s.toString() === uid);
+    if (!isOwner && !isMember) return res.status(403).json({ error: 'No autorizado' });
+
+    const assignments = await AcademyAssignment.find({ academyId: req.params.id }).sort({ startsAt: -1 });
+
+    if (isOwner) {
+      const User       = mongoose.model('User');
+      const students   = await User.find({ _id: { $in: academy.students } }, 'name email');
+      const studentMap = {};
+      students.forEach(s => { studentMap[s._id.toString()] = { name: s.name, email: s.email }; });
+      return res.json(assignments.map(a => ({
+        ...a.toObject(),
+        submissions: a.submissions.map(sub => ({
+          ...sub.toObject(),
+          studentName:  studentMap[sub.userId.toString()]?.name  || '—',
+          studentEmail: studentMap[sub.userId.toString()]?.email || '—',
+        })),
+      })));
+    }
+
+    // Student: compute live progress from GameHistory and auto-sync submission
+    const GameHistory = mongoose.model('GameHistory');
+    const result = await Promise.all(assignments.map(async a => {
+      const liveCount = await GameHistory.countDocuments({
+        userId: req.user._id, mode: a.mode, createdAt: { $gte: a.startsAt },
+      });
+      const subIdx       = a.submissions.findIndex(s => s.userId.toString() === uid);
+      const stored       = subIdx !== -1 ? a.submissions[subIdx] : null;
+      const prevDone     = stored?.completed ?? false;
+      const nowDone      = prevDone || liveCount >= a.targetGames;
+      const completedAt  = stored?.completedAt ?? (nowDone && !prevDone ? new Date() : null);
+
+      if (!stored) {
+        await AcademyAssignment.updateOne({ _id: a._id }, {
+          $push: { submissions: { userId: req.user._id, gamesPlayed: liveCount, completed: nowDone, completedAt: nowDone ? new Date() : null } },
+        });
+      } else if (stored.gamesPlayed !== liveCount || stored.completed !== nowDone) {
+        const upd = { 'submissions.$.gamesPlayed': liveCount };
+        if (!stored.completed && nowDone) { upd['submissions.$.completed'] = true; upd['submissions.$.completedAt'] = new Date(); }
+        await AcademyAssignment.updateOne({ _id: a._id, 'submissions.userId': req.user._id }, { $set: upd });
+      }
+
+      return {
+        _id: a._id, title: a.title, description: a.description, mode: a.mode,
+        targetGames: a.targetGames, startsAt: a.startsAt, endsAt: a.endsAt,
+        mySubmission: { gamesPlayed: liveCount, completed: nowDone, completedAt },
+      };
+    }));
+    res.json(result);
+  } catch (err) { res.status(500).json({ error: err.message }); }
+});
+
+// ── POST /academy/:id/assignment/:aId/progress ────────────────────
+router.post('/:id/assignment/:aId/progress', requireAuth, async (req, res) => {
+  try {
+    const gamesPlayed = Number(req.body.gamesPlayed);
+    if (!Number.isFinite(gamesPlayed) || gamesPlayed < 0 || gamesPlayed > 10000)
+      return res.status(400).json({ error: 'gamesPlayed inválido' });
+
+    const assignment = await AcademyAssignment.findOne({ _id: req.params.aId, academyId: req.params.id });
+    if (!assignment) return res.status(404).json({ error: 'Deber no encontrado' });
+
+    const uid = req.user._id.toString();
+    let sub   = assignment.submissions.find(s => s.userId.toString() === uid);
+    if (!sub) {
+      const academy = await Academy.findById(req.params.id, 'students ownerId');
+      if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });
+      const isMember = academy.students.some(s => s.toString() === uid) || academy.ownerId.toString() === uid;
+      if (!isMember) return res.status(403).json({ error: 'No autorizado' });
+      assignment.submissions.push({ userId: req.user._id, gamesPlayed: 0, completed: false, completedAt: null });
+      sub = assignment.submissions[assignment.submissions.length - 1];
+    }
+
+    sub.gamesPlayed = Math.max(sub.gamesPlayed, Math.min(gamesPlayed, 10000));
+    if (!sub.completed && sub.gamesPlayed >= assignment.targetGames) {
+      sub.completed   = true;
+      sub.completedAt = new Date();
+    }
+    await assignment.save();
+    res.json({ ok: true, submission: sub });
   } catch (err) { res.status(500).json({ error: err.message }); }
 });
 

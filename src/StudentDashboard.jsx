@@ -13,6 +13,8 @@ function Label({ children }) {
   );
 }
 
+const MODE_LABELS = { guess: 'Adivina', survival: 'Survival', daily: 'Diario', portfolio: 'Portfolio' };
+
 function Medal({ pos }) {
   if (pos === 1) return <span style={{ color: '#FFD700', fontWeight: 900 }}>1</span>;
   if (pos === 2) return <span style={{ color: '#C0C0C0', fontWeight: 900 }}>2</span>;
@@ -35,6 +37,7 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
   const [error,         setError]         = useState(null);
   const [confirmLeave,  setConfirmLeave]  = useState(false);
   const [leaving,       setLeaving]       = useState(false);
+  const [assignments,   setAssignments]   = useState([]);
 
   // Same pattern as Portfolio.jsx loadAll(): check localStorage then MongoDB
   useEffect(() => {
@@ -106,12 +109,17 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
       fetch(`${SERVER}/academy/${academyId}/status`, {
         headers: { Authorization: `Bearer ${tok}` },
       }).then(r => r.ok ? r.json() : null).catch(() => null),
+
+      fetch(`${SERVER}/academy/${academyId}/assignments`, {
+        headers: { Authorization: `Bearer ${tok}` },
+      }).then(r => r.ok ? r.json() : []).catch(() => []),
     ])
-      .then(([dash, tour, status]) => {
+      .then(([dash, tour, status, assigns]) => {
         const sorted = [...(dash.students || [])].sort((a, b) => b.avgAccuracy - a.avgAccuracy);
         setStudents(sorted);
         setTournament(tour?.active ? tour.tournament : false);
         setAcademyStatus(status);
+        setAssignments(assigns || []);
       })
       .catch(e => {
         if (e === '__ACADEMY_GONE__') { onBack(); return; }
@@ -309,6 +317,55 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
             )}
           </div>
         </div>
+
+        {/* ── Deberes ── */}
+        {assignments.length > 0 && (
+          <div style={{ marginBottom: '32px' }}>
+            <Label>DEBERES</Label>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {assignments.map(asg => {
+                const sub       = asg.mySubmission || { gamesPlayed: 0, completed: false };
+                const pct       = Math.min(100, Math.round((sub.gamesPlayed / asg.targetGames) * 100));
+                const isExpired = new Date(asg.endsAt) < Date.now();
+                return (
+                  <div key={asg._id} style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '14px 16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '10px', marginBottom: sub.completed ? 0 : '10px' }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--t1)', marginBottom: '3px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {asg.title}
+                        </div>
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>
+                          {MODE_LABELS[asg.mode] || asg.mode}
+                          {' · Vence '}
+                          {new Date(asg.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                        </div>
+                      </div>
+                      {sub.completed ? (
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', padding: '3px 8px', borderRadius: '4px', color: 'var(--green)', background: 'rgba(0,229,160,0.08)', border: '1px solid rgba(0,229,160,0.25)', flexShrink: 0 }}>
+                          ✓ COMPLETADO
+                        </span>
+                      ) : isExpired ? (
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', padding: '3px 8px', borderRadius: '4px', color: 'var(--t5)', background: 'rgba(100,115,130,0.1)', border: '1px solid rgba(100,115,130,0.25)', flexShrink: 0 }}>
+                          FINALIZADO
+                        </span>
+                      ) : null}
+                    </div>
+                    {!sub.completed && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <div style={{ flex: 1, height: '4px', background: 'var(--bd)', borderRadius: '2px' }}>
+                          <div style={{ width: `${pct}%`, height: '100%', background: 'rgba(0,229,160,0.5)', borderRadius: '2px' }} />
+                        </div>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', whiteSpace: 'nowrap' }}>
+                          {sub.gamesPlayed}/{asg.targetGames} partidas
+                        </span>
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
 
         {/* ── Active tournament ── */}
         <div style={{ marginBottom: '32px' }}>

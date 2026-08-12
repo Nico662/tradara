@@ -21,6 +21,15 @@ function tournamentStatus(t) {
   return                                 { label: 'activo',      color: 'var(--green)' };
 }
 
+const MODE_LABELS = { guess: 'Adivina', survival: 'Survival', daily: 'Diario', portfolio: 'Portfolio' };
+
+function assignmentStatus(a) {
+  const now = Date.now();
+  if (new Date(a.endsAt)   < now) return { label: 'FINALIZADO', color: 'var(--t5)' };
+  if (new Date(a.startsAt) > now) return { label: 'PRÓXIMO',    color: 'var(--color-neutral)' };
+  return                                  { label: 'ACTIVO',     color: 'var(--green)' };
+}
+
 function fmtUSD(v) {
   if (v === null || v === undefined) return '—';
   return `$${(v / 1000).toFixed(1)}K`;
@@ -193,7 +202,12 @@ function AcademyDashboard({ academyId, onBack }) {
   const [formErr,    setFormErr]    = useState(null);
   const [planModal,  setPlanModal]  = useState(false);
   const [activating, setActivating] = useState(null);
-  const [toast,      setToast]      = useState(null);
+  const [toast,         setToast]         = useState(null);
+  const [assignments,   setAssignments]   = useState([]);
+  const [asgModal,      setAsgModal]      = useState(false);
+  const [asgForm,       setAsgForm]       = useState({ title: '', description: '', mode: 'guess', targetGames: 5, startsAt: '', endsAt: '' });
+  const [asgErr,        setAsgErr]        = useState(null);
+  const [asgSubmitting, setAsgSubmitting] = useState(false);
 
   useEffect(() => {
     if (!tok) { setLoading(false); return; }
@@ -217,6 +231,16 @@ function AcademyDashboard({ academyId, onBack }) {
         setError(String(e));
       })
       .finally(() => setLoading(false));
+  }, [academyId]);
+
+  useEffect(() => {
+    if (!tok) return;
+    fetch(`${SERVER}/academy/${academyId}/assignments`, {
+      headers: { Authorization: `Bearer ${tok}` },
+    })
+      .then(r => r.ok ? r.json() : [])
+      .then(data => setAssignments(data))
+      .catch(() => {});
   }, [academyId]);
 
   useEffect(() => {
@@ -303,6 +327,35 @@ function AcademyDashboard({ academyId, onBack }) {
       setForm({ name: '', startsAt: '', endsAt: '' });
     } catch { setFormErr(t.academy.networkError); }
     setSubmitting(false);
+  }
+
+  async function createAssignment() {
+    if (!asgForm.title.trim() || !asgForm.startsAt || !asgForm.endsAt)
+      return setAsgErr('Título, fecha inicio y fecha fin son obligatorios');
+    if (new Date(asgForm.endsAt) <= new Date(asgForm.startsAt))
+      return setAsgErr('La fecha fin debe ser posterior al inicio');
+    setAsgSubmitting(true);
+    setAsgErr(null);
+    try {
+      const res  = await fetch(`${SERVER}/academy/${academyId}/assignment/create`, {
+        method:  'POST',
+        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+        body:    JSON.stringify({
+          title:       asgForm.title.trim(),
+          description: asgForm.description.trim(),
+          mode:        asgForm.mode,
+          targetGames: Number(asgForm.targetGames),
+          startsAt:    asgForm.startsAt,
+          endsAt:      asgForm.endsAt,
+        }),
+      });
+      const data = await res.json();
+      if (!res.ok) { setAsgErr(data.error || 'Error'); setAsgSubmitting(false); return; }
+      setAssignments(prev => [data, ...prev]);
+      setAsgModal(false);
+      setAsgForm({ title: '', description: '', mode: 'guess', targetGames: 5, startsAt: '', endsAt: '' });
+    } catch { setAsgErr('Error de red'); }
+    setAsgSubmitting(false);
   }
 
   // ── Render: loading / error ──
@@ -766,6 +819,96 @@ function AcademyDashboard({ academyId, onBack }) {
             </div>
           )}
         </div>
+
+        {/* ── Deberes ── */}
+        <div style={{ marginTop: '32px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '10px' }}>
+            <Label>DEBERES</Label>
+            <Btn onClick={() => { setAsgModal(true); setAsgErr(null); }} style={{ padding: '6px 11px', fontSize: '12px', marginBottom: '10px' }}>
+              Crear deber
+            </Btn>
+          </div>
+
+          {assignments.length === 0 ? (
+            <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '32px 20px', textAlign: 'center' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>
+                No hay deberes creados todavía.
+              </div>
+            </div>
+          ) : (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              {assignments.map(asg => {
+                const status = assignmentStatus(asg);
+                return (
+                  <div key={asg._id} style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', overflow: 'hidden' }}>
+                    {/* Header */}
+                    <div style={{ padding: '12px 14px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap', marginBottom: '4px' }}>
+                        <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '45%' }}>
+                          {asg.title}
+                        </span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', padding: '3px 7px', borderRadius: '4px', color: 'var(--t4)', background: 'rgba(100,115,130,0.12)', border: '1px solid rgba(100,115,130,0.3)', flexShrink: 0 }}>
+                          {MODE_LABELS[asg.mode] || asg.mode}
+                        </span>
+                        <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', padding: '3px 7px', borderRadius: '4px', color: status.color, background: `${status.color}18`, border: `1px solid ${status.color}40`, flexShrink: 0 }}>
+                          {status.label}
+                        </span>
+                      </div>
+                      <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)' }}>
+                        {new Date(asg.startsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                        {' — '}
+                        {new Date(asg.endsAt).toLocaleDateString('es-ES', { day: 'numeric', month: 'short' })}
+                        {' · '}{asg.targetGames} partidas
+                      </div>
+                      {asg.description && (
+                        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', marginTop: '4px' }}>
+                          {asg.description}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Student progress table */}
+                    {(asg.submissions || []).length > 0 && (
+                      <div style={{ borderTop: '1px solid var(--bd)' }}>
+                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 72px', gap: '8px', padding: '7px 14px', borderBottom: '1px solid var(--bd)' }}>
+                          {['Alumno', 'Progreso', 'Estado'].map((h, i) => (
+                            <div key={i} style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.08em', textAlign: i === 2 ? 'center' : 'left' }}>
+                              {h}
+                            </div>
+                          ))}
+                        </div>
+                        {asg.submissions.map((sub, i) => {
+                          const pct = Math.min(100, Math.round((sub.gamesPlayed / asg.targetGames) * 100));
+                          return (
+                            <div key={String(sub.userId)} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 72px', gap: '8px', padding: '9px 14px', alignItems: 'center', borderBottom: i < asg.submissions.length - 1 ? '1px solid var(--bd)' : 'none', background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.012)' }}>
+                              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                {sub.studentName || '—'}
+                              </div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '7px' }}>
+                                <div style={{ flex: 1, height: '4px', background: 'var(--bd)', borderRadius: '2px' }}>
+                                  <div style={{ width: `${pct}%`, height: '100%', background: sub.completed ? 'var(--green)' : 'rgba(0,229,160,0.45)', borderRadius: '2px' }} />
+                                </div>
+                                <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', whiteSpace: 'nowrap' }}>
+                                  {sub.gamesPlayed}/{asg.targetGames}
+                                </span>
+                              </div>
+                              <div style={{ textAlign: 'center' }}>
+                                {sub.completed
+                                  ? <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: 'var(--green)' }}>✓</span>
+                                  : <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>—</span>
+                                }
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
         </div>{/* end expired overlay wrapper */}
       </div>
 
@@ -917,6 +1060,59 @@ function AcademyDashboard({ academyId, onBack }) {
               </button>
               <Btn onClick={createTournament} disabled={submitting} style={{ flex: 1, padding: '11px' }}>
                 {submitting ? '...' : t.tournament.create}
+              </Btn>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── Create assignment modal ── */}
+      {asgModal && (
+        <div
+          onClick={e => e.target === e.currentTarget && setAsgModal(false)}
+          style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px', zIndex: 100 }}
+        >
+          <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd2)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '380px', boxShadow: '0 20px 60px rgba(0,0,0,0.6)', maxHeight: '90vh', overflowY: 'auto' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>Nuevo deber</div>
+              <button onClick={() => setAsgModal(false)} style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: 'var(--t5)', fontSize: '18px', lineHeight: 1 }}>×</button>
+            </div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <FieldInput label="Título" value={asgForm.title} onChange={e => setAsgForm(f => ({ ...f, title: e.target.value }))} placeholder="Ej: Practica el modo Adivina" />
+              <FieldInput label="Descripción (opcional)" value={asgForm.description} onChange={e => setAsgForm(f => ({ ...f, description: e.target.value }))} placeholder="Instrucciones adicionales..." />
+              <div>
+                <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '6px' }}>Modo</div>
+                <select
+                  value={asgForm.mode}
+                  onChange={e => setAsgForm(f => ({ ...f, mode: e.target.value }))}
+                  style={{ width: '100%', padding: '11px 12px', background: 'var(--bg-card2)', border: '1px solid var(--bd2)', borderRadius: '6px', color: 'var(--t1)', fontFamily: 'var(--font-body)', fontSize: '12px', outline: 'none', boxSizing: 'border-box', colorScheme: 'dark' }}
+                >
+                  <option value="guess">Adivina</option>
+                  <option value="survival">Survival</option>
+                  <option value="daily">Diario</option>
+                  <option value="portfolio">Portfolio</option>
+                </select>
+              </div>
+              <FieldInput
+                label="Partidas objetivo"
+                type="number"
+                value={String(asgForm.targetGames)}
+                onChange={e => setAsgForm(f => ({ ...f, targetGames: Math.max(1, parseInt(e.target.value) || 1) }))}
+                placeholder="5"
+              />
+              <FieldInput label="Fecha inicio" type="date" value={asgForm.startsAt} onChange={e => setAsgForm(f => ({ ...f, startsAt: e.target.value }))} />
+              <FieldInput label="Fecha fin"    type="date" value={asgForm.endsAt}   onChange={e => setAsgForm(f => ({ ...f, endsAt:   e.target.value }))} />
+            </div>
+            {asgErr && <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', marginTop: '12px' }}>{asgErr}</div>}
+            <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
+              <button
+                onClick={() => setAsgModal(false)}
+                style={{ flex: 1, padding: '11px', background: 'transparent', border: '1px solid var(--bd2)', borderRadius: '7px', color: 'var(--t5)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer' }}
+              >
+                Cancelar
+              </button>
+              <Btn onClick={createAssignment} disabled={asgSubmitting} style={{ flex: 1, padding: '11px' }}>
+                {asgSubmitting ? '...' : 'Crear'}
               </Btn>
             </div>
           </div>
