@@ -103,7 +103,12 @@ router.get('/:id/dashboard', requireAuth, async (req, res) => {
   }
   try {
     const academy = await Academy.findById(req.params.id).populate('students', 'name email dailyStreak lastLogin');
-    if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });
+    if (!academy) {
+      if (req.user.academyId && req.user.academyId.toString() === req.params.id) {
+        await mongoose.model('User').findByIdAndUpdate(req.user._id, { academyId: null, isAcademyPro: false });
+      }
+      return res.status(404).json({ error: 'Academia no encontrada', academyGone: true });
+    }
     const uid      = req.user._id.toString();
     const isOwner  = academy.ownerId.toString() === uid;
     const isMember = academy.students.some(s => s._id.toString() === uid);
@@ -292,7 +297,12 @@ router.get('/:id/status', requireAuth, async (req, res) => {
       return res.status(400).json({ error: 'Academy ID no válido' });
 
     const academy = await Academy.findById(req.params.id);
-    if (!academy) return res.status(404).json({ error: 'Academia no encontrada' });
+    if (!academy) {
+      if (req.user.academyId && req.user.academyId.toString() === req.params.id) {
+        await mongoose.model('User').findByIdAndUpdate(req.user._id, { academyId: null, isAcademyPro: false });
+      }
+      return res.status(404).json({ error: 'Academia no encontrada', academyGone: true });
+    }
 
     const now = new Date();
 

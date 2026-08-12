@@ -174,6 +174,10 @@ export function AuthProvider({ children }) {
         const data = await res.json();
         setUser(data);
 
+        if (!data.academyId) {
+          localStorage.removeItem('academy_name');
+        }
+
         // Asociar suscripción push con el userId cuando el usuario se carga
         if (data.id && 'serviceWorker' in navigator) {
           navigator.serviceWorker.ready.then(reg =>

@@ -166,6 +166,7 @@ function CreateAcademyScreen({ onBack, onCreated }) {
 // ── Dashboard content (academyId guaranteed valid) ────────────────
 function AcademyDashboard({ academyId, onBack }) {
   const { t } = useLang();
+  const { updateUser } = useAuth();
   const tok = localStorage.getItem('tradaria_token');
 
   const [academy,    setAcademy]    = useState(null);
@@ -186,9 +187,22 @@ function AcademyDashboard({ academyId, onBack }) {
     fetch(`${SERVER}/academy/${academyId}/dashboard`, {
       headers: { Authorization: `Bearer ${tok}` },
     })
-      .then(r => r.ok ? r.json() : r.json().then(d => Promise.reject(d.error || 'Error')))
+      .then(r => {
+        if (r.ok) return r.json();
+        return r.json().then(d => {
+          if (d.academyGone) {
+            localStorage.removeItem('academy_name');
+            updateUser({ academyId: null, isAcademyPro: false });
+            return Promise.reject('__ACADEMY_GONE__');
+          }
+          return Promise.reject(d.error || 'Error');
+        });
+      })
       .then(data => setAcademy(data))
-      .catch(e  => setError(String(e)))
+      .catch(e => {
+        if (e === '__ACADEMY_GONE__') { onBack(); return; }
+        setError(String(e));
+      })
       .finally(() => setLoading(false));
   }, [academyId]);
 

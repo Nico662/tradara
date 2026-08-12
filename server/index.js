@@ -706,6 +706,19 @@ app.get('/auth/me', async (req, res) => {
     const decoded = jwt.verify(auth.replace('Bearer ', ''), JWT_SECRET);
     const user    = await User.findById(decoded.id);
     if (!user) return res.status(404).json({ error: 'User not found' });
+
+    let academyId    = user.academyId    || null;
+    let isAcademyPro = user.isAcademyPro || false;
+    if (academyId) {
+      const AcademyModel = mongoose.model('Academy');
+      const academy = await AcademyModel.findById(academyId, '_id');
+      if (!academy) {
+        await User.findByIdAndUpdate(user._id, { academyId: null, isAcademyPro: false });
+        academyId    = null;
+        isAcademyPro = false;
+      }
+    }
+
     res.json({
       id:     user._id,
       name:   user.name,
@@ -721,8 +734,8 @@ app.get('/auth/me', async (req, res) => {
       activeCosmetics: user.activeCosmetics || {},
       isPro:           user.isPro || false,
       role:            user.role        || 'student',
-      academyId:       user.academyId   || null,
-      isAcademyPro:    user.isAcademyPro || false,
+      academyId,
+      isAcademyPro,
     });
   } catch (err) {
     res.status(401).json({ error: 'Invalid token' });

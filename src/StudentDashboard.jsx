@@ -87,7 +87,17 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
     Promise.all([
       fetch(`${SERVER}/academy/${academyId}/dashboard`, {
         headers: { Authorization: `Bearer ${tok}` },
-      }).then(r => r.ok ? r.json() : r.json().then(d => Promise.reject(d.error || 'Error'))),
+      }).then(r => {
+        if (r.ok) return r.json();
+        return r.json().then(d => {
+          if (d.academyGone) {
+            localStorage.removeItem('academy_name');
+            updateUser({ academyId: null, isAcademyPro: false });
+            return Promise.reject('__ACADEMY_GONE__');
+          }
+          return Promise.reject(d.error || 'Error');
+        });
+      }),
 
       fetch(`${SERVER}/academy/${academyId}/tournament/active`, {
         headers: { Authorization: `Bearer ${tok}` },
@@ -103,7 +113,10 @@ export default function StudentDashboard({ onBack, onPlayTournament }) {
         setTournament(tour?.active ? tour.tournament : false);
         setAcademyStatus(status);
       })
-      .catch(e => setError(String(e)))
+      .catch(e => {
+        if (e === '__ACADEMY_GONE__') { onBack(); return; }
+        setError(String(e));
+      })
       .finally(() => setLoading(false));
   }, [String(academyId)]);
 
