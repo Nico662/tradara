@@ -544,7 +544,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
       setQty('');
       await loadAll();
     } catch {
-      setError('Error de conexión');
+      setError(t.common.error);
     }
     setLoading(false);
   }
@@ -827,12 +827,12 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
             <Briefcase size={18} strokeWidth={2} aria-hidden style={{ display: 'inline', verticalAlign: 'middle' }} /> {t.portfolio.title}
           </div>
           <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.22em', textTransform: 'uppercase', marginTop: '3px', fontFamily: 'var(--font-body)' }}>
-            PORTFOLIO MODE
+            {t.portfolio.mode}
           </div>
         </div>
 
         <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '2px' }}>
-          <span style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.06em', fontFamily: 'var(--font-body)' }}>TOTAL</span>
+          <span style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.06em', fontFamily: 'var(--font-body)' }}>{t.portfolio.total.toUpperCase()}</span>
           {portfolio === null
             ? <div className="skeleton-bar" style={{ height: '16px', width: '80px' }} />
             : <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--green)', textShadow: '0 0 14px rgba(0,229,160,0.35)' }}>{formatCash(totalValue)}</span>}
@@ -858,7 +858,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
         {(() => {
           if (portfolio === null) return (
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>P&L total</div>
+              <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{t.portfolio.pnlTotal}</div>
               <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '4px' }}>
                 <div className="skeleton-bar" style={{ height: '18px', width: '90px' }} />
                 <div className="skeleton-bar" style={{ height: '10px', width: '50px' }} />
@@ -870,7 +870,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
           const color  = pnl >= 0 ? 'var(--green)' : 'var(--color-down)';
           return (
             <div style={{ background: 'var(--bg-card)', border: `1px solid ${pnl >= 0 ? 'rgba(0,229,160,0.3)' : 'rgba(255,126,179,0.3)'}`, borderRadius: '8px', padding: '10px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-              <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>P&L total</div>
+              <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>{t.portfolio.pnlTotal}</div>
               <div style={{ textAlign: 'right' }}>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '15px', color }}>{pnl >= 0 ? '+' : ''}{formatCash(pnl)}</div>
                 <div style={{ fontSize: '12px', color, fontFamily: 'var(--font-body)', marginTop: '1px' }}>{pnlPct >= 0 ? '+' : ''}{pnlPct.toFixed(2)}%</div>
@@ -1066,7 +1066,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                       <button
                         onClick={e => { e.stopPropagation(); setNoteText(notes[pos.symbol] || ''); setNoteModal({ symbol: pos.symbol, name: pos.name }); }}
                         style={{ flexShrink: 0, background: notes[pos.symbol] ? 'rgba(232,184,75,0.08)' : 'transparent', border: `1px solid ${notes[pos.symbol] ? 'rgba(232,184,75,0.4)' : 'var(--bd2)'}`, borderRadius: '6px', color: notes[pos.symbol] ? 'var(--color-neutral)' : 'var(--t6)', fontSize: '12px', padding: '3px 10px', cursor: 'pointer', fontFamily: 'var(--font-body)', letterSpacing: '0.04em' }}
-                      ><FileText size={12} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {notes[pos.symbol] ? 'nota' : 'anotar'}</button>
+                      ><FileText size={12} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {notes[pos.symbol] ? t.portfolio.noteLabel : t.portfolio.addNote}</button>
                     ) : (
                       <button
                         onClick={() => onGoPricing?.()}
@@ -1092,7 +1092,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
             >
               <div>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: user?.isPro ? 'var(--green)' : 'var(--t4)', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                  {user?.isPro ? <BarChart2 size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> : <Lock size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} />} vs #1 del ranking
+                  {user?.isPro ? <BarChart2 size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> : <Lock size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} />} {t.portfolio.vsRanking}
                   {!user?.isPro && <span style={{ fontSize: '12px', color: 'var(--color-neutral)', background: 'rgba(232,184,75,0.1)', padding: '1px 6px', borderRadius: '4px', fontFamily: 'var(--font-body)', letterSpacing: '0.04em' }}>PRO</span>}
                 </div>
                 {compareData?.top1 && user?.isPro && (
@@ -1131,7 +1131,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                     {/* Me vs #1 header */}
                     <div style={{ display: 'flex', gap: '8px', marginBottom: '14px', padding: '10px', background: 'var(--bg-page)', borderRadius: '8px' }}>
                       <div style={{ flex: 1, textAlign: 'center' }}>
-                        <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginBottom: '3px' }}>TÚ</div>
+                        <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)', marginBottom: '3px' }}>{t.common.you}</div>
                         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: compareData.myReturnPct >= 0 ? 'var(--green)' : 'var(--color-down)' }}>
                           {compareData.myReturnPct >= 0 ? '+' : ''}{compareData.myReturnPct?.toFixed(2)}%
                         </div>
@@ -1148,7 +1148,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                     {/* Only in #1 */}
                     {compareData.onlyInTop1.length > 0 && (
                       <>
-                        <div style={{ fontSize: '12px', color: 'var(--color-neutral)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '6px' }}>Solo en #1</div>
+                        <div style={{ fontSize: '12px', color: 'var(--color-neutral)', letterSpacing: '0.1em', textTransform: 'uppercase', fontFamily: 'var(--font-body)', marginBottom: '6px' }}>{t.portfolio.onlyInTop1}</div>
                         {compareData.onlyInTop1.map(item => (
                           <div key={item.symbol} style={{ display: 'flex', alignItems: 'center', padding: '6px 8px', background: 'rgba(232,184,75,0.04)', border: '1px solid var(--color-neutral-dim)', borderRadius: '6px', marginBottom: '4px' }}>
                             <div style={{ flex: 1 }}>
@@ -1175,7 +1175,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                             </div>
                             <div style={{ display: 'flex', gap: '12px' }}>
                               <div style={{ textAlign: 'right' }}>
-                                <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>tú</div>
+                                <div style={{ fontSize: '12px', color: 'var(--t5)', fontFamily: 'var(--font-body)' }}>{t.common.you.toLowerCase()}</div>
                                 <div style={{ fontSize: '12px', fontWeight: 700, color: item.myReturn >= 0 ? 'var(--green)' : 'var(--color-down)' }}>{item.myReturn >= 0 ? '+' : ''}{item.myReturn?.toFixed(2)}%</div>
                               </div>
                               <div style={{ textAlign: 'right' }}>
@@ -1222,7 +1222,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
         <div style={{ padding: '16px 20px 40px', position: 'relative', zIndex: 2 }}>
           {/* Global / Semanal subtabs */}
           <div style={{ display: 'flex', gap: '6px', marginBottom: '12px' }}>
-            {[['global', 'Global'], ['weekly', 'Esta semana']].map(([id, label]) => (
+            {[['global', t.portfolio.global], ['weekly', t.portfolio.weekly]].map(([id, label]) => (
               <button key={id} onClick={() => {
                 setLeaderboardTab(id);
                 if (id === 'weekly' && weeklyLeaderboard.length === 0 && !weeklyLoading) loadWeeklyLeaderboard();
@@ -1411,9 +1411,9 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
             onClick={e => e.stopPropagation()}
             style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '12px', padding: '24px', width: '100%', maxWidth: '340px' }}
           >
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '4px' }}>📝 Nota</div>
+            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '4px' }}>{t.portfolio.noteTitle}</div>
             <div style={{ fontSize: '12px', color: 'var(--t5)', marginBottom: '16px', fontFamily: 'var(--font-body)', letterSpacing: '0.06em' }}>
-              {noteModal.name} · razonamiento
+              {noteModal.name} · {t.portfolio.noteRationale}
             </div>
             <textarea
               value={noteText}
@@ -1456,12 +1456,12 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
           >
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '4px' }}>{t.portfolio.priceAlertTitle}</div>
             <div style={{ fontSize: '12px', color: 'var(--t5)', marginBottom: '20px', fontFamily: 'var(--font-body)', letterSpacing: '0.06em' }}>
-              {alertModal.name} · actual: {formatPrice(alertModal.currentPrice, alertModal.type)}
+              {alertModal.name} · {t.portfolio.currentLabel} {formatPrice(alertModal.currentPrice, alertModal.type)}
             </div>
 
             {/* Condition */}
             <div style={{ display: 'flex', gap: '8px', marginBottom: '14px' }}>
-              {[['above', '↑ cuando suba a'], ['below', '↓ cuando baje a']].map(([val, label]) => (
+              {[['above', t.portfolio.alertAbove], ['below', t.portfolio.alertBelow]].map(([val, label]) => (
                 <button
                   key={val}
                   onClick={() => setAlertCondition(val)}

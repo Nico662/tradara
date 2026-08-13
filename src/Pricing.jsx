@@ -104,7 +104,7 @@ export default function Pricing({ onBack, fromTournament }) {
             </div>
             <div>
               <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: 'var(--green)' }}>€3.99</span>
-              <span style={{ fontSize: '12px', color: 'var(--t5)' }}>/mes</span>
+              <span style={{ fontSize: '12px', color: 'var(--t5)' }}>{t.pricing.perMonth}</span>
             </div>
           </div>
           <div style={{ fontSize: '12px', color: 'var(--t6)', marginBottom: '16px', letterSpacing: '0.04em' }}>
@@ -139,13 +139,13 @@ export default function Pricing({ onBack, fromTournament }) {
           )}
           {!isPro && (
             <p style={{ fontSize: '11px', color: '#888', textAlign: 'center', marginTop: '8px' }}>
-              By subscribing, you agree to our{' '}
+              {t.pricing.legalAgree}{' '}
               <a href="https://www.apple.com/legal/internet-services/itunes/dev/stdeula/" target="_blank" rel="noopener noreferrer" style={{ color: '#888', textDecoration: 'underline' }}>
-                Terms of Use
+                {t.pricing.termsOfUse}
               </a>
-              {' '}and{' '}
+              {' '}{t.pricing.legalAnd}{' '}
               <a href="https://www.tradiko.dev/privacy" target="_blank" rel="noopener noreferrer" style={{ color: '#888', textDecoration: 'underline' }}>
-                Privacy Policy
+                {t.pricing.privacyPolicy}
               </a>
             </p>
           )}

@@ -32,6 +32,7 @@ export const LANGS = {
       up: '▲ UP', down: '▼ DOWN', flatDir: '— FLAT',
       back: '← menu', mode: 'Classic Mode', points: 'Points', accuracy: 'Accuracy', newHighscore: '★ new highscore!', best: 'Best',
       guessTheMarket: 'GUESS THE MARKET', trend: 'trend', last5: 'last 5', change: 'change', volatility: 'volatility', low: 'low', medium: 'medium', high: 'high', price: 'price',
+      xpToNext: 'in {n} XP',
     },
     gameover: {
       title: 'game over — 25 rounds', finalScore: 'final score',
@@ -352,6 +353,11 @@ export const LANGS = {
       inCommon: 'In common', onlyYours: 'Only yours', noPositionsToCompare: 'No positions to compare',
       priceAlertTitle: '🔔 Price Alert', notePlaceholder: 'I bought because...', targetPricePlaceholder: 'Target price',
       friendsLeague: 'Friends League',
+      tutOpenLong: 'Open long', tutCloseShort: 'Close / short',
+      mode: 'PORTFOLIO MODE', pnlTotal: 'P&L total', vsRanking: 'vs #1 in the ranking',
+      onlyInTop1: 'Only in #1',
+      noteTitle: '📝 Note', noteRationale: 'rationale', noteLabel: 'note', addNote: 'add note',
+      currentLabel: 'current:', alertAbove: '↑ when it rises to', alertBelow: '↓ when it drops to',
     },
     leagues: {
       back: '← back',
@@ -394,6 +400,7 @@ export const LANGS = {
       back: '← back',
       signIn: 'Sign in to purchase',
       equipped: '✓ Equipped', equip: 'Equip',
+      frames: 'Frames', themes: 'Themes', avatars: 'Avatars', effects: 'Effects',
     },
     friends: {
       title: 'Friends', back: '← back',
@@ -549,11 +556,12 @@ export const LANGS = {
       proFeat1: 'Everything in Free', proFeat2: 'Survival — life regeneration ⚡',
       proFeat3: 'No ads', proFeat4: 'Pro badge on profile',
       proFeat5: '🔔 Price alerts on your positions', proFeat6: '📝 Notes on your portfolio positions', proFeat7: '📊 Compare your portfolio vs #1 on the ranking',
+      perMonth: '/mo', legalAgree: 'By subscribing, you agree to our', termsOfUse: 'Terms of Use', legalAnd: 'and', privacyPolicy: 'Privacy Policy',
     },
     maintenance: {
       banner: "🔧 We're making changes to the site. Things might look a bit off for a while.",
     },
-    common: { back: '← back', menu: '← menu', you: 'YOU', streak: 'streak', days: 'days', logout: 'logout', signIn: 'Sign in', signInApple: 'Sign in with Apple', signInGoogle: 'Sign in with Google', privacy: 'Privacy', support: 'Support', legal: 'Legal', error: 'Connection error', close: 'Close', levelUp: '✦ level up ✦', skip: 'Skip →' },
+    common: { back: '← back', menu: '← menu', you: 'YOU', streak: 'streak', days: 'days', logout: 'logout', signIn: 'Sign in', signInApple: 'Sign in with Apple', signInGoogle: 'Sign in with Google', privacy: 'Privacy', support: 'Support', legal: 'Legal', error: 'Connection error', close: 'Close', levelUp: '✦ level up ✦', skip: 'Skip →', shareCopied: '✅ COPIED!', shareError: '❌ ERROR', shareBtn: '📋 SHARE' },
     league: {
       back: '← back', daysLeft: 'days left', finished: 'Finished', players: 'players',
       you: 'you', copied: '✓ Copied', shareCode: '🔗 Share code', delete: 'Delete', leave: 'Leave',
@@ -606,6 +614,7 @@ export const LANGS = {
       up: '▲ SUBE', down: '▼ BAJA', flatDir: '— LATERAL',
       back: '← menú', mode: 'Classic Mode', points: 'Puntos', accuracy: 'Precisión', newHighscore: '★ ¡nuevo récord!', best: 'Mejor',
       guessTheMarket: 'ADIVINA EL MERCADO', trend: 'tendencia', last5: 'últimas 5', change: 'cambio', volatility: 'volatilidad', low: 'baja', medium: 'media', high: 'alta', price: 'precio',
+      xpToNext: 'en {n} XP',
     },
     gameover: {
       title: 'fin — 25 rondas', finalScore: 'puntuación final',
@@ -926,6 +935,11 @@ export const LANGS = {
       inCommon: 'En común', onlyYours: 'Solo en ti', noPositionsToCompare: 'Sin posiciones para comparar',
       priceAlertTitle: '🔔 Alerta de precio', notePlaceholder: 'Compré porque...', targetPricePlaceholder: 'Precio objetivo',
       friendsLeague: 'Liga de Amigos',
+      tutOpenLong: 'Abrir long', tutCloseShort: 'Cerrar / short',
+      mode: 'MODO PORTFOLIO', pnlTotal: 'P&L total', vsRanking: 'vs #1 del ranking',
+      onlyInTop1: 'Solo en #1',
+      noteTitle: '📝 Nota', noteRationale: 'razonamiento', noteLabel: 'nota', addNote: 'anotar',
+      currentLabel: 'actual:', alertAbove: '↑ cuando suba a', alertBelow: '↓ cuando baje a',
     },
     leagues: {
       back: '← volver',
@@ -968,6 +982,7 @@ export const LANGS = {
       back: '← volver',
       signIn: 'Inicia sesión para comprar',
       equipped: '✓ Equipado', equip: 'Equipar',
+      frames: 'Marcos', themes: 'Temas', avatars: 'Avatares', effects: 'Efectos',
     },
     friends: {
       title: 'Amigos', back: '← volver',
@@ -1123,11 +1138,12 @@ export const LANGS = {
       proFeat1: 'Todo lo de Free', proFeat2: 'Survival — regeneración de vidas ⚡',
       proFeat3: 'Sin anuncios', proFeat4: 'Badge Pro en el perfil',
       proFeat5: '🔔 Alertas de precio en tus posiciones', proFeat6: '📝 Notas en tus posiciones del portfolio', proFeat7: '📊 Comparar tu portfolio vs el #1 del ranking',
+      perMonth: '/mes', legalAgree: 'Al suscribirte, aceptas nuestros', termsOfUse: 'Términos de uso', legalAnd: 'y la', privacyPolicy: 'Política de privacidad',
     },
     maintenance: {
       banner: '⚙️ Estamos realizando mejoras en la plataforma. Es posible que experimentes algunas interrupciones temporales.',
     },
-    common: { back: '← volver', menu: '← menú', you: 'TÚ', streak: 'racha', days: 'días', logout: 'logout', signIn: 'Iniciar sesión', signInApple: 'Iniciar sesión con Apple', signInGoogle: 'Iniciar sesión con Google', privacy: 'Privacidad', support: 'Soporte', legal: 'Legal', error: 'Error de conexión', close: 'Cerrar', levelUp: '✦ level up ✦', skip: 'Omitir →' },
+    common: { back: '← volver', menu: '← menú', you: 'TÚ', streak: 'racha', days: 'días', logout: 'logout', signIn: 'Iniciar sesión', signInApple: 'Iniciar sesión con Apple', signInGoogle: 'Iniciar sesión con Google', privacy: 'Privacidad', support: 'Soporte', legal: 'Legal', error: 'Error de conexión', close: 'Cerrar', levelUp: '✦ level up ✦', skip: 'Omitir →', shareCopied: '✅ ¡COPIADO!', shareError: '❌ ERROR', shareBtn: '📋 COMPARTIR' },
     league: {
       back: '← Volver', daysLeft: 'días restantes', finished: 'Finalizada', players: 'jugadores',
       you: 'tú', copied: '✓ Copiado', shareCode: '🔗 Compartir código', delete: 'Eliminar', leave: 'Salir',
@@ -1180,6 +1196,7 @@ export const LANGS = {
       up: '▲ HOCH', down: '▼ RUNTER', flatDir: '— SEITWÄRTS',
       back: '← Menü', mode: 'Classic Mode', points: 'Punkte', accuracy: 'Genauigkeit', newHighscore: '★ neuer Rekord!', best: 'Beste',
       guessTheMarket: 'MARKT RATEN', trend: 'Trend', last5: 'letzte 5', change: 'Änderung', volatility: 'Volatilität', low: 'niedrig', medium: 'mittel', high: 'hoch', price: 'Preis',
+      xpToNext: 'in {n} XP',
     },
     gameover: {
       title: 'spiel vorbei — 25 runden', finalScore: 'endpunktzahl',
@@ -1500,6 +1517,11 @@ export const LANGS = {
       inCommon: 'Gemeinsam', onlyYours: 'Nur bei dir', noPositionsToCompare: 'Keine Positionen zum Vergleich',
       priceAlertTitle: '🔔 Preisalert', notePlaceholder: 'Ich habe gekauft weil...', targetPricePlaceholder: 'Zielpreis',
       friendsLeague: 'Freundesliga',
+      tutOpenLong: 'Long eröffnen', tutCloseShort: 'Schließen / Short',
+      mode: 'PORTFOLIO-MODUS', pnlTotal: 'G&V gesamt', vsRanking: 'vs #1 im Ranking',
+      onlyInTop1: 'Nur in #1',
+      noteTitle: '📝 Notiz', noteRationale: 'Begründung', noteLabel: 'Notiz', addNote: 'notieren',
+      currentLabel: 'aktuell:', alertAbove: '↑ wenn steigt auf', alertBelow: '↓ wenn fällt auf',
     },
     leagues: {
       back: '← zurück',
@@ -1542,6 +1564,7 @@ export const LANGS = {
       back: '← zurück',
       signIn: 'Anmelden zum Kaufen',
       equipped: '✓ Ausgerüstet', equip: 'Ausrüsten',
+      frames: 'Rahmen', themes: 'Themes', avatars: 'Avatare', effects: 'Effekte',
     },
     friends: {
       title: 'Freunde', back: '← zurück',
@@ -1697,11 +1720,12 @@ export const LANGS = {
       proFeat1: 'Alles aus Free', proFeat2: 'Survival — Leben-Regeneration ⚡',
       proFeat3: 'Keine Werbung', proFeat4: 'Pro-Badge im Profil',
       proFeat5: '🔔 Preisalarme auf deine Positionen', proFeat6: '📝 Notizen zu deinen Portfolio-Positionen', proFeat7: '📊 Portfolio vs #1 im Ranking vergleichen',
+      perMonth: '/Monat', legalAgree: 'Durch das Abonnieren stimmst du unseren', termsOfUse: 'Nutzungsbedingungen', legalAnd: 'und der', privacyPolicy: 'Datenschutzerklärung',
     },
     maintenance: {
       banner: '🔧 Wir nehmen gerade Änderungen vor. Es kann kurzzeitig zu Darstellungsfehlern kommen.',
     },
-    common: { back: '← zurück', menu: '← Menü', you: 'DU', streak: 'Serie', days: 'Tage', logout: 'Abmelden', signIn: 'Anmelden', signInApple: 'Mit Apple anmelden', signInGoogle: 'Mit Google anmelden', privacy: 'Datenschutz', support: 'Support', legal: 'Impressum', error: 'Verbindungsfehler', close: 'Schließen', levelUp: '✦ level up ✦', skip: 'Überspringen →' },
+    common: { back: '← zurück', menu: '← Menü', you: 'DU', streak: 'Serie', days: 'Tage', logout: 'Abmelden', signIn: 'Anmelden', signInApple: 'Mit Apple anmelden', signInGoogle: 'Mit Google anmelden', privacy: 'Datenschutz', support: 'Support', legal: 'Impressum', error: 'Verbindungsfehler', close: 'Schließen', levelUp: '✦ level up ✦', skip: 'Überspringen →', shareCopied: '✅ KOPIERT!', shareError: '❌ FEHLER', shareBtn: '📋 TEILEN' },
     league: {
       back: '← zurück', daysLeft: 'Tage übrig', finished: 'Beendet', players: 'Spieler',
       you: 'du', copied: '✓ Kopiert', shareCode: '🔗 Code teilen', delete: 'Löschen', leave: 'Verlassen',

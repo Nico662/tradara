@@ -507,7 +507,7 @@ export default function App() {
                   <div style={{ height: '100%', width: `${progress}%`, background: 'var(--green)', borderRadius: '2px', transition: 'width 0.5s ease' }} />
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--t6)', marginTop: '4px', textAlign: 'right' }}>
-                  {next.icon} {next.name} en {next.xp - xp} XP
+                  {next.icon} {next.name} {t.game.xpToNext.replace('{n}', next.xp - xp)}
                 </div>
               </>
             )}
@@ -575,7 +575,7 @@ export default function App() {
             <button onClick={shareResult}
               style={{ flex: 1, padding: '14px', background: shareStatus === 'error' ? 'rgba(224,85,85,0.08)' : 'rgba(0,229,160,0.08)', border: `1px solid ${shareStatus === 'error' ? 'var(--color-down)' : 'var(--green)'}`, borderRadius: '8px', color: shareStatus === 'error' ? 'var(--color-down)' : 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer', transition: 'all 0.18s', boxShadow: shareStatus === 'error' ? 'none' : '0 0 20px rgba(0,229,160,0.08)' }}
             >
-              {shareStatus === 'copied' ? '✅ COPIED!' : shareStatus === 'error' ? '❌ ERROR' : '📋 SHARE'}
+              {shareStatus === 'copied' ? t.common.shareCopied : shareStatus === 'error' ? t.common.shareError : t.common.shareBtn}
             </button>
           </div>
           <div style={{ display: 'flex', gap: '10px' }}>
@@ -816,7 +816,7 @@ export default function App() {
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
             <button className={`btn-long${selected === 'long' ? ' selected' : ''}`} onClick={() => makeChoice('long')}>
               <span style={{ fontSize: '18px', lineHeight: 1 }}>↑</span>
-              <span>Long</span>
+              <span>{t.game.long}</span>
               <span style={{ fontSize: '12px', opacity: 0.7, fontWeight: 700 }}>{t.game.longSub}</span>
             </button>
             <button className={`btn-neutral${selected === 'skip' ? ' selected' : ''}`} onClick={() => makeChoice('skip')}>
@@ -826,7 +826,7 @@ export default function App() {
             </button>
             <button className={`btn-short${selected === 'short' ? ' selected' : ''}`} onClick={() => makeChoice('short')}>
               <span style={{ fontSize: '18px', lineHeight: 1 }}>↓</span>
-              <span>Short</span>
+              <span>{t.game.short}</span>
               <span style={{ fontSize: '12px', opacity: 0.7, fontWeight: 700 }}>{t.game.shortSub}</span>
             </button>
           </div>

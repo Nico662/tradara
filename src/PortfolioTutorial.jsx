@@ -2,11 +2,13 @@ import { useState } from 'react';
 import { useLang } from './LangContext.jsx';
 
 function AssetTypesPill() {
+  const { t } = useLang();
+  const p = t.portfolio;
   const types = [
-    { label: 'Stocks',      color: '#378ADD', bg: 'rgba(55,138,221,0.12)' },
-    { label: 'Crypto',      color: 'var(--color-neutral)', bg: 'var(--color-neutral-dim)' },
-    { label: 'Indices',     color: 'var(--green)', bg: 'rgba(0,229,160,0.12)' },
-    { label: 'Commodities', color: 'var(--color-down)', bg: 'rgba(255,126,179,0.12)'  },
+    { label: p.stocks,      color: '#378ADD', bg: 'rgba(55,138,221,0.12)' },
+    { label: p.crypto,      color: 'var(--color-neutral)', bg: 'var(--color-neutral-dim)' },
+    { label: p.indices,     color: 'var(--green)', bg: 'rgba(0,229,160,0.12)' },
+    { label: p.commodities, color: 'var(--color-down)', bg: 'rgba(255,126,179,0.12)'  },
   ];
   return (
     <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', justifyContent: 'center' }}>
@@ -20,17 +22,19 @@ function AssetTypesPill() {
 }
 
 function BuySellVisual() {
+  const { t } = useLang();
+  const p = t.portfolio;
   return (
     <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
       <div style={{ flex: 1, padding: '14px 10px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '10px', textAlign: 'center' }}>
         <div style={{ fontSize: '18px', marginBottom: '4px' }}>▲</div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)', fontWeight: 700 }}>BUY</div>
-        <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '3px' }}>Open long</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)', fontWeight: 700 }}>{p.buy.toUpperCase()}</div>
+        <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '3px' }}>{p.tutOpenLong}</div>
       </div>
       <div style={{ flex: 1, padding: '14px 10px', background: 'rgba(255,126,179,0.08)', border: '1px solid var(--color-down)', borderRadius: '10px', textAlign: 'center' }}>
         <div style={{ fontSize: '18px', marginBottom: '4px' }}>▼</div>
-        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', fontWeight: 700 }}>SELL</div>
-        <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '3px' }}>Close / short</div>
+        <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-down)', fontWeight: 700 }}>{p.sell.toUpperCase()}</div>
+        <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '3px' }}>{p.tutCloseShort}</div>
       </div>
     </div>
   );

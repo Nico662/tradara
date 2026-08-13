@@ -268,8 +268,8 @@ export default function Survival({ onBack }) {
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginTop: '20px', marginBottom: '16px' }}>
               {[
                 { label: t.survival.rounds,   value: round - 1,      color: 'var(--text-primary)' },
-                { label: 'correct',  value: wins,           color: 'var(--green)' },
-                { label: 'accuracy', value: accuracy + '%', color: 'var(--color-neutral)' },
+                { label: t.game.correct,  value: wins,           color: 'var(--green)' },
+                { label: t.game.accuracy, value: accuracy + '%', color: 'var(--color-neutral)' },
               ].map(s => (
                 <div key={s.label} style={{ background: 'var(--bg-page)', border: '1px solid var(--border-default)', borderRadius: '8px', padding: '10px 8px' }}>
                   <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: s.color }}>{s.value}</div>
@@ -314,7 +314,7 @@ export default function Survival({ onBack }) {
           )}
           <button onClick={shareSurvival}
             style={{ marginTop: '10px', width: '100%', padding: '12px', background: shareStatus === 'error' ? 'rgba(224,85,85,0.08)' : 'var(--green-dim)', border: `1px solid ${shareStatus === 'error' ? 'var(--color-down)' : 'var(--border-green)'}`, borderRadius: '6px', color: shareStatus === 'error' ? 'var(--color-down)' : 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-            {shareStatus === 'copied' ? '✅ COPIED!' : shareStatus === 'error' ? '❌ ERROR' : '📋 SHARE'}
+            {shareStatus === 'copied' ? t.common.shareCopied : shareStatus === 'error' ? t.common.shareError : t.common.shareBtn}
           </button>
         </div>
         {newBadge && <BadgeNotification badge={newBadge} onDone={() => setNewBadge(null)} />}
@@ -410,7 +410,7 @@ export default function Survival({ onBack }) {
           <div className="buttons-row">
             <button className={`btn-long${selected === 'long' ? ' selected' : ''}`} onClick={() => makeChoice('long')}>
               <span className="btn-icon">▲</span>
-              <span>Long</span>
+              <span>{t.game.long}</span>
               <span className="btn-sublabel">{t.game.longSub}</span>
             </button>
             <button className={`btn-neutral${selected === 'skip' ? ' selected' : ''}`} onClick={() => makeChoice('skip')}>
@@ -420,7 +420,7 @@ export default function Survival({ onBack }) {
             </button>
             <button className={`btn-short${selected === 'short' ? ' selected' : ''}`} onClick={() => makeChoice('short')}>
               <span className="btn-icon">▼</span>
-              <span>Short</span>
+              <span>{t.game.short}</span>
               <span className="btn-sublabel">{t.game.shortSub}</span>
             </button>
           </div>

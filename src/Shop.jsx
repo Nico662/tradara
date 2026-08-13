@@ -102,10 +102,10 @@ const CATEGORY_TYPES = {
 };
 
 const CATEGORIES = [
-  { id: 'frames',  label: 'Frames',  icon: <Frame    size={14} strokeWidth={2} aria-hidden /> },
-  { id: 'themes',  label: 'Themes',  icon: <Palette  size={14} strokeWidth={2} aria-hidden /> },
-  { id: 'avatars', label: 'Avatars', icon: <User     size={14} strokeWidth={2} aria-hidden /> },
-  { id: 'effects', label: 'Effects', icon: <Sparkles size={14} strokeWidth={2} aria-hidden /> },
+  { id: 'frames',  icon: <Frame    size={14} strokeWidth={2} aria-hidden /> },
+  { id: 'themes',  icon: <Palette  size={14} strokeWidth={2} aria-hidden /> },
+  { id: 'avatars', icon: <User     size={14} strokeWidth={2} aria-hidden /> },
+  { id: 'effects', icon: <Sparkles size={14} strokeWidth={2} aria-hidden /> },
 ];
 
 function PreviewFrame({ item, userAvatar }) {
@@ -125,6 +125,7 @@ function PreviewFrame({ item, userAvatar }) {
 }
 
 function PreviewTheme({ item }) {
+  const { t } = useLang();
   const c = THEME_COLORS[item.id];
   return (
     <div style={{
@@ -163,13 +164,13 @@ function PreviewTheme({ item }) {
       </div>
       <div style={{ padding: '3px 4px', display: 'flex', gap: '3px', borderTop: `1px solid ${c.border}`, flexShrink: 0 }}>
         <div style={{ flex: 1, background: `${c.accent}22`, border: `1px solid ${c.accent}`, borderRadius: '2px', padding: '2px 0', textAlign: 'center' }}>
-          <span style={{ fontSize: '12px', color: c.accent, fontFamily: 'var(--font-body)', fontWeight: 700 }}>▲ LONG</span>
+          <span style={{ fontSize: '12px', color: c.accent, fontFamily: 'var(--font-body)', fontWeight: 700 }}>▲ {t.game.long.toUpperCase()}</span>
         </div>
         <div style={{ flex: 1, border: `1px solid ${c.border}`, borderRadius: '2px', padding: '2px 0', textAlign: 'center' }}>
-          <span style={{ fontSize: '12px', color: c.text, fontFamily: 'var(--font-body)', fontWeight: 700 }}>— SKIP</span>
+          <span style={{ fontSize: '12px', color: c.text, fontFamily: 'var(--font-body)', fontWeight: 700 }}>— {t.game.noTrade.toUpperCase()}</span>
         </div>
         <div style={{ flex: 1, background: `${c.down}22`, border: `1px solid ${c.down}`, borderRadius: '2px', padding: '2px 0', textAlign: 'center' }}>
-          <span style={{ fontSize: '12px', color: c.down, fontFamily: 'var(--font-body)', fontWeight: 700 }}>▼ SHORT</span>
+          <span style={{ fontSize: '12px', color: c.down, fontFamily: 'var(--font-body)', fontWeight: 700 }}>▼ {t.game.short.toUpperCase()}</span>
         </div>
       </div>
     </div>
@@ -418,7 +419,7 @@ export default function Shop({ onBack }) {
                 fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700,
                 letterSpacing: '0.08em', cursor: 'pointer', textTransform: 'uppercase',
               }}>
-              {cat.icon} {cat.label}
+              {cat.icon} {t.shop[cat.id]}
             </button>
           ))}
         </div>

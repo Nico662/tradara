@@ -13,12 +13,13 @@ import MissionNotification from './MissionNotification.jsx';
 import { Calendar, Clipboard } from 'lucide-react';
 
 function ShareButton({ onShare, shareStatus }) {
+  const { t } = useLang();
   const isError  = shareStatus === 'error';
   const isCopied = shareStatus === 'copied';
   return (
     <button onClick={onShare}
       style={{ marginTop: '12px', width: '100%', padding: '12px', background: isError ? 'rgba(224,85,85,0.08)' : 'var(--green-dim)', border: `1px solid ${isError ? 'var(--color-down)' : 'var(--border-green)'}`, borderRadius: '6px', color: isError ? 'var(--color-down)' : 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-      {isCopied ? 'OK COPIED!' : isError ? 'X ERROR' : <><Clipboard size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> SHARE</>}
+      {isCopied ? t.common.shareCopied : isError ? t.common.shareError : <><Clipboard size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {t.common.shareBtn}</>}
     </button>
   );
 }
@@ -274,7 +275,7 @@ export default function Daily({ onBack }) {
                 </div>
                 <div className="buttons-row" style={{ padding: '0 20px' }}>
                   <button className="btn-long" onClick={() => makeChoice('long')}>
-                    <span className="btn-icon">▲</span><span>Long</span>
+                    <span className="btn-icon">▲</span><span>{t.game.long}</span>
                     <span className="btn-sublabel">{t.game.longSub}</span>
                   </button>
                   <button className="btn-neutral" onClick={() => makeChoice('skip')}>
@@ -282,7 +283,7 @@ export default function Daily({ onBack }) {
                     <span className="btn-sublabel">{t.game.noTradeSub}</span>
                   </button>
                   <button className="btn-short" onClick={() => makeChoice('short')}>
-                    <span className="btn-icon">▼</span><span>Short</span>
+                    <span className="btn-icon">▼</span><span>{t.game.short}</span>
                     <span className="btn-sublabel">{t.game.shortSub}</span>
                   </button>
                 </div>
