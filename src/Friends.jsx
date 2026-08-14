@@ -8,7 +8,7 @@ import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
 import { LevelIcon } from './components/AppIcons';
-import { Handshake } from 'lucide-react';
+import { Handshake, Link, Swords, Clock } from 'lucide-react';
 
 function authHeaders() {
   return {
@@ -21,8 +21,10 @@ function FriendCard({ f, onChallenge, isChallenging, challengeStatus, onViewProf
   const { t } = useLang();
   const level = getLevel(f.xp || 0);
   const btnLabel = isChallenging
-    ? (challengeStatus === 'unavailable' ? t.friends.unavailable : t.friends.waiting)
-    : t.friends.challenge;
+    ? (challengeStatus === 'unavailable'
+        ? t.friends.unavailable
+        : <><Clock size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle', marginRight: '4px' }} />{t.friends.waiting}</>)
+    : <><Swords size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle', marginRight: '4px' }} />{t.friends.challenge}</>;
   const btnColor = isChallenging
     ? (challengeStatus === 'unavailable' ? 'var(--color-down)' : 'var(--color-neutral)')
     : 'var(--green)';
@@ -333,7 +335,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
                   onClick={copyInviteLink}
                   style={{ width: '100%', padding: '9px', background: copiedInvite ? 'rgba(0,229,160,0.12)' : 'rgba(0,229,160,0.06)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', transition: 'background 0.15s' }}
                 >
-                  {copiedInvite ? t.friends.inviteCopied : t.friends.inviteCopy}
+                  {copiedInvite ? t.friends.inviteCopied : <><Link size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle', marginRight: '4px' }} />{t.friends.inviteCopy}</>}
                 </button>
               </div>
             )}
@@ -396,7 +398,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
                       onClick={copyInviteLink}
                       style={{ padding: '8px 16px', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em' }}
                     >
-                      {copiedInvite ? t.friends.inviteCopied : t.friends.inviteCopy}
+                      {copiedInvite ? t.friends.inviteCopied : <><Link size={14} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle', marginRight: '4px' }} />{t.friends.inviteCopy}</>}
                     </button>
                   )}
                 </div>
