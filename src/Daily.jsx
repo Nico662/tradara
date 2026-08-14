@@ -154,7 +154,9 @@ export default function Daily({ onBack }) {
   }
 
   const lastDaily = localStorage.getItem('tradaria_daily_last');
-  const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+  const _now = new Date();
+  const yesterday = new Date(_now.getFullYear(), _now.getMonth(), _now.getDate() - 1)
+    .toISOString().split('T')[0];
   const current   = parseInt(localStorage.getItem('tradaria_daily_streak') || '0');
   const newStreak = lastDaily === yesterday ? current + 1 : 1;
   localStorage.setItem('tradaria_daily_streak', String(newStreak));

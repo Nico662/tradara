@@ -214,7 +214,7 @@ export function AuthProvider({ children }) {
         const serverStreak     = data.dailyStreak || 0;
         const serverLastPlayed = data.lastPlayed || null;
         const localStreak      = parseInt(localStorage.getItem('tradaria_daily_streak') || '0');
-        const bestStreak       = Math.max(serverStreak, localStreak);
+        const bestStreak       = serverStreak > 0 ? serverStreak : localStreak;
         localStorage.setItem('tradaria_daily_streak', String(bestStreak));
 
         // Normalizar y unificar fechas

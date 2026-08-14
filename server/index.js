@@ -763,10 +763,10 @@ app.post('/auth/sync', async (req, res) => {
       ...incomingBadges.filter(b => typeof b === 'string' && VALID_BADGE_IDS.has(b)),
     ])];
 
-    // Streak: non-negative integer, max 3650, only increase
+    // Streak: non-negative integer, max 3650
     const newStreak = Number(dailyStreak);
-    const safeStreak = Number.isInteger(newStreak) && newStreak >= 0 && newStreak <= 3650
-      ? Math.max(current.dailyStreak || 0, newStreak)
+    const safeStreak = Number.isFinite(newStreak) && newStreak >= 0 && newStreak <= 3650
+      ? newStreak
       : current.dailyStreak || 0;
 
     // lastPlayed: must be YYYY-MM-DD
