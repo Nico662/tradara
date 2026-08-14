@@ -3,6 +3,7 @@ import { useAuth, isIOSApp } from './AuthContext';
 import { useLang } from './LangContext.jsx';
 import UsernameModal from './UsernameModal.jsx';
 import { SERVER } from './config.js';
+import { Zap } from 'lucide-react';
 
 const STRINGS = {
   en: {
@@ -13,7 +14,7 @@ const STRINGS = {
     notifOn: '✓ Notifications enabled', notifOff: 'Enable notifications',
     account: 'Account', username: 'Username', edit: 'Edit', signOut: 'Sign out',
     about: 'About Tradiko', builtBy: 'Built by Nicolás Vidal',
-    subscription: 'Subscription', planLabel: 'Pro Plan · €3.99/mo', planActive: '⚡ ACTIVE',
+    subscription: 'Subscription', planLabel: 'Pro Plan · €3.99/mo', planActive: 'ACTIVE',
     cancelDoneMsg: 'Subscription cancelled. You will keep Pro access until the end of the current period.',
     cancelConfirmMsg: 'Are you sure? You will lose Pro access at the end of the current period.',
     cancelling: 'Cancelling...', confirmCancel: 'Yes, cancel', goBack: 'Back', cancelSub: 'Cancel subscription',
@@ -29,7 +30,7 @@ const STRINGS = {
     notifOn: '✓ Notificaciones activadas', notifOff: 'Activar notificaciones',
     account: 'Cuenta', username: 'Nombre de usuario', edit: 'Editar', signOut: 'Cerrar sesión',
     about: 'Sobre Tradiko', builtBy: 'Construido por Nicolás Vidal',
-    subscription: 'Suscripción', planLabel: 'Plan Pro · €3.99/mes', planActive: '⚡ ACTIVO',
+    subscription: 'Suscripción', planLabel: 'Plan Pro · €3.99/mes', planActive: 'ACTIVO',
     cancelDoneMsg: 'Suscripción cancelada. Seguirás teniendo acceso Pro hasta el fin del período.',
     cancelConfirmMsg: '¿Estás seguro? Perderás el acceso Pro al finalizar el período actual.',
     cancelling: 'Cancelando...', confirmCancel: 'Sí, cancelar', goBack: 'Volver', cancelSub: 'Cancelar suscripción',
@@ -45,7 +46,7 @@ const STRINGS = {
     notifOn: '✓ Benachrichtigungen aktiv', notifOff: 'Benachrichtigungen aktivieren',
     account: 'Konto', username: 'Benutzername', edit: 'Bearbeiten', signOut: 'Abmelden',
     about: 'Über Tradiko', builtBy: 'Erstellt von Nicolás Vidal',
-    subscription: 'Abonnement', planLabel: 'Pro Plan · €3.99/Monat', planActive: '⚡ AKTIV',
+    subscription: 'Abonnement', planLabel: 'Pro Plan · €3.99/Monat', planActive: 'AKTIV',
     cancelDoneMsg: 'Abonnement gekündigt. Du behältst den Pro-Zugang bis zum Ende des aktuellen Zeitraums.',
     cancelConfirmMsg: 'Bist du sicher? Du verlierst den Pro-Zugang am Ende des aktuellen Zeitraums.',
     cancelling: 'Wird gekündigt...', confirmCancel: 'Ja, kündigen', goBack: 'Zurück', cancelSub: 'Abonnement kündigen',
@@ -269,7 +270,8 @@ export default function Settings({ onBack }) {
             <SectionLabel text={s.subscription} />
             <Card>
               <Row label={s.planLabel} last={!cancelConfirm && !cancelDone}>
-                <span style={{ fontSize: '12px', color: 'var(--green)', background: 'rgba(0,229,160,0.1)', padding: '2px 8px', borderRadius: '4px', fontFamily: 'var(--font-body)', letterSpacing: '0.06em' }}>
+                <span style={{ fontSize: '12px', color: 'var(--green)', background: 'rgba(0,229,160,0.1)', padding: '2px 8px', borderRadius: '4px', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <Zap size={12} strokeWidth={2} aria-hidden />
                   {s.planActive}
                 </span>
               </Row>

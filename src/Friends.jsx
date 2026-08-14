@@ -8,6 +8,7 @@ import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
 import { LevelIcon } from './components/AppIcons';
+import { Handshake } from 'lucide-react';
 
 function authHeaders() {
   return {
@@ -386,7 +387,7 @@ export default function Friends({ onBack, challengeSocket, onViewProfile }) {
                 <div style={{ fontSize: '12px', color: 'var(--t6)', fontFamily: 'var(--font-body)' }}>{t.friends.loading}</div>
               ) : friends.length === 0 ? (
                 <div style={{ padding: '20px', textAlign: 'center', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px' }}>
-                  <div style={{ fontSize: '24px', marginBottom: '8px' }}>🤝</div>
+                  <Handshake size={32} strokeWidth={1.5} aria-hidden style={{ marginBottom: '8px', display: 'block', margin: '0 auto 8px' }} />
                   <div style={{ fontSize: '12px', color: 'var(--t6)', fontFamily: 'var(--font-body)', lineHeight: 1.6, marginBottom: '12px' }}>
                     {t.friends.noFriends}<br />{t.friends.noFriendsSub}
                   </div>

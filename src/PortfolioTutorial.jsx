@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLang } from './LangContext.jsx';
+import { Briefcase, Swords } from 'lucide-react';
 
 function AssetTypesPill() {
   const { t } = useLang();
@@ -64,15 +65,15 @@ function PnLChartVisual() {
 
 function RankingVisual() {
   const rows = [
-    { pos: '🥇', name: '@alex_t', val: '+31.2%', color: 'var(--color-neutral)' },
-    { pos: '🥈', name: '@sara_m', val: '+24.3%', color: 'var(--t3)' },
-    { pos: '🥉', name: '@jcook',  val: '+19.8%', color: '#cd7f32' },
+    { pos: <span style={{ color: 'var(--color-neutral)', fontWeight: 900 }}>1</span>, name: '@alex_t', val: '+31.2%', color: 'var(--color-neutral)' },
+    { pos: <span style={{ color: 'var(--t3)', fontWeight: 900 }}>2</span>,             name: '@sara_m', val: '+24.3%', color: 'var(--t3)' },
+    { pos: <span style={{ color: '#cd7f32', fontWeight: 900 }}>3</span>,               name: '@jcook',  val: '+19.8%', color: '#cd7f32' },
   ];
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-      {rows.map(r => (
-        <div key={r.pos} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: 'var(--bg-page)', border: `1px solid ${r.color}30`, borderRadius: '8px' }}>
-          <span style={{ fontSize: '14px' }}>{r.pos}</span>
+      {rows.map((r, i) => (
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '8px 12px', background: 'var(--bg-page)', border: `1px solid ${r.color}30`, borderRadius: '8px' }}>
+          {r.pos}
           <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: 'var(--t1)' }}>{r.name}</span>
           <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)', fontWeight: 700 }}>{r.val}</span>
         </div>
@@ -97,7 +98,7 @@ function LeagueVisual() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
         {rows.map((r, i) => (
           <div key={r.name} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '7px 10px', background: 'var(--bg-page)', border: `1px solid ${r.you ? 'var(--green)40' : 'var(--bd)'}`, borderRadius: '6px' }}>
-            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: i === 0 ? 'var(--color-neutral)' : 'var(--t6)', width: '16px' }}>{i === 0 ? '🥇' : `#${i + 1}`}</span>
+            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: i === 0 ? 'var(--color-neutral)' : 'var(--t6)', width: '16px' }}>{i === 0 ? <span style={{ color: 'var(--color-neutral)', fontWeight: 900 }}>1</span> : `#${i + 1}`}</span>
             <span style={{ flex: 1, fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: r.you ? 'var(--green)' : 'var(--t1)' }}>{r.name}</span>
             <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--green)', fontWeight: 700 }}>{r.val}</span>
           </div>
@@ -113,12 +114,12 @@ export default function PortfolioTutorial({ onDone }) {
   const [step, setStep] = useState(0);
 
   const STEPS = [
-    { icon: '💼', title: p.tutStep1title, body: p.tutStep1body, visual: null },
+    { icon: <Briefcase size={22} strokeWidth={2} aria-hidden />, title: p.tutStep1title, body: p.tutStep1body, visual: null },
     { icon: null,  title: p.tutStep2title, body: p.tutStep2body, visual: 'types' },
     { icon: null,  title: p.tutStep3title, body: p.tutStep3body, visual: 'buysell' },
     { icon: null,  title: p.tutStep4title, body: p.tutStep4body, visual: 'chart' },
     { icon: null,  title: p.tutStep5title, body: p.tutStep5body, visual: 'ranking' },
-    { icon: '⚔️',  title: p.tutStep6title, body: p.tutStep6body, visual: null },
+    { icon: <Swords size={22} strokeWidth={2} aria-hidden />, title: p.tutStep6title, body: p.tutStep6body, visual: null },
     { icon: null,  title: p.tutStep7title, body: p.tutStep7body, visual: 'league', final: true },
   ];
 
@@ -141,7 +142,7 @@ export default function PortfolioTutorial({ onDone }) {
 
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           {current.icon && (
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>{current.icon}</div>
+            <div style={{ marginBottom: '16px' }}>{current.icon}</div>
           )}
           {current.visual === 'types'   && <div style={{ marginBottom: '20px' }}><AssetTypesPill /></div>}
           {current.visual === 'buysell' && <div style={{ marginBottom: '20px' }}><BuySellVisual /></div>}

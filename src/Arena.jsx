@@ -8,7 +8,7 @@ import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
 import { useAuth } from './AuthContext';
 import EffectOverlay from './EffectOverlay.jsx';
-import { Swords, Lock, Handshake } from 'lucide-react';
+import { Swords, Lock, Clock, Target, Camera, Bot, MessageCircle, Zap } from 'lucide-react';
 
 import { SERVER } from './config.js';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
@@ -646,7 +646,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
       <div className="scanlines" />
       <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
         <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>← {t.arena.menu}</button>
-        <div style={{ fontSize: '40px', marginBottom: '16px' }}>⌛</div>
+        <Clock size={32} strokeWidth={1.5} aria-hidden style={{ marginBottom: '16px' }} />
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--color-down)' }}>{t.arena.asyncExpired}</div>
       </div>
     </div>
@@ -667,7 +667,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
         <div className="scanlines" />
         <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
           <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>← {t.arena.menu}</button>
-          <div style={{ fontSize: '40px', marginBottom: '16px' }}>⏳</div>
+          <Clock size={32} strokeWidth={1.5} aria-hidden style={{ marginBottom: '16px' }} />
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--text-primary)', marginBottom: '20px' }}>{t.arena.asyncWaitingTitle}</div>
           <div style={{ padding: '20px', background: 'var(--bg-surface)', border: '1px solid var(--bd2)', borderRadius: '10px', marginBottom: '20px' }}>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', marginBottom: '6px' }}>
@@ -704,7 +704,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
         <div className="scanlines" />
         <div style={{ padding: '40px 28px', position: 'relative', zIndex: 2, textAlign: 'center' }}>
           <button onClick={goBack} style={{ position: 'absolute', top: '12px', left: '20px', background: 'transparent', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-sm)', padding: '5px 12px', color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 800, cursor: 'pointer', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>← {t.arena.menu}</button>
-          <div style={{ fontSize: '40px', marginBottom: '16px' }}>🎯</div>
+          <Target size={32} strokeWidth={1.5} aria-hidden style={{ marginBottom: '16px' }} />
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '22px', color: 'var(--color-neutral)', marginBottom: '8px' }}>{t.arena.asyncSentTitle}</div>
           <div style={{ fontSize: '13px', color: 'var(--text-secondary)', marginBottom: '24px' }}>
             {t.arena.asyncYourScore}: <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'var(--color-neutral)' }}>{correctCount}/10</span>
@@ -815,7 +815,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
             </button>
             <button onClick={handleShare}
               style={{ flex: 1, padding: '12px', background: 'rgba(232,184,75,0.06)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-              📸 {t.arena.share}
+              <Camera size={16} strokeWidth={2} aria-hidden style={{ marginRight: '4px', verticalAlign: 'middle' }} /> {t.arena.share}
             </button>
           </div>
 
@@ -884,7 +884,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
           <button onClick={createRoom} disabled={!name.trim()}
             style={{ width: '100%', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '14px', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', transition: 'border-color 0.15s' }}
           >
-            🔒 {t.arena.createRoom}
+            <Lock size={16} strokeWidth={2} aria-hidden style={{ marginRight: '4px', verticalAlign: 'middle' }} /> {t.arena.createRoom}
           </button>
           <button onClick={startAsyncChallenge} disabled={!name.trim() || !localStorage.getItem('tradaria_token') || isCreating}
             style={{ width: '100%', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-md)', padding: '14px', color: 'var(--text-secondary)', fontFamily: 'var(--font-body)', fontSize: '13px', fontWeight: 700, cursor: 'pointer', letterSpacing: '0.06em', transition: 'border-color 0.15s' }}
@@ -998,7 +998,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
                 style={{ width: '100%', padding: '14px', background: 'rgba(232,184,75,0.08)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', cursor: 'pointer' }}
                 onMouseEnter={e => e.currentTarget.style.background = 'rgba(232,184,75,0.15)'}
                 onMouseLeave={e => e.currentTarget.style.background = 'rgba(232,184,75,0.08)'}>
-                🤖 {t.arena.vsBot}
+                <Bot size={16} strokeWidth={2} aria-hidden style={{ marginRight: '4px', verticalAlign: 'middle' }} /> {t.arena.vsBot}
               </button>
               <div style={{ marginTop: '10px', fontSize: '12px', color: 'var(--text-muted)', lineHeight: 1.6 }}>{t.arena.vsBotSub}</div>
             </div>
@@ -1049,7 +1049,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--color-down)' }}>{oppScore}</div>
             <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.06em' }}>
               {opponent.toUpperCase()}
-              {isBotGame && <span style={{ color: 'var(--color-neutral)', marginLeft: '4px' }}>🤖</span>}
+              {isBotGame && <Bot size={16} strokeWidth={2} aria-hidden style={{ color: 'var(--color-neutral)', marginLeft: '4px' }} />}
             </div>
           </div>
         </div>
@@ -1155,8 +1155,8 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
 
         {!isBotGame && (
           <button onClick={() => setShowChat(s => !s)}
-            style={{ position: 'absolute', bottom: '36px', right: '16px', zIndex: 20, background: 'var(--bg-elevated)', border: '1px solid var(--bd2)', borderRadius: '50%', width: '36px', height: '36px', fontSize: '16px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            💬
+            style={{ position: 'absolute', bottom: '36px', right: '16px', zIndex: 20, background: 'var(--bg-elevated)', border: '1px solid var(--bd2)', borderRadius: '50%', width: '36px', height: '36px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <MessageCircle size={20} strokeWidth={2} aria-hidden />
           </button>
         )}
 
@@ -1218,7 +1218,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
 
           {isBotGame && (
             <div style={{ fontSize: '12px', color: 'var(--color-neutral)', letterSpacing: '0.08em', marginBottom: '16px' }}>
-              🤖 {t.arena.botGameNote}
+              <Bot size={16} strokeWidth={2} aria-hidden style={{ marginRight: '4px', verticalAlign: 'middle' }} /> {t.arena.botGameNote}
             </div>
           )}
 
@@ -1229,7 +1229,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
             </div>
             <div style={{ flex: 1, background: 'var(--bg-surface)', border: '1px solid var(--color-down)', borderRadius: '10px', padding: '20px' }}>
               <div style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '8px' }}>
-                {opponent} {isBotGame && '🤖'}
+                {opponent} {isBotGame && <Bot size={16} strokeWidth={2} aria-hidden style={{ marginLeft: '4px' }} />}
               </div>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '32px', color: 'var(--color-down)' }}>{oppScore}</div>
             </div>
@@ -1239,12 +1239,12 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
             {isBotGame ? (
               <button onClick={startBotGame}
                 style={{ flex: 1, padding: '14px', background: 'rgba(232,184,75,0.08)', border: '1px solid var(--color-neutral)', borderRadius: '6px', color: 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-                🤖 {t.arena.anotherVsBot}
+                <Bot size={16} strokeWidth={2} aria-hidden style={{ marginRight: '4px', verticalAlign: 'middle' }} /> {t.arena.anotherVsBot}
               </button>
             ) : (
               <button onClick={() => { socketRef.current?.emit('rematch:request'); setRematchState('waiting'); }}
                 style={{ flex: 1, padding: '14px', background: 'var(--green-dim)', border: '1px solid var(--border-green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-                ⚡ {t.arena.rematch}
+                <Zap size={16} strokeWidth={2} aria-hidden style={{ marginRight: '4px', verticalAlign: 'middle' }} /> {t.arena.rematch}
               </button>
             )}
             <button onClick={() => { setScreen('lobby'); setResult(null); setScores({}); setFinalData(null); resetBotState(); }}
@@ -1319,7 +1319,7 @@ export default function Arena({ onBack, challengeRoomCode, asyncDuelCode }) {
             const tok = localStorage.getItem('tradaria_token');
             if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
           }} style={{ marginTop: '4px', width: '100%', padding: '12px', background: 'var(--green-dim)', border: '1px solid var(--border-green)', borderRadius: '6px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-            📸 {t.daily.share}
+            <Camera size={16} strokeWidth={2} aria-hidden style={{ marginRight: '4px', verticalAlign: 'middle' }} /> {t.daily.share}
           </button>
         </div>
         <div id="share-card-arena" style={{ position: 'absolute', left: '-9999px', top: 0, width: '320px', background: 'var(--bg-page)', border: `1px solid ${iWon ? 'var(--border-green)' : isDraw ? 'var(--color-neutral)' : 'var(--color-down)'}`, borderRadius: '12px', padding: '28px 24px', fontFamily: 'var(--font-body)' }}>

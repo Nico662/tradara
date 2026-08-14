@@ -7,6 +7,7 @@ import { SERVER } from './config.js';
 import UserAvatar from './UserAvatar.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
 import { LevelIcon } from './components/AppIcons';
+import { User, Flame, Medal, Briefcase, Zap } from 'lucide-react';
 
 export default function PublicProfile({ username, onBack, onChallenge }) {
   const { user } = useAuth();
@@ -60,7 +61,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
 
   if (error || !profile) return (
     <div style={{ minHeight: '100vh', background: 'var(--bg-page)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '16px', padding: '40px' }}>
-      <div style={{ fontSize: '32px' }}>👤</div>
+      <User size={40} strokeWidth={1.5} aria-hidden />
       <div style={{ fontSize: '12px', color: 'var(--color-down)', fontFamily: 'var(--font-body)' }}>{error || t.profile.notFound}</div>
       {onBack && <button onClick={onBack} style={{ background: 'transparent', border: 'none', color: 'var(--t6)', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.06em' }}>{t.profile.back}</button>}
     </div>
@@ -92,8 +93,8 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
             @{profile.username}
             {isFounder(profile.username) && <FounderBadge size={18} />}
             {profile.isPro && (
-              <span style={{ fontSize: '12px', color: 'var(--green)', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '20px', padding: '2px 7px', fontFamily: 'var(--font-body)', letterSpacing: '0.06em' }}>
-                ⚡ Pro
+              <span style={{ fontSize: '12px', color: 'var(--green)', background: 'rgba(0,229,160,0.1)', border: '1px solid var(--green)', borderRadius: '20px', padding: '2px 7px', fontFamily: 'var(--font-body)', letterSpacing: '0.06em', display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                <Zap size={12} strokeWidth={2} aria-hidden /> Pro
               </span>
             )}
           </div>
@@ -104,11 +105,11 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px', marginBottom: '16px' }}>
           {[
             { icon: <LevelIcon id={level.id} size={22} />, value: level.name, sub: `${profile.xp} XP` },
-            { icon: '🔥',       value: profile.dailyStreak, sub: t.profile.streak },
-            { icon: '🏅',       value: unlockedBadges.length, sub: t.profile.badges },
+            { icon: <Flame size={14} strokeWidth={2} aria-hidden />, value: profile.dailyStreak, sub: t.profile.streak },
+            { icon: <Medal size={14} strokeWidth={2} aria-hidden />, value: unlockedBadges.length, sub: t.profile.badges },
           ].map((s, i) => (
             <div key={i} style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', padding: '14px 10px', textAlign: 'center' }}>
-              <div style={{ fontSize: '22px', marginBottom: '4px' }}>{s.icon}</div>
+              <div style={{ marginBottom: '4px', display: 'flex', justifyContent: 'center' }}>{s.icon}</div>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: typeof s.value === 'number' ? '20px' : '11px', color: 'var(--t1)' }}>{s.value}</div>
               <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '2px' }}>{s.sub}</div>
             </div>
@@ -119,7 +120,7 @@ export default function PublicProfile({ username, onBack, onChallenge }) {
         {profile.portfolioReturn !== null && profile.totalValue !== null && (
           <div style={{ background: 'var(--bg-card)', border: `1px solid ${profile.portfolioReturn >= 0 ? 'rgba(0,229,160,0.3)' : 'rgba(255,126,179,0.3)'}`, borderRadius: '10px', padding: '16px', marginBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
             <div>
-              <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px' }}>💼 Portfolio</div>
+              <div style={{ fontSize: '12px', color: 'var(--t5)', letterSpacing: '0.1em', textTransform: 'uppercase', marginBottom: '4px', display: 'flex', alignItems: 'center', gap: '4px' }}><Briefcase size={14} strokeWidth={2} aria-hidden /> Portfolio</div>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>
                 ${profile.totalValue.toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>

@@ -1,5 +1,6 @@
 import { getTodayMissions, getMissionProgress } from './missions.js';
 import { useLang } from './LangContext.jsx';
+import { Target } from 'lucide-react';
 
 export default function DailyMissions() {
   const { lang } = useLang();
@@ -14,7 +15,7 @@ export default function DailyMissions() {
   if (allDone) {
     return (
       <div style={{ margin: '0 20px 12px', background: 'rgba(0,229,160,0.06)', border: '1px solid rgba(0,229,160,0.22)', borderRadius: '8px', padding: '10px 16px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-        <span style={{ fontSize: '16px' }}>🎯</span>
+        <Target size={18} strokeWidth={2} aria-hidden />
         <div>
           <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, color: 'var(--green)', letterSpacing: '0.06em' }}>{doneLine1}</div>
           <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '2px' }}>{doneLine2}</div>

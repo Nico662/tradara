@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useAuth, isIOSApp } from './AuthContext';
 import { SERVER } from './config.js';
 import { useLang } from './LangContext.jsx';
+import { Users, Zap, Gamepad2 } from 'lucide-react';
 
 // ── Helpers ───────────────────────────────────────────────────────
 function relativeDate(d, t) {
@@ -663,7 +664,7 @@ function AcademyDashboard({ academyId, onBack }) {
           <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '10px', overflowX: 'auto' }}>
             {students.length === 0 ? (
               <div style={{ padding: '40px 20px', textAlign: 'center' }}>
-                <div style={{ fontSize: '28px', marginBottom: '10px' }}>👥</div>
+                <Users size={32} strokeWidth={1.5} aria-hidden style={{ marginBottom: '10px', display: 'block', margin: '0 auto 10px' }} />
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '13px', color: 'var(--t3)', marginBottom: '6px' }}>
                   {t.academy.noStudents}
                 </div>
@@ -736,7 +737,7 @@ function AcademyDashboard({ academyId, onBack }) {
 
                     {/* Streak */}
                     <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', textAlign: 'center' }}>
-                      {s.currentStreak > 0 ? `⚡${s.currentStreak}` : '—'}
+                      {s.currentStreak > 0 ? <><Zap size={14} strokeWidth={2} aria-hidden />{s.currentStreak}</> : '—'}
                     </div>
 
                     {/* Last seen */}
@@ -1281,11 +1282,11 @@ function AcademyDashboard({ academyId, onBack }) {
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                   {selectedStudent.currentStreak > 0 && (
                     <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-neutral)', background: 'rgba(232,184,75,0.08)', border: '1px solid rgba(232,184,75,0.25)', borderRadius: '5px', padding: '2px 8px' }}>
-                      ⚡ {selectedStudent.currentStreak}d {t.academy.streakUnit}
+                      <Zap size={14} strokeWidth={2} aria-hidden /> {selectedStudent.currentStreak}d {t.academy.streakUnit}
                     </span>
                   )}
                   <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t4)', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--bd)', borderRadius: '5px', padding: '2px 8px' }}>
-                    🎮 {selectedStudent.gamesPlayed} {t.academy.gamesPlayedUnit}
+                    <Gamepad2 size={14} strokeWidth={2} aria-hidden /> {selectedStudent.gamesPlayed} {t.academy.gamesPlayedUnit}
                   </span>
                   {selectedStudent.lastSeen && (
                     <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t5)', background: 'rgba(255,255,255,0.04)', border: '1px solid var(--bd)', borderRadius: '5px', padding: '2px 8px' }}>

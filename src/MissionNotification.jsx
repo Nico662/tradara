@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLang } from './LangContext.jsx';
+import { Target } from 'lucide-react';
 
 export default function MissionNotification({ data, onDone }) {
   const { lang } = useLang();
@@ -37,7 +38,7 @@ export default function MissionNotification({ data, onDone }) {
       minWidth: '220px',
       pointerEvents: 'none',
     }}>
-      <div style={{ fontSize: '26px', lineHeight: 1 }}>🎯</div>
+      <Target size={20} strokeWidth={2} aria-hidden />
       <div>
         <div style={{ fontSize: '12px', color: 'var(--green)', letterSpacing: '0.15em', textTransform: 'uppercase', marginBottom: '2px' }}>
           {subtext}

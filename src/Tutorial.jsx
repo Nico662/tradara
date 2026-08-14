@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useLang } from './LangContext.jsx';
+import { TrendingUp, Target } from 'lucide-react';
 
 function CandlesSVG() {
   const candles = [
@@ -46,10 +47,10 @@ export default function Tutorial({ onDone }) {
   const [step, setStep] = useState(0);
 
   const STEPS = [
-    { icon: '📈', title: t.tutorial.step1title, body: t.tutorial.step1body, visual: null },
+    { icon: <TrendingUp size={22} strokeWidth={2} aria-hidden />, title: t.tutorial.step1title, body: t.tutorial.step1body, visual: null },
     { icon: null,  title: t.tutorial.step2title, body: t.tutorial.step2body, visual: 'candles' },
     { icon: null,  title: t.tutorial.step3title, body: t.tutorial.step3body, visual: 'buttons' },
-    { icon: '🎯',  title: t.tutorial.step4title, body: t.tutorial.step4body, visual: null, final: true },
+    { icon: <Target size={22} strokeWidth={2} aria-hidden />,  title: t.tutorial.step4title, body: t.tutorial.step4body, visual: null, final: true },
   ];
 
   const current = STEPS[step];
@@ -91,7 +92,7 @@ export default function Tutorial({ onDone }) {
         {/* Content */}
         <div style={{ textAlign: 'center', marginBottom: '24px' }}>
           {current.icon && (
-            <div style={{ fontSize: '48px', marginBottom: '16px' }}>{current.icon}</div>
+            <div style={{ marginBottom: '16px' }}>{current.icon}</div>
           )}
           {current.visual === 'candles' && (
             <div style={{ marginBottom: '16px' }}><CandlesSVG /></div>

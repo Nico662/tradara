@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 import { useLang } from './LangContext.jsx';
+import { Swords } from 'lucide-react';
 
 if (!document.getElementById('challenge-notif-css')) {
   const el = document.createElement('style');
@@ -46,8 +47,8 @@ export default function ChallengeNotification({ challenge, onAccept, onReject })
       animation: 'challenge-slide-down 0.35s cubic-bezier(0.34,1.56,0.64,1) forwards',
     }}>
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '14px' }}>
-        <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '18px', flexShrink: 0 }}>
-          ⚔️
+        <div style={{ width: '38px', height: '38px', borderRadius: '50%', background: 'rgba(0,229,160,0.08)', border: '1px solid var(--green)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+          <Swords size={20} strokeWidth={2} aria-hidden />
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t1)', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>

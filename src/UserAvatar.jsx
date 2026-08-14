@@ -1,3 +1,5 @@
+import { User } from 'lucide-react';
+
 export const AVATAR_EMOJIS = {
   avatar_bull:  '🐂',
   avatar_bear:  '🐻',
@@ -30,8 +32,8 @@ export default function UserAvatar({ user, size = 32, showBadge = false, style }
           style={{ width: size, height: size, borderRadius: '50%', objectFit: 'cover', display: 'block', border: '1px solid var(--bd)', ...frameStyle }}
         />
       ) : (
-        <div style={{ width: size, height: size, borderRadius: '50%', background: 'var(--bg-card2)', border: '1px solid var(--bd)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: Math.round(size * 0.45) + 'px', flexShrink: 0, ...frameStyle }}>
-          👤
+        <div style={{ width: size, height: size, borderRadius: '50%', background: 'var(--bg-card2)', border: '1px solid var(--bd)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, ...frameStyle }}>
+          <User size={Math.round(size * 0.55)} strokeWidth={1.5} aria-hidden />
         </div>
       )}
       {showBadge && badge && (

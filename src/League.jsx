@@ -10,9 +10,9 @@ function formatCash(n) {
 }
 
 const MEDAL_COLORS = {
-  0: { medal: '🥇' },
-  1: { medal: '🥈' },
-  2: { medal: '🥉' },
+  0: { color: 'var(--color-neutral)' },
+  1: { color: 'var(--t3)' },
+  2: { color: '#cd7f32' },
 };
 
 export default function League({ leagueId, onBack }) {
@@ -137,7 +137,7 @@ export default function League({ leagueId, onBack }) {
             padding: '10px 12px', marginBottom: '6px',
           }}>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color: isMe ? 'var(--pink)' : 'var(--text-muted)', width: '20px', textAlign: 'center', flexShrink: 0 }}>
-              {i < 3 ? MEDAL_COLORS[i].medal : i + 1}
+              {i < 3 ? <span style={{ color: MEDAL_COLORS[i].color }}>{i + 1}</span> : i + 1}
             </div>
             <UserAvatar user={entry} size={24} showBadge />
             <div style={{ flex: 1, minWidth: 0 }}>

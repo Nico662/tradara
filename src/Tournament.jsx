@@ -6,7 +6,7 @@ import Chart from './Chart';
 import { addXP } from './levels.js';
 import { unlockBadge, BADGES } from './badges.js';
 import BadgeNotification from './BadgeNotification.jsx';
-import { Trophy } from 'lucide-react';
+import { Trophy, Clipboard } from 'lucide-react';
 import EffectOverlay from './EffectOverlay.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
 
@@ -302,7 +302,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                         return (
                           <div key={String(p.userId?._id ?? i)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: isMe ? 'rgba(0,229,160,0.07)' : 'var(--bg-surface)', border: `1px solid ${isMe ? 'rgba(0,229,160,0.6)' : 'var(--border-default)'}`, borderLeft: `2px solid ${isMe ? 'rgba(0,229,160,0.6)' : 'var(--border-default)'}`, borderRadius: '8px', marginBottom: '8px', overflow: 'hidden', width: '100%' }}>
                             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: numColor, width: '40px', flexShrink: 0, textAlign: 'center' }}>
-                              {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+                              {i === 0 ? <span style={{ color: 'var(--color-neutral)' }}>1</span> : i === 1 ? <span style={{ color: 'var(--t3)' }}>2</span> : i === 2 ? <span style={{ color: '#cd7f32' }}>3</span> : `#${i + 1}`}
                             </div>
                             <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
                               <span style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: isMe ? 'var(--green)' : 'var(--text-primary)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', flex: 1, minWidth: 0 }}>{name}</span>
@@ -394,7 +394,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
             if (tok) fetch(`${SERVER}/stats/share`, { method: 'POST', headers: { Authorization: `Bearer ${tok}` } }).catch(() => {});
             addXP(5);
           }} style={{ marginTop: '16px', width: '100%', padding: '12px', background: shareStatus === 'error' ? 'rgba(224,85,85,0.08)' : 'rgba(232,184,75,0.06)', border: `1px solid ${shareStatus === 'error' ? 'var(--color-down)' : 'var(--color-neutral)'}`, borderRadius: '6px', color: shareStatus === 'error' ? 'var(--color-down)' : 'var(--color-neutral)', fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', cursor: 'pointer' }}>
-            {shareStatus === 'copied' ? '✅ COPIED!' : shareStatus === 'error' ? '❌ ERROR' : '📋 SHARE'}
+            {shareStatus === 'copied' ? 'COPIED!' : shareStatus === 'error' ? 'ERROR' : <><Clipboard size={16} strokeWidth={2} aria-hidden style={{ marginRight: '4px', verticalAlign: 'middle' }} /> SHARE</>}
           </button>
         </div>
 

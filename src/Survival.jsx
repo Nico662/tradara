@@ -6,7 +6,7 @@ import Chart, { generateCandles } from "./Chart";
 import { useLang } from './LangContext.jsx';
 import { playWin, playLose, playClick, playStreak } from './sounds.js';
 import { BADGES, unlockBadge } from './badges.js';
-import { Skull } from 'lucide-react';
+import { Skull, Heart } from 'lucide-react';
 import BadgeNotification from './BadgeNotification.jsx';
 import { addXP, getXP, getLevel } from './levels.js';
 import { incrementMission, recordModePlayed, incrementWeeklyMission, recordWeeklyModePlayed } from './missions.js';
@@ -379,12 +379,12 @@ export default function Survival({ onBack }) {
         <div style={{ display: 'flex', gap: '10px' }}>
           {Array.from({ length: MAX_LIVES }, (_, i) => (
             <span key={i} style={{
-              fontSize: '28px',
               opacity: i < lives ? 1 : 0.13,
               transition: 'all 0.35s',
               transform: liveLost && i === lives ? 'scale(0.65)' : 'scale(1)',
               filter: liveLost && i === lives ? 'grayscale(1) brightness(0.4)' : i < lives ? 'drop-shadow(0 0 6px rgba(255,126,179,0.6))' : 'none',
-            }}>❤️</span>
+              display: 'inline-flex', alignItems: 'center',
+            }}><Heart size={16} strokeWidth={2} aria-hidden style={{ color: 'var(--color-down)' }} /></span>
           ))}
         </div>
         <span style={{ fontSize: '12px', color: 'var(--text-muted)', letterSpacing: '0.18em', fontFamily: 'var(--font-body)' }}>R·{round}</span>
@@ -438,7 +438,7 @@ export default function Survival({ onBack }) {
                 {dirLabel} &nbsp;{result.pctMove > 0 ? '+' : ''}{result.pctMove.toFixed(2)}% · {result.choice.toUpperCase()}
                 {!result.win && !result.neutral && (
                   <span style={{ color: 'var(--color-down)', marginLeft: '8px' }}>
-                    {result.livesLeft > 0 ? `❤️ ${result.livesLeft} ${t.survival.livesLeft}` : `💀 ${t.survival.gameOverMsg}`}
+                    {result.livesLeft > 0 ? <><Heart size={16} strokeWidth={2} aria-hidden style={{ color: 'var(--color-down)', verticalAlign: 'middle' }} /> {result.livesLeft} {t.survival.livesLeft}</> : <><Skull size={16} strokeWidth={2} aria-hidden style={{ verticalAlign: 'middle' }} /> {t.survival.gameOverMsg}</>}
                   </span>
                 )}
               </div>

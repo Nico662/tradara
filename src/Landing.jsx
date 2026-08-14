@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useLang } from './LangContext.jsx';
+import { Check, X, Swords, Briefcase, Zap } from 'lucide-react';
 
 const DEMO_CANDLES = [
   { o: 100, h: 108, l: 97,  c: 106 },
@@ -112,7 +113,7 @@ function DemoChart() {
       {revealed && (
         <div style={{ textAlign: 'center', animation: 'fadeInUp 0.4s both' }}>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '18px', color: result ? 'var(--green)' : 'var(--color-down)', marginBottom: '4px' }}>
-            {result ? '✅ CORRECT' : '❌ WRONG'}
+            {result ? <><Check size={16} strokeWidth={2} aria-hidden /> CORRECT</> : <><X size={16} strokeWidth={2} aria-hidden /> WRONG</>}
           </div>
           <button onClick={reset}
             style={{ marginTop: '8px', padding: '6px 16px', background: 'transparent', border: '1px solid #2a3345', borderRadius: '6px', color: '#5a6a7d', fontFamily: 'var(--font-body)', fontSize: '12px', cursor: 'pointer', letterSpacing: '0.06em' }}>
@@ -184,12 +185,12 @@ export default function Landing({ onEnter }) {
         <div className="landing-section landing-s3" style={{ marginBottom: '28px' }}>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '8px' }}>
             {[
-              { icon: '⚔️', title: 'Arena 1vs1',      sub: 'Compete in real time'          },
-              { icon: '💼', title: 'Portfolio',        sub: '$50k virtual, real prices'     },
-              { icon: '⚡', title: 'Daily Challenge',  sub: 'One chart. One shot.'          },
+              { icon: <Swords size={22} strokeWidth={2} aria-hidden />,   title: 'Arena 1vs1',      sub: 'Compete in real time'          },
+              { icon: <Briefcase size={22} strokeWidth={2} aria-hidden />, title: 'Portfolio',        sub: '$50k virtual, real prices'     },
+              { icon: <Zap size={22} strokeWidth={2} aria-hidden />,       title: 'Daily Challenge',  sub: 'One chart. One shot.'          },
             ].map(f => (
               <div key={f.title} style={{ background: 'var(--bg-surface)', border: '1px solid #1e2530', borderRadius: '10px', padding: '14px 10px', textAlign: 'center' }}>
-                <div style={{ fontSize: '20px', marginBottom: '8px' }}>{f.icon}</div>
+                <div style={{ marginBottom: '8px' }}>{f.icon}</div>
                 <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '12px', color: '#f0f0f0', marginBottom: '4px', lineHeight: 1.2 }}>{f.title}</div>
                 <div style={{ fontSize: '12px', color: '#3a4455', lineHeight: 1.4 }}>{f.sub}</div>
               </div>

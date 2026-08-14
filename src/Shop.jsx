@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Frame, Palette, User, Sparkles } from 'lucide-react';
+import { Frame, Palette, User, Sparkles, Star, ShoppingBag } from 'lucide-react';
 import { useLang } from './LangContext.jsx';
 import { useAuth, isIOSApp } from './AuthContext.jsx';
 import { SERVER } from './config.js';
@@ -115,8 +115,8 @@ function PreviewFrame({ item, userAvatar }) {
         {userAvatar ? (
           <img src={userAvatar} style={{ width: '48px', height: '48px', borderRadius: '50%', ...FRAME_STYLES[item.id] }} />
         ) : (
-          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-card2)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '24px', ...FRAME_STYLES[item.id] }}>
-            👤
+          <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-card2)', display: 'flex', alignItems: 'center', justifyContent: 'center', ...FRAME_STYLES[item.id] }}>
+            <User size={28} strokeWidth={1.5} aria-hidden />
           </div>
         )}
       </div>
@@ -287,7 +287,7 @@ function PreviewStars() {
           position: 'absolute', left: `${s.x}%`, top: `${s.y}px`,
           fontSize: `${s.size}px`,
           animation: `preview-star-rise ${s.dur}s ${s.delay}s ease-out forwards`,
-        }}>⭐</div>
+        }}><Star size={14} strokeWidth={2} aria-hidden /></div>
       ))}
     </>
   );
@@ -404,7 +404,7 @@ export default function Shop({ onBack }) {
             onMouseLeave={e => e.target.style.color = 'var(--t6)'}
           >{t.shop.back}</button>
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '15px', color: 'var(--color-neutral)', letterSpacing: '0.06em', textShadow: '0 0 20px rgba(232,184,75,0.25)' }}>
-            🛍️ {t.home.shop}
+            <ShoppingBag size={16} strokeWidth={2} aria-hidden style={{ marginRight: '4px', verticalAlign: 'middle' }} /> {t.home.shop}
           </div>
         </div>
 
