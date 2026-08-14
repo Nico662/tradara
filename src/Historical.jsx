@@ -12,6 +12,28 @@ import EffectOverlay from './EffectOverlay.jsx';
 import { incrementMission, recordModePlayed, recordWeeklyModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 
+function EventIcon({ event, size = 32 }) {
+  return (
+    <div style={{
+      width: size,
+      height: size,
+      borderRadius: '50%',
+      background: event.color + '22',
+      border: `1.5px solid ${event.color}`,
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      fontFamily: 'var(--font-body)',
+      fontSize: size * 0.4 + 'px',
+      fontWeight: 700,
+      color: event.color,
+      flexShrink: 0,
+    }}>
+      {event.initial}
+    </div>
+  );
+}
+
 export default function Historical({ onBack }) {
   const { t, lang, setLang } = useLang();
   const { activeCosmetics }  = useAuth();
@@ -101,7 +123,7 @@ export default function Historical({ onBack }) {
 
   const shareResult = () => {
     if (!result || !event) return;
-    const text = `📜 Tradiko Historical Mode\n${event.emoji} ${event.title}\n\n${result.win ? '✅ CORRECT' : '❌ WRONG'} — ${result.direction === 'up' ? '▲' : result.direction === 'down' ? '▼' : '—'} ${result.pctMove > 0 ? '+' : ''}${result.pctMove.toFixed(2)}%\n\nCan you beat history? tradiko.dev`;
+    const text = `📜 Tradiko Historical Mode\n${event.title}\n\n${result.win ? '✅ CORRECT' : '❌ WRONG'} — ${result.direction === 'up' ? '▲' : result.direction === 'down' ? '▼' : '—'} ${result.pctMove > 0 ? '+' : ''}${result.pctMove.toFixed(2)}%\n\nCan you beat history? tradiko.dev`;
     navigator.clipboard.writeText(text).then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
@@ -149,7 +171,7 @@ export default function Historical({ onBack }) {
               onMouseLeave={e => e.currentTarget.style.borderColor = 'var(--bd)'}
             >
               <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span style={{ fontSize: '20px' }}>{ev.emoji}</span>
+                <EventIcon event={ev} size={32} />
                 <div>
                   <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '12px', color: 'var(--t1)' }}>{ev.title}</div>
                   <div style={{ fontSize: '12px', color: 'var(--t5)', marginTop: '2px' }}>{ev.name} · {ev.from}</div>
@@ -168,7 +190,7 @@ export default function Historical({ onBack }) {
     <div id="gtm-root" style={{ position: 'relative' }}>
       <div className="scanlines" />
       <div style={{ padding: '48px 24px', position: 'relative', zIndex: 2, textAlign: 'center', marginTop: '60px' }}>
-        <div style={{ fontSize: '32px', marginBottom: '16px' }}>{event?.emoji}</div>
+        <div style={{ marginBottom: '16px', display: 'flex', justifyContent: 'center' }}>{event && <EventIcon event={event} size={40} />}</div>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)', marginBottom: '8px' }}>{event?.title}</div>
         <div style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.1em' }}>{t.historical.loading}</div>
       </div>
@@ -199,7 +221,7 @@ export default function Historical({ onBack }) {
         </div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '16px', padding: '0 20px' }}>
-          <span style={{ fontSize: '24px' }}>{event?.emoji}</span>
+          {event && <EventIcon event={event} size={32} />}
           <div>
             <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: 'var(--t1)' }}>
               {phase === 'choose' ? '???' : event?.title}
@@ -259,7 +281,7 @@ export default function Historical({ onBack }) {
             </div>
             <div style={{ background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px', padding: '14px', marginBottom: '14px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '6px' }}>
-                <span style={{ fontSize: '18px' }}>{event?.emoji}</span>
+                {event && <EventIcon event={event} size={36} />}
                 <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{event?.title}</span>
               </div>
               <div style={{ fontSize: '12px', color: 'var(--t4)', lineHeight: 1.6 }}>{t.historical?.events?.[event?.id] ?? event?.desc}</div>
