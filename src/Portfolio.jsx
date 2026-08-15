@@ -329,64 +329,75 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
 
   const loadAll = useCallback(async () => {
     const tok = localStorage.getItem('tradaria_token');
+    let pricesData, portfolioData;
     try {
       const [pricesRes, portfolioRes] = await Promise.all([
         fetch(`${SERVER}/portfolio/prices`),
         fetch(`${SERVER}/portfolio`, { headers: { Authorization: `Bearer ${tok}` } }),
       ]);
-      const pricesData    = await pricesRes.json();
-      const portfolioData = await portfolioRes.json();
-      setPrices(pricesData);
-      setPortfolio(portfolioData);
-      if (!portfolioData.tutorialSeen && !localStorage.getItem('tradaria_portfolio_welcomed')) {
-        setShowWelcome(true);
+      pricesData    = await pricesRes.json();
+      portfolioData = await portfolioRes.json();
+    } catch {
+      await new Promise(r => setTimeout(r, 2000));
+      try {
+        const [pricesRes, portfolioRes] = await Promise.all([
+          fetch(`${SERVER}/portfolio/prices`),
+          fetch(`${SERVER}/portfolio`, { headers: { Authorization: `Bearer ${tok}` } }),
+        ]);
+        pricesData    = await pricesRes.json();
+        portfolioData = await portfolioRes.json();
+      } catch {
+        setScreen('error');
         return;
       }
-      setScreen('main');
-
-      const tv = portfolioData.cash + (portfolioData.positions || []).reduce((s, pos) => {
-        const p = pricesData.find(p => p.symbol === pos.symbol);
-        return s + (p?.price || pos.avgPrice) * pos.qty;
-      }, 0);
-
-      fetch(`${SERVER}/portfolio/snapshot`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ totalValue: tv }),
-      }).catch(() => {});
-
-      fetch(`${SERVER}/portfolio/history`, {
-        headers: { Authorization: `Bearer ${tok}` },
-      }).then(r => r.json()).then(data => {
-        if (Array.isArray(data)) setPortfolioHistory(data);
-      }).catch(() => {});
-
-      const uid = user?._id || user?.id || '';
-      fetch(`${SERVER}/portfolio/leaderboard${uid ? `?userId=${uid}` : ''}`)
-        .then(r => r.json())
-        .then(data => {
-          if (data.leaderboard) {
-            setLeaderboard(data.leaderboard);
-            setUserPositionGlobal(data.userPosition || null);
-          }
-        })
-        .catch(() => {});
-
-      fetch(`${SERVER}/portfolio/duel/active`, {
-        headers: { Authorization: `Bearer ${tok}` },
-      }).then(r => r.json()).then(data => {
-        setActiveDuel(data.id ? data : null);
-      }).catch(() => {});
-
-      fetch(`${SERVER}/portfolio/duel/pending`, {
-        headers: { Authorization: `Bearer ${tok}` },
-      }).then(r => r.json()).then(data => {
-        if (Array.isArray(data)) setPendingDuels(data);
-      }).catch(() => {});
-
-    } catch {
-      setScreen('error');
     }
+    setPrices(pricesData);
+    setPortfolio(portfolioData);
+    if (!portfolioData.tutorialSeen && !localStorage.getItem('tradaria_portfolio_welcomed')) {
+      setShowWelcome(true);
+      return;
+    }
+    setScreen('main');
+
+    const tv = portfolioData.cash + (portfolioData.positions || []).reduce((s, pos) => {
+      const p = pricesData.find(p => p.symbol === pos.symbol);
+      return s + (p?.price || pos.avgPrice) * pos.qty;
+    }, 0);
+
+    fetch(`${SERVER}/portfolio/snapshot`, {
+      method: 'POST',
+      headers: { Authorization: `Bearer ${tok}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({ totalValue: tv }),
+    }).catch(() => {});
+
+    fetch(`${SERVER}/portfolio/history`, {
+      headers: { Authorization: `Bearer ${tok}` },
+    }).then(r => r.json()).then(data => {
+      if (Array.isArray(data)) setPortfolioHistory(data);
+    }).catch(() => {});
+
+    const uid = user?._id || user?.id || '';
+    fetch(`${SERVER}/portfolio/leaderboard${uid ? `?userId=${uid}` : ''}`)
+      .then(r => r.json())
+      .then(data => {
+        if (data.leaderboard) {
+          setLeaderboard(data.leaderboard);
+          setUserPositionGlobal(data.userPosition || null);
+        }
+      })
+      .catch(() => {});
+
+    fetch(`${SERVER}/portfolio/duel/active`, {
+      headers: { Authorization: `Bearer ${tok}` },
+    }).then(r => r.json()).then(data => {
+      setActiveDuel(data.id ? data : null);
+    }).catch(() => {});
+
+    fetch(`${SERVER}/portfolio/duel/pending`, {
+      headers: { Authorization: `Bearer ${tok}` },
+    }).then(r => r.json()).then(data => {
+      if (Array.isArray(data)) setPendingDuels(data);
+    }).catch(() => {});
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   async function loadWeeklyLeaderboard() {
@@ -591,18 +602,19 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
 
   // ── Calcular valor total ──────────────────────────────────────────
   const positionsWithValue = (portfolio?.positions || []).map(pos => {
-    const priceData    = prices.find(p => p.symbol === pos.symbol);
-    const currentPrice = priceData?.price || pos.avgPrice;
-    const value        = currentPrice * pos.qty;
-    const cost         = pos.avgPrice * pos.qty;
-    const pnl          = value - cost;
-    const pnlPct       = (pnl / cost) * 100;
+    const priceData      = prices.find(p => p.symbol === pos.symbol);
+    const currentPrice   = priceData?.price ?? null;
+    const effectivePrice = currentPrice ?? pos.avgPrice;
+    const value          = effectivePrice * pos.qty;
+    const cost           = pos.avgPrice * pos.qty;
+    const pnl            = currentPrice !== null ? value - cost : null;
+    const pnlPct         = currentPrice !== null ? (pnl / cost) * 100 : null;
     return { ...pos, currentPrice, value, cost, pnl, pnlPct, priceData };
   });
 
   const totalInvested = positionsWithValue.reduce((s, p) => s + p.cost, 0);
   // P&L no realizado (posiciones abiertas)
- const unrealizedPnl = positionsWithValue.reduce((s, p) => s + p.pnl, 0);
+ const unrealizedPnl = positionsWithValue.reduce((s, p) => s + (p.pnl ?? 0), 0);
 
  // P&L realizado (ventas cerradas)
  const realizedPnl = (portfolio?.transactions || [])
@@ -1014,7 +1026,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
               const existingAlert = alerts.find(a => a.ticker === pos.symbol);
               return (
                 <div key={pos.symbol}
-                  style={{ background: 'var(--bg-card)', border: `1px solid ${pos.pnl >= 0 ? 'rgba(0,229,160,0.3)' : 'rgba(255,126,179,0.3)'}`, borderRadius: '8px', marginBottom: '8px', overflow: 'hidden' }}>
+                  style={{ background: 'var(--bg-card)', border: `1px solid ${pos.pnl === null ? 'var(--bd)' : pos.pnl >= 0 ? 'rgba(0,229,160,0.3)' : 'rgba(255,126,179,0.3)'}`, borderRadius: '8px', marginBottom: '8px', overflow: 'hidden' }}>
                   {/* Clickable main area */}
                   <div onClick={() => openAsset(prices.find(p => p.symbol === pos.symbol))} style={{ padding: '14px', cursor: 'pointer' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -1023,10 +1035,16 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                         <div style={{ fontSize: '12px', color: 'var(--t5)' }}>{parseFloat(pos.qty.toFixed(4))} {t.portfolio.units} · {t.portfolio.avgPrice} {formatPrice(pos.avgPrice, pos.type)}</div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--t1)' }}>{formatCash(pos.value)}</div>
-                        <div style={{ fontSize: '12px', color: pos.pnl >= 0 ? 'var(--green)' : 'var(--color-down)', fontWeight: 700 }}>
-                          {pos.pnl >= 0 ? '+' : ''}{formatCash(pos.pnl)} ({formatChange(pos.pnlPct)})
-                        </div>
+                        {pos.currentPrice !== null ? (
+                          <>
+                            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--t1)' }}>{formatCash(pos.value)}</div>
+                            <div style={{ fontSize: '12px', color: pos.pnl >= 0 ? 'var(--green)' : 'var(--color-down)', fontWeight: 700 }}>
+                              {pos.pnl >= 0 ? '+' : ''}{formatCash(pos.pnl)} ({formatChange(pos.pnlPct)})
+                            </div>
+                          </>
+                        ) : (
+                          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--t5)' }}>—</div>
+                        )}
                       </div>
                     </div>
                     <div style={{ height: '3px', background: 'var(--bd)', borderRadius: '2px', overflow: 'hidden' }}>
