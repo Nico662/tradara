@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useLang } from './LangContext.jsx';
-import { Check, X } from 'lucide-react';
+import { Check, X, Flame, Zap, TrendingUp, TrendingDown, ChevronRight, Briefcase, Skull } from 'lucide-react';
 
 // ─── chart data ───────────────────────────────────────────────────────────────
 const DEMO_CANDLES = [
@@ -143,8 +143,8 @@ function DemoChart({ t }) {
           BTC/USDT · 1h
         </div>
         {streak > 0 && (
-          <div style={{ fontSize: '11px', color: '#ffd94d', fontWeight: 700, letterSpacing: '0.06em', animation: 'fadeInUp 0.3s both' }}>
-            🔥 {streak}
+          <div style={{ fontSize: '11px', color: '#ffd94d', fontWeight: 700, letterSpacing: '0.06em', animation: 'fadeInUp 0.3s both', display: 'flex', alignItems: 'center', gap: '3px' }}>
+            <Flame size={13} aria-hidden /> {streak}
           </div>
         )}
       </div>
@@ -194,12 +194,12 @@ function DemoChart({ t }) {
         {[
           { label: L.trend,      value: L.trendVal,             color: '#00e5a0' },
           { label: L.change,     value: `+${pct}%`,             color: '#00e5a0' },
-          { label: L.last5,      value: `${ups}▲ ${downs}▼`,   color: '#f0f0f0' },
+          { label: L.last5,      node: <span style={{ display:'inline-flex', alignItems:'center', gap:'4px' }}><TrendingUp size={11} color="#00e5a0" aria-hidden />{ups}<TrendingDown size={11} color="#e05585" aria-hidden />{downs}</span>, color: '#f0f0f0' },
           { label: L.volatility, value: L.volVal,               color: '#ffd94d' },
         ].map(pill => (
           <div key={pill.label} style={{ background: '#0d1117', border: '1px solid #1e2530', borderRadius: '6px', padding: '5px 4px', textAlign: 'center' }}>
             <div style={{ fontSize: '9px', color: '#3a4455', letterSpacing: '0.08em', textTransform: 'uppercase', marginBottom: '2px', fontFamily: 'var(--font-body)' }}>{pill.label}</div>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: pill.color, fontFamily: 'var(--font-body)' }}>{pill.value}</div>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: pill.color, fontFamily: 'var(--font-body)' }}>{pill.node ?? pill.value}</div>
           </div>
         ))}
       </div>
@@ -246,18 +246,20 @@ function DemoChart({ t }) {
 }
 
 // ─── feature card ─────────────────────────────────────────────────────────────
-function ModeCard({ title, sub, color, emoji, onClick }) {
+function ModeCard({ title, sub, color, icon, onClick }) {
   return (
     <div className="mode-card" onClick={onClick}
       style={{ background: 'var(--bg-surface)', border: `1px solid ${color}22`, borderRadius: '12px', padding: '16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer' }}>
-      <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }}>
-        {emoji}
+      <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: `${color}18`, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+        {icon}
       </div>
       <div>
         <div style={{ fontFamily: 'var(--font-body)', fontWeight: 700, fontSize: '14px', color: '#f0f0f0', marginBottom: '2px' }}>{title}</div>
         <div style={{ fontSize: '12px', color: '#5a6a7d', lineHeight: 1.4 }}>{sub}</div>
       </div>
-      <div style={{ marginLeft: 'auto', color: color, fontSize: '16px', flexShrink: 0 }}>›</div>
+      <div style={{ marginLeft: 'auto', color: color, display: 'flex', alignItems: 'center', flexShrink: 0 }}>
+        <ChevronRight size={16} aria-hidden />
+      </div>
     </div>
   );
 }
@@ -340,10 +342,14 @@ export default function Landing({ onEnter }) {
 
           {/* stat pills */}
           <div style={{ display: 'flex', justifyContent: 'center', gap: '8px', marginBottom: '20px' }}>
-            {[L.streakPill, L.xpPill].map((pill, i) => (
+            {[
+              { icon: <Flame size={13} aria-hidden />, iconColor: '#ffd94d', text: L.streakPill.replace(/^[^\w\d]+/, '').trim() },
+              { icon: <Zap   size={13} aria-hidden />, iconColor: '#00e5a0', text: L.xpPill.replace(/^[^\w\d]+/, '').trim()   },
+            ].map((pill, i) => (
               <div key={i} className={`stat-pill stat-pill-${i + 1}`}
-                style={{ background: '#1a2030', border: '1px solid #2a3a50', borderRadius: '20px', padding: '5px 12px', fontSize: '12px', fontWeight: 700, color: '#c8d8ea', letterSpacing: '0.04em', fontFamily: 'var(--font-body)' }}>
-                {pill}
+                style={{ background: '#1a2030', border: '1px solid #2a3a50', borderRadius: '20px', padding: '5px 12px', fontSize: '12px', fontWeight: 700, color: '#c8d8ea', letterSpacing: '0.04em', fontFamily: 'var(--font-body)', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                <span style={{ color: pill.iconColor, display: 'flex', alignItems: 'center' }}>{pill.icon}</span>
+                {pill.text}
               </div>
             ))}
           </div>
@@ -371,10 +377,10 @@ export default function Landing({ onEnter }) {
 
         {/* ── Modes ── */}
         <div className="landing-section landing-s3" style={{ marginBottom: '28px', display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <ModeCard emoji="📈" title={L.mode1Title} sub={L.mode1Sub} color="#4d9fff" onClick={enter} />
-          <ModeCard emoji="💼" title={L.mode2Title} sub={L.mode2Sub} color="#b08fff" onClick={enter} />
-          <ModeCard emoji="⚡" title={L.mode3Title} sub={L.mode3Sub} color="#ffd94d" onClick={enter} />
-          <ModeCard emoji="💀" title={L.mode4Title} sub={L.mode4Sub} color="#ff6b6b" onClick={enter} />
+          <ModeCard icon={<TrendingUp size={20} color="#4d9fff" aria-hidden />} title={L.mode1Title} sub={L.mode1Sub} color="#4d9fff" onClick={enter} />
+          <ModeCard icon={<Briefcase  size={20} color="#b08fff" aria-hidden />} title={L.mode2Title} sub={L.mode2Sub} color="#b08fff" onClick={enter} />
+          <ModeCard icon={<Zap        size={20} color="#ffd94d" aria-hidden />} title={L.mode3Title} sub={L.mode3Sub} color="#ffd94d" onClick={enter} />
+          <ModeCard icon={<Skull      size={20} color="#ff6b6b" aria-hidden />} title={L.mode4Title} sub={L.mode4Sub} color="#ff6b6b" onClick={enter} />
         </div>
 
         {/* ── Social proof ── */}
