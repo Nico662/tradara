@@ -478,20 +478,21 @@ async function getPrice(asset) {
       const res  = await fetch(`https://api.coingecko.com/api/v3/simple/price?ids=${coinId}&vs_currencies=usd&include_24hr_change=true`);
       const data = await res.json();
       const coin = data[coinId];
+      const prevClose = coin.usd / (1 + coin.usd_24h_change / 100);
       return {
         symbol:    asset.symbol,
         name:      asset.name,
         type:      asset.type,
-        price:     coin.usd,
+        price:     coin.usd > 0 ? coin.usd : prevClose,
         change:    coin.usd_24h_change,
-        prevClose: coin.usd / (1 + coin.usd_24h_change / 100),
+        prevClose,
       };
     } else if (asset.source === 'yahoo') {
       const yahooQuoteMap = { 'ORAN': 'ORA.PA', 'IDEXY': 'ITX.MC', 'ALIZF': 'ALV.DE', 'BAYZF': 'BAYN.DE' };
       const yahooSym = yahooQuoteMap[asset.symbol] || asset.symbol;
       const q = await yf.quote(yahooSym);
-      const price     = q.regularMarketPrice || q.regularMarketPreviousClose || 0;
-      const prevClose = q.regularMarketPreviousClose || price;
+      const prevClose = q.regularMarketPreviousClose || 0;
+      const price     = q.regularMarketPrice > 0 ? q.regularMarketPrice : prevClose;
       const change    = prevClose ? ((price - prevClose) / prevClose) * 100 : 0;
       return {
         symbol:    asset.symbol,
@@ -508,7 +509,7 @@ async function getPrice(asset) {
         symbol:    asset.symbol,
         name:      asset.name,
         type:      asset.type,
-        price:     data.c || data.pc,
+        price:     data.c > 0 ? data.c : data.pc,
         change:    data.dp,
         prevClose: data.pc,
       };
@@ -2607,37 +2608,26 @@ app.get('/stats/revenue', async (req, res) => {
 // Obtener todos los precios
 app.get('/portfolio/prices', async (req, res) => {
   try {
-    // Obtener todos los precios en caché con una sola operación mget
     const keys = PORTFOLIO_ASSETS.map(a => `price_v2:${a.symbol}`);
     let rawValues;
     try { rawValues = await redis.mget(...keys); } catch { rawValues = []; }
-    const cachedResults = (rawValues || []).map(v => {
+    const cached = (rawValues || []).map(v => {
       if (!v) return null;
       try { return typeof v === 'string' ? JSON.parse(v) : v; } catch { return null; }
-    });
+    }).filter(Boolean);
 
-    const cached = cachedResults.filter(Boolean);
+    res.json(cached);
 
-    // Si hay suficientes en caché, responde ya
-    if (cached.length >= PORTFOLIO_ASSETS.length * 0.7) {
-      res.json(cached);
-      return;
+    const missingAssets = PORTFOLIO_ASSETS.filter(a => !cached.find(c => c.symbol === a.symbol));
+    if (missingAssets.length > 0) {
+      (async () => {
+        for (let i = 0; i < missingAssets.length; i += 5) {
+          const batch = missingAssets.slice(i, i + 5);
+          await Promise.all(batch.map(a => getPrice(a).catch(() => null)));
+          if (i + 5 < missingAssets.length) await new Promise(r => setTimeout(r, 1200));
+        }
+      })();
     }
-
-    // Si no hay caché suficiente, carga en batches y responde
-    const results = [];
-    const batchSize = 5;
-    for (let i = 0; i < PORTFOLIO_ASSETS.length; i += batchSize) {
-      const batch = PORTFOLIO_ASSETS.slice(i, i + batchSize);
-      const batchResults = await Promise.all(
-        batch.map(a => getPrice(a).catch(() => null))
-      );
-      results.push(...batchResults);
-      if (i + batchSize < PORTFOLIO_ASSETS.length) {
-        await new Promise(r => setTimeout(r, 1200));
-      }
-    }
-    res.json(results.filter(Boolean));
   } catch (err) {
     res.status(500).json({ error: err.message });
   }

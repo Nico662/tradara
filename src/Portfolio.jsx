@@ -602,14 +602,15 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
 
   // ── Calcular valor total ──────────────────────────────────────────
   const positionsWithValue = (portfolio?.positions || []).map(pos => {
-    const priceData      = prices.find(p => p.symbol === pos.symbol);
-    const currentPrice   = priceData?.price ?? null;
-    const effectivePrice = currentPrice ?? pos.avgPrice;
-    const value          = effectivePrice * pos.qty;
-    const cost           = pos.avgPrice * pos.qty;
-    const pnl            = currentPrice !== null ? value - cost : null;
-    const pnlPct         = currentPrice !== null ? (pnl / cost) * 100 : null;
-    return { ...pos, currentPrice, value, cost, pnl, pnlPct, priceData };
+    const priceData    = prices.find(p => p.symbol === pos.symbol);
+    const livePrice    = priceData?.price > 0 ? priceData.price : null;
+    const stalePrice   = livePrice === null;
+    const currentPrice = livePrice ?? pos.avgPrice;
+    const value        = currentPrice * pos.qty;
+    const cost         = pos.avgPrice * pos.qty;
+    const pnl          = stalePrice ? null : value - cost;
+    const pnlPct       = stalePrice ? null : (pnl / cost) * 100;
+    return { ...pos, currentPrice, stalePrice, value, cost, pnl, pnlPct, priceData };
   });
 
   const totalInvested = positionsWithValue.reduce((s, p) => s + p.cost, 0);
@@ -1026,7 +1027,7 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
               const existingAlert = alerts.find(a => a.ticker === pos.symbol);
               return (
                 <div key={pos.symbol}
-                  style={{ background: 'var(--bg-card)', border: `1px solid ${pos.pnl === null ? 'var(--bd)' : pos.pnl >= 0 ? 'rgba(0,229,160,0.3)' : 'rgba(255,126,179,0.3)'}`, borderRadius: '8px', marginBottom: '8px', overflow: 'hidden' }}>
+                  style={{ background: 'var(--bg-card)', border: `1px solid ${pos.stalePrice ? 'var(--bd)' : pos.pnl >= 0 ? 'rgba(0,229,160,0.3)' : 'rgba(255,126,179,0.3)'}`, borderRadius: '8px', marginBottom: '8px', overflow: 'hidden' }}>
                   {/* Clickable main area */}
                   <div onClick={() => openAsset(prices.find(p => p.symbol === pos.symbol))} style={{ padding: '14px', cursor: 'pointer' }}>
                     <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
@@ -1035,20 +1036,20 @@ export default function Portfolio({ onBack, onViewProfile, onOpenLeague, onGoPri
                         <div style={{ fontSize: '12px', color: 'var(--t5)' }}>{parseFloat(pos.qty.toFixed(4))} {t.portfolio.units} · {t.portfolio.avgPrice} {formatPrice(pos.avgPrice, pos.type)}</div>
                       </div>
                       <div style={{ textAlign: 'right' }}>
-                        {pos.currentPrice !== null ? (
-                          <>
-                            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--t1)' }}>{formatCash(pos.value)}</div>
-                            <div style={{ fontSize: '12px', color: pos.pnl >= 0 ? 'var(--green)' : 'var(--color-down)', fontWeight: 700 }}>
-                              {pos.pnl >= 0 ? '+' : ''}{formatCash(pos.pnl)} ({formatChange(pos.pnlPct)})
-                            </div>
-                          </>
-                        ) : (
-                          <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'var(--t5)' }}>—</div>
+                        <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: pos.stalePrice ? 'var(--t5)' : 'var(--t1)' }}>
+                          {pos.stalePrice ? '~' : ''}{formatCash(pos.value)}
+                        </div>
+                        {!pos.stalePrice && (
+                          <div style={{ fontSize: '12px', color: pos.pnl >= 0 ? 'var(--green)' : 'var(--color-down)', fontWeight: 700 }}>
+                            {pos.pnl >= 0 ? '+' : ''}{formatCash(pos.pnl)} ({formatChange(pos.pnlPct)})
+                          </div>
                         )}
                       </div>
                     </div>
                     <div style={{ height: '3px', background: 'var(--bd)', borderRadius: '2px', overflow: 'hidden' }}>
-                      <div style={{ height: '100%', width: `${Math.min(100, Math.abs(pos.pnlPct) * 5)}%`, background: pos.pnl >= 0 ? 'var(--green)' : 'var(--color-down)', borderRadius: '2px' }} />
+                      {!pos.stalePrice && (
+                        <div style={{ height: '100%', width: `${Math.min(100, Math.abs(pos.pnlPct) * 5)}%`, background: pos.pnl >= 0 ? 'var(--green)' : 'var(--color-down)', borderRadius: '2px' }} />
+                      )}
                     </div>
                   </div>
                   {/* Alert + Note row */}
