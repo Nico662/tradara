@@ -742,6 +742,48 @@ app.get('/auth/me', async (req, res) => {
   }
 });
 
+app.post('/daily/complete', async (req, res) => {
+  const decoded = verifyToken(req);
+  if (!decoded) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { xp, badges, dailyResult } = req.body;
+  const user = await User.findById(decoded.id);
+  if (!user) return res.status(404).json({ error: 'User not found' });
+
+  const today = new Date().toISOString().split('T')[0];
+  const lastPlayed = user.lastPlayed
+    ? new Date(user.lastPlayed).toISOString().split('T')[0]
+    : null;
+
+  if (lastPlayed === today) {
+    return res.json({ dailyStreak: user.dailyStreak, lastPlayed: user.lastPlayed, alreadyPlayed: true });
+  }
+
+  const yesterday = new Date();
+  yesterday.setDate(yesterday.getDate() - 1);
+  const yesterdayStr = yesterday.toISOString().split('T')[0];
+
+  const newStreak = lastPlayed === yesterdayStr ? user.dailyStreak + 1 : 1;
+
+  const updatedUser = await User.findByIdAndUpdate(
+    decoded.id,
+    {
+      dailyStreak: newStreak,
+      lastPlayed: new Date(),
+      xp: Math.max(user.xp || 0, xp || 0),
+      badges: [...new Set([...(user.badges || []), ...(badges || [])])],
+      dailyResult,
+    },
+    { new: true, returnDocument: 'after' }
+  );
+
+  res.json({
+    dailyStreak: updatedUser.dailyStreak,
+    lastPlayed:  updatedUser.lastPlayed,
+    alreadyPlayed: false,
+  });
+});
+
 app.post('/auth/sync', async (req, res) => {
   const decoded = await verifyTokenBlacklisted(req);
   if (!decoded) return res.status(401).json({ error: 'No token' });

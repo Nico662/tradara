@@ -114,7 +114,7 @@ export default function Daily({ onBack }) {
       .catch(() => setPhase('error'));
   }, [user]); // eslint-disable-line react-hooks/exhaustive-deps
 
- const makeChoice = (choice) => {
+ const makeChoice = async (choice) => {
   if (phase !== 'choose' || !future || future.length === 0) return;
   setPhase('reveal');
   setRevealing(true);
@@ -182,17 +182,22 @@ export default function Daily({ onBack }) {
   // Sincronizar streak con servidor
   const token = localStorage.getItem('tradaria_token');
   if (token) {
-    fetch(`${SERVER}/auth/sync`, {
-      method: 'POST',
-      headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        xp:          parseInt(localStorage.getItem('tradaria_xp') || '0'),
-        badges:      JSON.parse(localStorage.getItem('tradaria_badges') || '[]'),
-        dailyStreak: newStreak,
-        lastPlayed:  today,
-        dailyResult: res,
-      }),
-    }).catch(() => {});
+    try {
+      const xp = parseInt(localStorage.getItem('tradaria_xp') || '0');
+      const badges = JSON.parse(localStorage.getItem('tradaria_badges') || '[]');
+      const response = await fetch(`${SERVER}/daily/complete`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+        body: JSON.stringify({ xp, badges, dailyResult: res }),
+      });
+      const data = await response.json();
+      if (data.dailyStreak) {
+        localStorage.setItem('tradaria_daily_streak', String(data.dailyStreak));
+        localStorage.setItem('tradaria_daily_last', new Date().toISOString().split('T')[0]);
+      }
+    } catch (e) {
+      console.error('Daily sync error:', e);
+    }
   }
  };
 
