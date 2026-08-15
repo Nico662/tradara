@@ -344,7 +344,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
                 return (
                   <div key={entry._id} onClick={() => !isMe && entry.username && onViewProfile && onViewProfile(entry.username)} style={{ display: 'flex', alignItems: 'center', gap: '12px', padding: '10px 12px', background: isMe ? 'rgba(0,229,160,0.07)' : 'var(--bg-surface)', border: `1px solid ${isMe ? 'rgba(0,229,160,0.6)' : 'var(--border-default)'}`, borderLeft: `2px solid ${isMe ? 'rgba(0,229,160,0.6)' : 'var(--border-default)'}`, borderRadius: '8px', marginBottom: '8px', cursor: !isMe && entry.username && onViewProfile ? 'pointer' : 'default', overflow: 'hidden', width: '100%' }}>
                     <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '16px', color: i === 0 ? 'var(--color-neutral)' : i === 1 ? 'var(--text-secondary)' : i === 2 ? '#cd7f32' : 'var(--text-muted)', width: '40px', flexShrink: 0, textAlign: 'center' }}>
-                      {i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`}
+                      {i === 0 ? <span style={{ color: '#FFD700', fontWeight: 900 }}>1</span> : i === 1 ? <span style={{ color: '#C0C0C0', fontWeight: 900 }}>2</span> : i === 2 ? <span style={{ color: '#CD7F32', fontWeight: 900 }}>3</span> : `#${i + 1}`}
                     </div>
                     <UserAvatar user={entry} size={24} showBadge style={{ marginLeft: '8px' }} />
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', gap: '4px', minWidth: 0 }}>
