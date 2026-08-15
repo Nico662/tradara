@@ -324,15 +324,32 @@ export default function Landing({ onEnter }) {
         {/* ── Hero ── */}
         <div className="landing-section landing-s1" style={{ textAlign: 'center', marginBottom: '36px' }}>
           {/* logo */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '12px', marginBottom: '20px' }}>
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200" width="28">
-              <line x1="50" y1="10" x2="50" y2="40" stroke="#00e5a0" strokeWidth="8" strokeLinecap="round" />
-              <rect x="25" y="40" width="50" height="110" rx="6" fill="#00e5a0" />
-              <line x1="50" y1="150" x2="50" y2="190" stroke="#00e5a0" strokeWidth="8" strokeLinecap="round" />
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', marginBottom: '20px' }}>
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 200" width="22">
+              <line x1="50" y1="10" x2="50" y2="40" stroke="#ff7eb3" strokeWidth="8" strokeLinecap="round"/>
+              <rect x="25" y="40" width="50" height="110" rx="6" fill="url(#candleGradLanding)"/>
+              <line x1="50" y1="150" x2="50" y2="190" stroke="#00e5a0" strokeWidth="8" strokeLinecap="round"/>
+              <defs>
+                <linearGradient id="candleGradLanding" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#ff7eb3"/>
+                  <stop offset="100%" stopColor="#00e5a0"/>
+                </linearGradient>
+              </defs>
             </svg>
-            <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '38px', letterSpacing: '-0.02em', color: '#f0f0f0', textShadow: '0 0 60px rgba(0,229,160,0.25)' }}>
-              Tradiko
-            </div>
+            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '38px', letterSpacing: '-1px', lineHeight: 1 }}>
+              {(() => {
+                const isFiesta = new Date() <= new Date('2026-07-25T23:59:59');
+                return isFiesta ? (
+                  <>
+                    <span style={{ color: '#c60b1e' }}>Tra</span>
+                    <span style={{ color: '#ffc400' }}>di</span>
+                    <span style={{ color: '#c60b1e' }}>ko</span>
+                  </>
+                ) : (
+                  <span style={{ color: 'var(--text-primary)' }}>Tradi<span style={{ color: 'var(--pink)' }}>ko</span></span>
+                );
+              })()}
+            </span>
           </div>
 
           {/* headline */}
