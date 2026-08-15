@@ -214,19 +214,7 @@ export function AuthProvider({ children }) {
         const serverStreak     = data.dailyStreak || 0;
         const serverLastPlayed = data.lastPlayed || null;
         const localStreak      = parseInt(localStorage.getItem('tradaria_daily_streak') || '0');
-
-        const today = new Date().toISOString().split('T')[0];
-        const yesterday = new Date(
-          new Date().getFullYear(),
-          new Date().getMonth(),
-          new Date().getDate() - 1
-        ).toISOString().split('T')[0];
-
-        const serverLastNorm = normalizeDateStr(serverLastPlayed);
-        const serverStreakValid = serverLastNorm === today || serverLastNorm === yesterday;
-
-        const bestStreak = serverStreakValid && serverStreak > 0 ? serverStreak :
-                           (serverStreakValid ? localStreak : 0);
+        const bestStreak       = serverStreak > 0 ? serverStreak : localStreak;
         localStorage.setItem('tradaria_daily_streak', String(bestStreak));
 
         // Normalizar y unificar fechas
