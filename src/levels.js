@@ -1,9 +1,14 @@
 export const LEVELS = [
-  { id: 'rookie',  icon: '🥉', name: 'Rookie',  xp: 0     },
-  { id: 'trader',  icon: '📈', name: 'Trader',  xp: 500   },
-  { id: 'pro',     icon: '⚡', name: 'Pro',     xp: 2000  },
-  { id: 'expert',  icon: '💎', name: 'Expert',  xp: 5000  },
-  { id: 'legend',  icon: '👑', name: 'Legend',  xp: 15000 },
+  { id: 'rookie',      name: 'Rookie',      xp: 0      },
+  { id: 'trader',      name: 'Trader',      xp: 1000   },
+  { id: 'pro',         name: 'Pro',         xp: 5000   },
+  { id: 'expert',      name: 'Expert',      xp: 15000  },
+  { id: 'legend',      name: 'Legend',      xp: 40000  },
+  { id: 'legend_2',    name: 'Legend II',   xp: 75000  },
+  { id: 'legend_3',    name: 'Legend III',  xp: 120000 },
+  { id: 'master',      name: 'Master',      xp: 200000 },
+  { id: 'grandmaster', name: 'Grandmaster', xp: 350000 },
+  { id: 'goat',        name: 'G.O.A.T',     xp: 500000 },
 ];
 
 export function getXP() {

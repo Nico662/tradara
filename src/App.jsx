@@ -37,6 +37,7 @@ import MissionNotification from './MissionNotification.jsx';
 import Settings from './Settings.jsx';
 import JoinAcademy from './JoinAcademy.jsx';
 import TeacherDashboard from './TeacherDashboard.jsx';
+import { LevelIcon } from './components/AppIcons.jsx';
 import StudentDashboard from './StudentDashboard.jsx';
 import AppLayout from './components/layout/AppLayout.jsx';
 import ModesPage from './components/ModesPage.jsx';
@@ -496,7 +497,7 @@ export default function App() {
           <div style={{ marginBottom: '16px', padding: '12px 16px', background: 'var(--bg-card)', border: '1px solid var(--bd)', borderRadius: '8px' }}>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '8px' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '20px' }}>{level.icon}</span>
+                <LevelIcon id={level.id} size={20} />
                 <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '13px', color: 'var(--t1)' }}>{level.name}</span>
               </div>
               <span style={{ fontSize: '12px', color: 'var(--t6)', letterSpacing: '0.1em' }}>{xp} XP</span>
@@ -507,7 +508,7 @@ export default function App() {
                   <div style={{ height: '100%', width: `${progress}%`, background: 'var(--green)', borderRadius: '2px', transition: 'width 0.5s ease' }} />
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--t6)', marginTop: '4px', textAlign: 'right' }}>
-                  {next.icon} {next.name} {t.game.xpToNext.replace('{n}', next.xp - xp)}
+                  <LevelIcon id={next.id} size={12} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> {next.name} {t.game.xpToNext.replace('{n}', next.xp - xp)}
                 </div>
               </>
             )}

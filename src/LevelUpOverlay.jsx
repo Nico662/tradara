@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { getXP, getNextLevel, getProgress } from './levels.js';
 import { useLang } from './LangContext.jsx';
+import { LevelIcon } from './components/AppIcons.jsx';
 
 const PARTICLES = Array.from({ length: 28 }, (_, i) => ({
   id: i,
@@ -81,7 +82,7 @@ export default function LevelUpOverlay({ newLevel, prevLevel, onClose }) {
           display: 'block',
           animation: 'luIconSpin 0.7s 0.2s cubic-bezier(0.34,1.56,0.64,1) both',
         }}>
-          {newLevel.icon}
+          <LevelIcon id={newLevel.id} size={80} />
         </div>
 
         {/* New level name */}
@@ -106,11 +107,11 @@ export default function LevelUpOverlay({ newLevel, prevLevel, onClose }) {
           animation: 'luSlideUp 0.4s 0.6s both',
         }}>
           <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)', textDecoration: 'line-through' }}>
-            {prevLevel.icon} {prevLevel.name}
+            <LevelIcon id={prevLevel.id} size={12} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> {prevLevel.name}
           </span>
           <span style={{ color: 'var(--color-neutral)', fontSize: '14px' }}>→</span>
           <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--color-neutral)', fontWeight: 700 }}>
-            {newLevel.icon} {newLevel.name}
+            <LevelIcon id={newLevel.id} size={12} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> {newLevel.name}
           </span>
         </div>
 
@@ -118,7 +119,7 @@ export default function LevelUpOverlay({ newLevel, prevLevel, onClose }) {
         <div style={{ animation: 'luSlideUp 0.4s 0.7s both' }}>
           <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px' }}>
             <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: '#5a6a7d' }}>{xp} XP</span>
-            {next && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>{next.xp} XP → {next.icon} {next.name}</span>}
+            {next && <span style={{ fontFamily: 'var(--font-body)', fontSize: '12px', color: 'var(--t6)' }}>{next.xp} XP → <LevelIcon id={next.id} size={12} style={{ display: 'inline-block', verticalAlign: 'middle' }} /> {next.name}</span>}
           </div>
           <div style={{ height: '4px', background: 'var(--bd)', borderRadius: '2px', overflow: 'hidden' }}>
             <div style={{ height: '100%', width: `${prog}%`, background: 'linear-gradient(90deg, var(--green), var(--color-neutral))', borderRadius: '2px', transition: 'width 1s ease 0.8s' }} />

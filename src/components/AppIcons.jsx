@@ -1,4 +1,4 @@
-import { Flame, Zap, Skull, Scroll, Swords, Medal, LineChart, Briefcase, GraduationCap, Lightbulb, TrendingUp, Gem, Star, Trophy, Crown } from 'lucide-react';
+import { Flame, Zap, Skull, Scroll, Swords, Medal, LineChart, Briefcase, GraduationCap, Lightbulb, TrendingUp, Gem, Star, Trophy, Crown, Sword, Shield } from 'lucide-react';
 
 export const ModeIcon = ({ id, size = 22, ...props }) => {
   const icons = {
@@ -31,11 +31,16 @@ export const TodayCardIcon = ({ size = 22, ...props }) => (
 
 export const LevelIcon = ({ id, size = 16, ...props }) => {
   const icons = {
-    rookie: <Star size={size} strokeWidth={2} aria-hidden {...props} />,
-    trader: <TrendingUp size={size} strokeWidth={2} aria-hidden {...props} />,
-    pro: <Zap size={size} strokeWidth={2} aria-hidden {...props} />,
-    expert: <Gem size={size} strokeWidth={2} aria-hidden {...props} />,
-    legend: <Crown size={size} strokeWidth={2} aria-hidden {...props} />,
+    rookie:      <Star size={size} strokeWidth={2} aria-hidden {...props} />,
+    trader:      <TrendingUp size={size} strokeWidth={2} aria-hidden {...props} />,
+    pro:         <Zap size={size} strokeWidth={2} aria-hidden {...props} />,
+    expert:      <Gem size={size} strokeWidth={2} aria-hidden {...props} />,
+    legend:      <Crown size={size} strokeWidth={2} aria-hidden {...props} />,
+    legend_2:    <Crown size={size} strokeWidth={2} color="#FFD700" aria-hidden {...props} />,
+    legend_3:    <Crown size={size} strokeWidth={2} color="#FF6B00" aria-hidden {...props} />,
+    master:      <Sword size={size} strokeWidth={2} aria-hidden {...props} />,
+    grandmaster: <Shield size={size} strokeWidth={2} aria-hidden {...props} />,
+    goat:        <Star size={size} strokeWidth={2} color="#FFD700" aria-hidden {...props} />,
   };
   return icons[id] || null;
 };
