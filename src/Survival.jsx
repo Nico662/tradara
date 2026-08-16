@@ -15,8 +15,6 @@ import { useAuth } from './AuthContext';
 import { SERVER } from './config.js';
 
 
-const MAX_LIVES = 3;
-
 function randomAsset() {
   return ASSETS[Math.floor(Math.random() * ASSETS.length)];
 }
@@ -24,13 +22,14 @@ function randomAsset() {
 export default function Survival({ onBack }) {
   const { t, lang } = useLang();
   const { syncProgress, activeCosmetics, checkLevelUp, isPro } = useAuth();
+  const MAX_LIVES = isPro ? 5 : 3;
 
   const [phase,       setPhase]      = useState('choose');
   const [asset,       setAsset]      = useState(() => randomAsset());
   const [result,      setResult]     = useState(null);
   const [score,       setScore]      = useState(0);
   const [streak,      setStreak]     = useState(0);
-  const [lives,       setLives]      = useState(MAX_LIVES);
+  const [lives,       setLives]      = useState(() => isPro ? 5 : 3);
   const [round,       setRound]      = useState(1);
   const [history,     setHistory]    = useState([]);
   const [selected,    setSelected]   = useState(null);
