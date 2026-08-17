@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { Lightbulb } from 'lucide-react';
+import { Lightbulb, BookOpen } from 'lucide-react';
 import { GLOSSARY } from './tradingGlossary.js';
 import { CHARTS } from './glossaryCharts.jsx';
 import { useLang } from './LangContext.jsx';
@@ -261,8 +261,8 @@ export default function WordOfTheDay() {
         {/* Word */}
         <div style={{ marginBottom: '7px' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            <Lightbulb size={16} strokeWidth={1.5} color="var(--green)" aria-hidden style={{ flexShrink: 0, marginRight: '6px' }} />
-            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '20px', color: 'white', lineHeight: 1.25, minWidth: 0, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
+            <BookOpen size={16} strokeWidth={1.5} color="var(--text-secondary)" aria-hidden style={{ flexShrink: 0, marginRight: '6px' }} />
+            <span style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '14px', color: 'white', lineHeight: 1.25, minWidth: 0, flex: 1, display: '-webkit-box', WebkitLineClamp: 2, WebkitBoxOrient: 'vertical', overflow: 'hidden' }}>
               {word}
             </span>
           </div>
