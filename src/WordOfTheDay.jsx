@@ -109,7 +109,7 @@ function DetailScreen({ dayOffset, onOffsetChange, onClose }) {
 
         {/* Icon + Word */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '20px' }}>
-          <Lightbulb size={36} strokeWidth={1.5} color="var(--green)" aria-hidden style={{ flexShrink: 0 }} />
+          <BookOpen size={36} strokeWidth={1.5} color="var(--text-secondary)" aria-hidden style={{ flexShrink: 0 }} />
           <div style={{ fontFamily: 'var(--font-body)', fontWeight: 800, fontSize: '24px', color: accent, lineHeight: 1.1, letterSpacing: '-0.01em', overflowWrap: 'break-word', wordBreak: 'break-word' }}>
             {word}
           </div>
