@@ -12,6 +12,7 @@ import UsernameModal from './UsernameModal.jsx';
 import { FRAME_STYLES, AVATAR_EMOJIS } from './UserAvatar.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
 import SpainGarland from './SpainGarland.jsx';
+import LevelsPanel from './LevelsPanel.jsx';
 const TOURNAMENT_SUB = {
   en: 'Weekly · Global ranking · 10 rounds',
   es: 'Semanal · Ranking global · 10 rondas',
@@ -36,6 +37,7 @@ export default function Home({ onSelect }) {
   const fileInputRef = useRef(null);
   const [academyName, setAcademyName] = useState(() => localStorage.getItem('academy_name') || null);
   const [hasPendingFriends, setHasPendingFriends] = useState(false);
+  const [showLevels, setShowLevels] = useState(false);
 
   useEffect(() => {
     if (!user?.academyId || !user?.isAcademyPro || academyName) return;
@@ -125,6 +127,7 @@ export default function Home({ onSelect }) {
       {showUsernameModal && (
         <UsernameModal onDone={handleUsernameDone} />
       )}
+      {showLevels && <LevelsPanel onClose={() => setShowLevels(false)} />}
 
       <div style={{ padding: '16px 16px 24px', position: 'relative', zIndex: 2 }}>
 
@@ -355,10 +358,13 @@ export default function Home({ onSelect }) {
                 <span style={{ fontSize: '12px', color: 'var(--pink)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{dailyStreak} {t.common.days}</span>
               </div>
             )}
-            <div style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--green-dim)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', padding: '4px 10px' }}>
+            <button
+              onClick={() => setShowLevels(true)}
+              style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: 'var(--green-dim)', border: '0.5px solid var(--border-green)', borderRadius: 'var(--radius-full)', padding: '4px 10px', cursor: 'pointer' }}
+            >
               <LevelIcon id={level.id} size={12} style={{ stroke: 'var(--green)' }} />
               <span style={{ fontSize: '12px', color: 'var(--green)', fontFamily: 'var(--font-body)', fontWeight: 800, letterSpacing: '0.06em' }}>{level.name} · {xp} XP</span>
-            </div>
+            </button>
           </div>
         </div>
 
