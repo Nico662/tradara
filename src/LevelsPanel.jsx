@@ -30,8 +30,10 @@ export default function LevelsPanel({ onClose }) {
         borderTopRightRadius: '20px',
         border: '1px solid var(--border-default)',
         borderBottom: 'none',
-        maxHeight: '85vh',
-        overflowY: 'auto',
+        minHeight: '80vh',
+        maxHeight: '92vh',
+        display: 'flex',
+        flexDirection: 'column',
         animation: 'lpSlideUp 0.32s cubic-bezier(0.34,1.2,0.64,1) both',
       }}>
         <style>{`
@@ -42,11 +44,11 @@ export default function LevelsPanel({ onClose }) {
         `}</style>
 
         {/* Drag handle */}
-        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '12px', paddingBottom: '4px' }}>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: '12px', paddingBottom: '4px', flexShrink: 0 }}>
           <div style={{ width: '36px', height: '4px', borderRadius: '2px', background: 'var(--border-default)' }} />
         </div>
 
-        <div style={{ padding: '16px 20px 40px' }}>
+        <div style={{ padding: '16px 20px 0', flexShrink: 0 }}>
 
           {/* ── Header ── */}
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '24px' }}>
@@ -113,8 +115,11 @@ export default function LevelsPanel({ onClose }) {
             </button>
           </div>
 
-          {/* ── Levels list ── */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+        </div>
+
+        {/* ── Scrollable levels list ── */}
+        <div style={{ flex: 1, overflowY: 'auto', padding: '0 20px', paddingBottom: 'calc(env(safe-area-inset-bottom, 0px) + 32px)' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', paddingBottom: '8px' }}>
             {LEVELS.map(l => {
               const unlocked  = xp >= l.xp;
               const isCurrent = l.id === level.id;
@@ -217,7 +222,6 @@ export default function LevelsPanel({ onClose }) {
               );
             })}
           </div>
-
         </div>
       </div>
     </>
