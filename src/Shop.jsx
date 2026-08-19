@@ -41,10 +41,10 @@ const FRAME_STYLES = {
 };
 
 const THEME_COLORS = {
-  theme_blood:    { bg: '#0d0000', border: '#3a0000', accent: 'var(--color-down)', text: '#6b2020', down: '#7a0000' },
-  theme_gold:     { bg: '#0d0a00', border: '#3a2e00', accent: 'var(--color-neutral)', text: '#6b5a00', down: '#7a4400' },
-  theme_midnight: { bg: '#020510', border: '#0a1535', accent: '#6b9fff', text: '#2a3a6b', down: '#7a2a2a' },
-  theme_matrix:   { bg: '#000000', border: '#003300', accent: '#00ff41', text: '#004400', down: '#008800' },
+  theme_blood:    { bg: '#120c0c', border: 'rgba(240,84,84,0.35)',   accent: '#f05454', text: '#e8e0e0', down: '#f05454' },
+  theme_gold:     { bg: '#120f0a', border: 'rgba(230,180,50,0.35)',  accent: '#e6b432', text: '#e8e3d5', down: '#e6b432' },
+  theme_midnight: { bg: '#0a0d14', border: 'rgba(107,159,255,0.35)', accent: '#6b9fff', text: '#dce4f5', down: '#6b9fff' },
+  theme_matrix:   { bg: '#0a100c', border: 'rgba(0,255,65,0.35)',    accent: '#00ff41', text: '#c8e8d0', down: '#00ff41' },
 };
 
 const MINI_CANDLES = [
@@ -125,6 +125,7 @@ function PreviewTheme({ item }) {
     <div style={{
       height: '120px', borderRadius: '6px', overflow: 'hidden',
       border: `1px solid ${c.border}`,
+      boxShadow: `inset 0 1px 0 0 ${c.accent}66`,
       background: c.bg,
       display: 'flex', flexDirection: 'column',
       margin: '4px 0',
@@ -132,21 +133,21 @@ function PreviewTheme({ item }) {
       <div style={{ padding: '3px 6px', borderBottom: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
         <span style={{ fontSize: '12px', color: c.accent, fontFamily: 'var(--font-body)', fontWeight: 700, letterSpacing: '0.08em' }}>TRADIKO</span>
         <div style={{ display: 'flex', gap: '6px' }}>
-          <span style={{ fontSize: '12px', color: c.text, fontFamily: 'var(--font-body)' }}>RND 3/10</span>
-          <span style={{ fontSize: '12px', color: c.accent, fontFamily: 'var(--font-body)' }}>300</span>
+          <span style={{ fontSize: '11px', color: `${c.accent}99`, fontFamily: 'var(--font-body)' }}>RND 3/10</span>
+          <span style={{ fontSize: '11px', color: c.accent, fontFamily: 'var(--font-body)' }}>300</span>
         </div>
       </div>
       <div style={{ padding: '2px 6px', borderBottom: `1px solid ${c.border}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexShrink: 0 }}>
-        <span style={{ fontSize: '12px', color: c.text, fontFamily: 'var(--font-body)' }}>BTC/USDT</span>
-        <span style={{ fontSize: '12px', color: c.text, fontFamily: 'var(--font-body)' }}>1H</span>
+        <span style={{ fontSize: '11px', color: c.text, fontFamily: 'var(--font-body)' }}>BTC/USDT</span>
+        <span style={{ fontSize: '11px', color: `${c.accent}80`, fontFamily: 'var(--font-body)' }}>1H</span>
       </div>
       <div style={{ flex: 1, padding: '3px 4px', minHeight: 0 }}>
         <svg width="100%" height="100%" viewBox="0 0 88 42" preserveAspectRatio="none">
           {MINI_CANDLES.map((cd, i) => {
-            const isUp   = cd.cy < cd.oy;
+            const isUp    = cd.cy < cd.oy;
             const bodyTop = Math.min(cd.oy, cd.cy);
             const bodyH   = Math.max(Math.abs(cd.oy - cd.cy), 1);
-            const color   = isUp ? c.accent : c.down;
+            const color   = isUp ? c.accent : `${c.accent}88`;
             return (
               <g key={i}>
                 <line x1={cd.x + 4} y1={cd.hy} x2={cd.x + 4} y2={cd.ly} stroke={color} strokeWidth="1" />
@@ -157,14 +158,14 @@ function PreviewTheme({ item }) {
         </svg>
       </div>
       <div style={{ padding: '3px 4px', display: 'flex', gap: '3px', borderTop: `1px solid ${c.border}`, flexShrink: 0 }}>
-        <div style={{ flex: 1, background: `${c.accent}22`, border: `1px solid ${c.accent}`, borderRadius: '2px', padding: '2px 0', textAlign: 'center' }}>
-          <span style={{ fontSize: '12px', color: c.accent, fontFamily: 'var(--font-body)', fontWeight: 700 }}>▲ {t.game.long.toUpperCase()}</span>
+        <div style={{ flex: 1, background: `${c.accent}14`, border: `1px solid ${c.accent}`, borderRadius: '2px', padding: '2px 0', textAlign: 'center' }}>
+          <span style={{ fontSize: '10px', color: c.accent, fontFamily: 'var(--font-body)', fontWeight: 700 }}>▲ {t.game.long.toUpperCase()}</span>
         </div>
-        <div style={{ flex: 1, border: `1px solid ${c.border}`, borderRadius: '2px', padding: '2px 0', textAlign: 'center' }}>
-          <span style={{ fontSize: '12px', color: c.text, fontFamily: 'var(--font-body)', fontWeight: 700 }}>— {t.game.noTrade.toUpperCase()}</span>
+        <div style={{ flex: 1, border: `1px solid ${c.border}`, borderRadius: '2px', padding: '2px 0', textAlign: 'center', background: 'transparent' }}>
+          <span style={{ fontSize: '10px', color: `${c.accent}60`, fontFamily: 'var(--font-body)', fontWeight: 700 }}>— {t.game.noTrade.toUpperCase()}</span>
         </div>
-        <div style={{ flex: 1, background: `${c.down}22`, border: `1px solid ${c.down}`, borderRadius: '2px', padding: '2px 0', textAlign: 'center' }}>
-          <span style={{ fontSize: '12px', color: c.down, fontFamily: 'var(--font-body)', fontWeight: 700 }}>▼ {t.game.short.toUpperCase()}</span>
+        <div style={{ flex: 1, background: `${c.accent}14`, border: `1px solid ${c.border}`, borderRadius: '2px', padding: '2px 0', textAlign: 'center' }}>
+          <span style={{ fontSize: '10px', color: `${c.accent}99`, fontFamily: 'var(--font-body)', fontWeight: 700 }}>▼ {t.game.short.toUpperCase()}</span>
         </div>
       </div>
     </div>
