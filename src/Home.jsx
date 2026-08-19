@@ -9,7 +9,8 @@ import { getUnlocked } from './badges.js';
 import { getXP, getLevel } from './levels.js';
 import { useAuth, isIOSApp } from './AuthContext';
 import UsernameModal from './UsernameModal.jsx';
-import { FRAME_STYLES, AVATAR_EMOJIS } from './UserAvatar.jsx';
+import { FRAME_STYLES } from './UserAvatar.jsx';
+import { AvatarSVG } from './components/AvatarSVGs.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
 import SpainGarland from './SpainGarland.jsx';
 import LevelsPanel from './LevelsPanel.jsx';
@@ -232,7 +233,7 @@ export default function Home({ onSelect }) {
                     {isFounder(user.username) && <FounderBadge size={12} />}
                   </span>
                   {activeCosmetics.avatar && (
-                    <span style={{ fontSize: '16px', lineHeight: 1 }}>{AVATAR_EMOJIS[activeCosmetics.avatar]}</span>
+                    <AvatarSVG id={activeCosmetics.avatar} size={22} />
                   )}
                 </div>
                 {user.username && (

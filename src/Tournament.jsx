@@ -11,7 +11,7 @@ import EffectOverlay from './EffectOverlay.jsx';
 import FounderBadge, { isFounder } from './FounderBadge.jsx';
 
 import { SERVER } from './config.js';
-import UserAvatar, { AVATAR_EMOJIS } from './UserAvatar.jsx';
+import UserAvatar from './UserAvatar.jsx';
 import { incrementMission, recordModePlayed } from './missions.js';
 import MissionNotification from './MissionNotification.jsx';
 
@@ -184,7 +184,7 @@ export default function Tournament({ onBack, onViewProfile, onGoPricing, academy
     if (round + 1 >= rounds.length) {
       const finalScore = score;
       const cosmetics = JSON.parse(localStorage.getItem('tradaria_cosmetics') || '{}');
-      const cosmeticAvatar = cosmetics.avatar ? AVATAR_EMOJIS[cosmetics.avatar] : null;
+      const cosmeticAvatar = cosmetics.avatar || null;
       if (academyTournamentId && academyId) {
         await fetch(`${SERVER}/academy/${academyId}/tournament/${academyTournamentId}/score`, {
           method: 'POST',

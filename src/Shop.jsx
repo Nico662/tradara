@@ -4,6 +4,7 @@ import { useLang } from './LangContext.jsx';
 import { useAuth, isIOSApp } from './AuthContext.jsx';
 import { SERVER } from './config.js';
 import { purchaseWithStoreKit } from './iap.js';
+import { AvatarSVG } from './components/AvatarSVGs.jsx';
 
 const SHOP_ITEMS = {
   frames: [
@@ -19,10 +20,10 @@ const SHOP_ITEMS = {
     { id: 'theme_midnight', name: 'Midnight',       desc: { en: 'Deep blue dark theme',      es: 'Tema azul oscuro profundo',   de: 'Tiefblaues dunkles Theme'  }, price: 1.99, emoji: '🌙', color: 'var(--t4)' },
   ],
   avatars: [
-    { id: 'avatar_bull',    name: 'Bull',           desc: { en: 'Bullish trader avatar',     es: 'Avatar de trader alcista',    de: 'Bullen-Trader Avatar'      }, price: 0.99, emoji: '🐂', color: 'var(--green)' },
-    { id: 'avatar_bear',    name: 'Bear',           desc: { en: 'Bearish trader avatar',     es: 'Avatar de trader bajista',    de: 'Bären-Trader Avatar'       }, price: 0.99, emoji: '🐻', color: 'var(--color-down)' },
-    { id: 'avatar_whale',   name: 'Whale',          desc: { en: 'Big money avatar',          es: 'Avatar de gran inversor',     de: 'Großinvestor Avatar'       }, price: 1.99, emoji: '🐋', color: 'var(--t3)' },
-    { id: 'avatar_robot',   name: 'AlgoBot',        desc: { en: 'Algorithm trader avatar',   es: 'Avatar de trader algorítmico',de: 'Algorithmus-Trader Avatar' }, price: 1.99, emoji: '🤖', color: 'var(--color-neutral)' },
+    { id: 'avatar_bull',    name: 'Bull',           desc: { en: 'Bullish trader avatar',     es: 'Avatar de trader alcista',    de: 'Bullen-Trader Avatar'      }, price: 0.99, color: 'var(--green)' },
+    { id: 'avatar_bear',    name: 'Bear',           desc: { en: 'Bearish trader avatar',     es: 'Avatar de trader bajista',    de: 'Bären-Trader Avatar'       }, price: 0.99, color: 'var(--color-down)' },
+    { id: 'avatar_whale',   name: 'Whale',          desc: { en: 'Big money avatar',          es: 'Avatar de gran inversor',     de: 'Großinvestor Avatar'       }, price: 1.99, color: 'var(--t3)' },
+    { id: 'avatar_robot',   name: 'AlgoBot',        desc: { en: 'Algorithm trader avatar',   es: 'Avatar de trader algorítmico',de: 'Algorithmus-Trader Avatar' }, price: 1.99, color: 'var(--color-neutral)' },
   ],
   effects: [
     { id: 'effect_confetti',  name: 'Confetti',     desc: { en: 'Confetti on correct answer',es: 'Confeti al acertar',          de: 'Konfetti bei richtiger Antwort'}, price: 1.99, emoji: '🎉', color: 'var(--color-neutral)' },
@@ -86,13 +87,6 @@ if (!document.getElementById('shop-preview-css')) {
   `;
   document.head.appendChild(el);
 }
-
-const AVATAR_EMOJIS = {
-  avatar_bull:  '🐂',
-  avatar_bear:  '🐻',
-  avatar_whale: '🐋',
-  avatar_robot: '🤖',
-};
 
 const CATEGORY_TYPES = {
   frames: 'frame',
@@ -180,9 +174,7 @@ function PreviewTheme({ item }) {
 function PreviewAvatar({ item }) {
   return (
     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '12px 0 4px' }}>
-      <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'var(--bg-card2)', border: `1px solid ${item.color}`, display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '28px' }}>
-        {AVATAR_EMOJIS[item.id]}
-      </div>
+      <AvatarSVG id={item.id} size={48} />
     </div>
   );
 }

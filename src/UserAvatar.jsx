@@ -1,11 +1,5 @@
 import { User } from 'lucide-react';
-
-export const AVATAR_EMOJIS = {
-  avatar_bull:  '🐂',
-  avatar_bear:  '🐻',
-  avatar_whale: '🐋',
-  avatar_robot: '🤖',
-};
+import { AvatarSVG } from './components/AvatarSVGs.jsx';
 
 export const FRAME_STYLES = {
   frame_gold:    { border: '2px solid var(--color-neutral)', boxShadow: '0 0 8px rgba(232,184,75,0.6)' },
@@ -17,10 +11,6 @@ export const FRAME_STYLES = {
 export default function UserAvatar({ user, size = 32, showBadge = false, style }) {
   const cosmetics  = user?.activeCosmetics || {};
   const frameStyle = FRAME_STYLES[cosmetics.frame] || {};
-  const badge      = cosmetics.avatar
-    ? AVATAR_EMOJIS[cosmetics.avatar]
-    : (user?.cosmeticAvatar || null);
-
   const badgeSize  = Math.max(10, Math.round(size * 0.42));
 
   return (
@@ -36,9 +26,9 @@ export default function UserAvatar({ user, size = 32, showBadge = false, style }
           <User size={Math.round(size * 0.55)} strokeWidth={1.5} aria-hidden />
         </div>
       )}
-      {showBadge && badge && (
-        <span style={{ position: 'absolute', bottom: '-3px', right: '-3px', fontSize: badgeSize + 'px', lineHeight: 1, pointerEvents: 'none' }}>
-          {badge}
+      {showBadge && cosmetics.avatar && (
+        <span style={{ position: 'absolute', bottom: '-3px', right: '-3px', lineHeight: 1, pointerEvents: 'none' }}>
+          <AvatarSVG id={cosmetics.avatar} size={badgeSize} />
         </span>
       )}
     </div>
