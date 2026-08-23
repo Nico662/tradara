@@ -33,27 +33,27 @@ export default function ModesPage({ onSelect }) {
         <div
           className="animate-fade-in-up stagger-1"
           style={{
-            background: 'var(--gradient-surface)',
-            border: '1px dashed #2f2f2f',
+            background: 'transparent',
+            border: '1px dashed #242424',
             borderRadius: 'var(--radius-lg)',
             padding: '14px 16px',
             display: 'flex',
             alignItems: 'center',
             gap: 14,
             cursor: 'default',
-            opacity: 0.45,
+            opacity: 0.32,
             width: '100%',
             textAlign: 'left',
           }}
         >
-          <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-            <CandlestickChart size={22} strokeWidth={2} aria-hidden style={{ stroke: '#60a5fa' }} />
+          <div style={{ width: 44, height: 44, borderRadius: 'var(--radius-md)', background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(96,165,250,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+            <CandlestickChart size={22} strokeWidth={2} aria-hidden style={{ stroke: '#5a5a5a' }} />
           </div>
           <div style={{ flex: 1, minWidth: 0 }}>
             <div style={{ fontWeight: 900, fontSize: 14, color: 'var(--text-primary)', marginBottom: 3 }}>{t.home.tradingMode}</div>
             <div style={{ fontSize: 12, fontWeight: 600, color: 'var(--text-muted)', lineHeight: 1.4 }}>{t.home.tradingModeSub}</div>
           </div>
-          <span style={{ fontSize: '9px', letterSpacing: '1px', borderRadius: '999px', padding: '3px 8px', border: '0.5px solid #2f2f2f', color: '#6e6e6e', fontFamily: 'var(--font-body)', fontWeight: 700, flexShrink: 0 }}>{t.home.comingSoon}</span>
+          <span style={{ fontSize: '9px', letterSpacing: '1px', borderRadius: '999px', padding: '3px 8px', border: '0.5px solid #242424', color: '#5a5a5a', fontFamily: 'var(--font-body)', fontWeight: 700, flexShrink: 0 }}>{t.home.comingSoon}</span>
         </div>
 
         {MODES.map((mode, index) => (
