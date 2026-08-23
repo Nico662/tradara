@@ -398,20 +398,32 @@ export default function Home({ onSelect }) {
 
           {/* Trader Pass — próximamente */}
           <div
-            style={{ width: '100%', background: 'var(--gradient-surface)', border: '1px dashed #2f2f2f', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'default', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.03s both', opacity: 0.62 }}
+            style={{ width: '100%', background: 'var(--gradient-surface)', border: '1px dashed #2f2f2f', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'default', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.03s both', opacity: 0.45 }}
           >
-            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(45,212,160,0.10)', border: '1px solid rgba(45,212,160,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Ticket size={22} strokeWidth={2} aria-hidden style={{ stroke: '#2dd4a0' }} /></div>
+            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(45,212,160,0.06)', border: '1px solid rgba(45,212,160,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><Ticket size={22} strokeWidth={2} aria-hidden style={{ stroke: '#2dd4a0' }} /></div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: 'var(--text-primary)', marginBottom: '3px' }}>{t.home.traderPass}</div>
               <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{t.home.traderPassSub}</div>
             </div>
-            <span style={{ fontSize: '9px', letterSpacing: '1px', borderRadius: '999px', padding: '3px 8px', border: '0.5px solid rgba(45,212,160,0.4)', color: '#2dd4a0', fontFamily: 'var(--font-body)', fontWeight: 700, flexShrink: 0 }}>{t.home.comingSoon}</span>
+            <span style={{ fontSize: '9px', letterSpacing: '1px', borderRadius: '999px', padding: '3px 8px', border: '0.5px solid #2f2f2f', color: '#6e6e6e', fontFamily: 'var(--font-body)', fontWeight: 700, flexShrink: 0 }}>{t.home.comingSoon}</span>
+          </div>
+
+          {/* Trading Mode — próximamente */}
+          <div
+            style={{ width: '100%', background: 'var(--gradient-surface)', border: '1px dashed #2f2f2f', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'default', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.05s both', opacity: 0.45 }}
+          >
+            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(96,165,250,0.06)', border: '1px solid rgba(96,165,250,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><CandlestickChart size={22} strokeWidth={2} aria-hidden style={{ stroke: '#60a5fa' }} /></div>
+            <div style={{ flex: 1 }}>
+              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: 'var(--text-primary)', marginBottom: '3px' }}>{t.home.tradingMode}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{t.home.tradingModeSub}</div>
+            </div>
+            <span style={{ fontSize: '9px', letterSpacing: '1px', borderRadius: '999px', padding: '3px 8px', border: '0.5px solid #2f2f2f', color: '#6e6e6e', fontFamily: 'var(--font-body)', fontWeight: 700, flexShrink: 0 }}>{t.home.comingSoon}</span>
           </div>
 
           {/* Hero: Portfolio */}
           <button
             onClick={() => onSelect('portfolio')}
-            style={{ width: '100%', background: 'var(--gradient-surface)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.05s both' }}
+            style={{ width: '100%', background: 'var(--gradient-surface)', border: '0.5px solid var(--border-pink)', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.07s both' }}
             onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
             onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
             onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
@@ -424,18 +436,6 @@ export default function Home({ onSelect }) {
             </div>
             <span style={{ color: 'var(--text-primary)', fontSize: '18px', flexShrink: 0 }}>›</span>
           </button>
-
-          {/* Trading Mode — próximamente */}
-          <div
-            style={{ width: '100%', background: 'var(--gradient-surface)', border: '1px dashed #2f2f2f', borderRadius: 'var(--radius-lg)', padding: '18px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'default', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.07s both', opacity: 0.62 }}
-          >
-            <div style={{ width: '44px', height: '44px', borderRadius: 'var(--radius-md)', background: 'rgba(96,165,250,0.10)', border: '1px solid rgba(96,165,250,0.3)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><CandlestickChart size={22} strokeWidth={2} aria-hidden style={{ stroke: '#60a5fa' }} /></div>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '15px', color: 'var(--text-primary)', marginBottom: '3px' }}>{t.home.tradingMode}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{t.home.tradingModeSub}</div>
-            </div>
-            <span style={{ fontSize: '9px', letterSpacing: '1px', borderRadius: '999px', padding: '3px 8px', border: '0.5px solid rgba(96,165,250,0.4)', color: '#60a5fa', fontFamily: 'var(--font-body)', fontWeight: 700, flexShrink: 0 }}>{t.home.comingSoon}</span>
-          </div>
 
           {/* Hero: Daily */}
           <button
@@ -457,16 +457,16 @@ export default function Home({ onSelect }) {
           {/* Torneos */}
           <button
             onClick={() => onSelect('tournament')}
-            style={{ width: '100%', background: 'var(--bg-surface)', border: '0.5px solid var(--border-default)', borderRadius: 'var(--radius-lg)', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.13s both' }}
+            style={{ width: '100%', background: 'linear-gradient(135deg, rgba(232,185,60,0.06), transparent)', border: '1px solid rgba(232,185,60,0.45)', borderRadius: 'var(--radius-lg)', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.13s both', boxShadow: '0 0 16px rgba(232,185,60,0.08)' }}
             onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
             onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
             onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
             onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
           >
-            <div style={{ width: '38px', height: '38px', borderRadius: 'var(--radius-md)', background: 'var(--bg-base)', border: '0.5px solid var(--border-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><ModeIcon id="tournament" size={20} style={{ stroke: 'var(--text-muted)' }} /></div>
+            <div style={{ width: '38px', height: '38px', borderRadius: 'var(--radius-md)', background: 'rgba(232,185,60,0.12)', border: '0.5px solid var(--border-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><ModeIcon id="tournament" size={20} style={{ stroke: '#e8b93c' }} /></div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color: 'var(--text-primary)', marginBottom: '3px' }}>{t.home.mode3}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{TOURNAMENT_SUB[lang]}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: '#e8b93c' }}>{TOURNAMENT_SUB[lang]}</div>
             </div>
             <span style={{ color: 'var(--text-primary)', fontSize: '18px', flexShrink: 0 }}>›</span>
           </button>
