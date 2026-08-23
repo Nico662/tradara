@@ -457,16 +457,16 @@ export default function Home({ onSelect }) {
           {/* Torneos */}
           <button
             onClick={() => onSelect('tournament')}
-            style={{ width: '100%', background: 'linear-gradient(135deg, rgba(232,185,60,0.06), transparent)', border: '1px solid rgba(232,185,60,0.45)', borderRadius: 'var(--radius-lg)', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.13s both', boxShadow: '0 0 16px rgba(232,185,60,0.08)' }}
+            style={{ width: '100%', background: 'linear-gradient(135deg, rgba(248,113,113,0.06), transparent)', border: '1px solid rgba(248,113,113,0.45)', borderRadius: 'var(--radius-lg)', padding: '14px 16px', display: 'flex', alignItems: 'center', gap: '14px', cursor: 'pointer', transition: 'transform 0.1s', textAlign: 'left', animation: 'fadeInUp 0.4s cubic-bezier(0.4,0,0.2,1) 0.13s both', boxShadow: '0 0 16px rgba(248,113,113,0.08)' }}
             onMouseDown={e => e.currentTarget.style.transform = 'scale(0.98)'}
             onMouseUp={e => e.currentTarget.style.transform = 'scale(1)'}
             onTouchStart={e => e.currentTarget.style.transform = 'scale(0.98)'}
             onTouchEnd={e => e.currentTarget.style.transform = 'scale(1)'}
           >
-            <div style={{ width: '38px', height: '38px', borderRadius: 'var(--radius-md)', background: 'rgba(232,185,60,0.12)', border: '0.5px solid var(--border-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><ModeIcon id="tournament" size={20} style={{ stroke: '#e8b93c' }} /></div>
+            <div style={{ width: '38px', height: '38px', borderRadius: 'var(--radius-md)', background: 'rgba(248,113,113,0.12)', border: '0.5px solid var(--border-default)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}><ModeIcon id="tournament" size={20} style={{ stroke: '#f87171' }} /></div>
             <div style={{ flex: 1 }}>
               <div style={{ fontFamily: 'var(--font-body)', fontWeight: 900, fontSize: '13px', color: 'var(--text-primary)', marginBottom: '3px' }}>{t.home.mode3}</div>
-              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: '#e8b93c' }}>{TOURNAMENT_SUB[lang]}</div>
+              <div style={{ fontFamily: 'var(--font-body)', fontSize: '12px', fontWeight: 600, color: 'var(--text-muted)' }}>{TOURNAMENT_SUB[lang]}</div>
             </div>
             <span style={{ color: 'var(--text-primary)', fontSize: '18px', flexShrink: 0 }}>›</span>
           </button>
